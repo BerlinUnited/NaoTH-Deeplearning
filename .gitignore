@@ -1,0 +1,5 @@
+# ignore python stuff
+venv/*
+
+# ignore pycharm files
+.idea/*
