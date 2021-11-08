@@ -11,7 +11,7 @@ done as part of the RoboCup SPL efforts of the Berlin United Team.
 - create datasets for large networks used for auto annotation in cvat
 - create robot detection datasets
 
-## Auto Augmentation
+## Auto Annotation
 - code for training models used for auto annotation
 - document how to set up auto annotation for cvat
 

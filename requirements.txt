@@ -1,0 +1,4 @@
+# global requirements for all sub projects
+
+requests
+pyqt5 # so matplotlib can draw stuff

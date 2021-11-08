@@ -1,5 +1,9 @@
 # ignore python stuff
 venv/*
+.venv/*
 
 # ignore pycharm files
 .idea/*
+
+# ignore secret data
+.credentials
