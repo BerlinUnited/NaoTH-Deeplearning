@@ -5,6 +5,8 @@
 import requests
 import tqdm 
 import json
+from time import sleep
+from pathlib import Path
 
 
 def login(session):
@@ -32,15 +34,18 @@ def get_annotation_formats(session):
     print(response.json()['exporters'][0]['name'])
 
 
-def download_dataset(session):
+def download_dataset(session, task_id):
     # TODO make url more generic
-    url = 'https://ball.informatik.hu-berlin.de/api/v1/tasks/67/dataset?format=YOLO%201.1&action=download'
-    local_filename = 'test.zip' # FIXME
-    # TODO check if it always works
+    url = 'https://ball.informatik.hu-berlin.de/api/v1/tasks/{}/dataset?format=YOLO%201.1&action=download'.format(task_id)
+    local_filename = Path(__file__).absolute().parent.parent /'data/{}.zip'.format(task_id)
     # TODO check if original data is actually downloaded. This might be important in some cases
 
     with session.get(url, stream=True) as r:
         r.raise_for_status()
+        while r.status_code == 202:
+            r = session.get(url, stream=True)
+            sleep(1)
+        
         total_size_in_bytes= int(r.headers.get('content-length', 0))
         progress_bar = tqdm.tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
         with open(local_filename, 'wb') as f:
@@ -65,11 +70,19 @@ def get_unfinished_tasks(session, project_id):
 
     return unfinished_tasks
 
+
+def download_unfinished_tasks(session):
+    task_list = get_unfinished_tasks(session, project_id=2)
+    for task_id in task_list:
+        download_dataset(session, task_id)
+
+
 with requests.Session() as session:
     login(session)
     #get_projects(session)
-    #download_dataset(session)
-    get_unfinished_tasks(session, 2)
+    #download_dataset(session, 66)
+    download_unfinished_tasks(session)
+    
 
 
     
