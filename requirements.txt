@@ -2,3 +2,5 @@
 
 requests
 pyqt5 # so matplotlib can draw stuff
+opencv-python
+toml==0.10.2

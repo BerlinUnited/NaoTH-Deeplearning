@@ -9,4 +9,5 @@ venv/*
 .credentials
 
 # ignore data
-*.zip
+data/
+/auto_annotation/models/__pycache__/
