@@ -50,17 +50,17 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
 
 
 if __name__ == '__main__':
-    # TODO load data folder from config file
+    # load data folder from config file
     with open('classification.toml', 'r') as f:
         config_dict = toml.load(f)
     cfg = config_dict["classification_1"]
 
     data_root_path = Path(cfg["data_root_path"]).resolve()
  
-    # TODO make a backup on our own servers
-    download_bhuman2019("https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/b-alls-2019.hdf5",
+    # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
+    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
                         f"{data_root_path}/bhuman/b-alls-2019.hdf5")
-    download_bhuman2019("https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/readme.txt",
+    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/readme.txt",
                         f"{data_root_path}/bhuman/readme.txt")
 
     # get data
