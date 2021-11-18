@@ -1,6 +1,8 @@
 # ignore python stuff
 venv/*
 .venv/*
+/auto_annotation/models/__pycache__/
+*.cpython-39.pyc
 
 # ignore pycharm files
 .idea/*
@@ -10,5 +12,4 @@ venv/*
 
 # ignore data
 data_cvat/
-/auto_annotation/models/__pycache__/
-*.cpython-39.pyc
+data_balldetection/
