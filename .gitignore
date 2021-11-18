@@ -9,5 +9,6 @@ venv/*
 .credentials
 
 # ignore data
-data/
+data_cvat/
 /auto_annotation/models/__pycache__/
+*.cpython-39.pyc
