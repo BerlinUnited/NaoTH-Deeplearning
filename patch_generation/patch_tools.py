@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from cppyy import addressof, bind_object
 import cppyy.ll
 from cppyy_tools import *
-
+from pathlib import Path
 
 
 
@@ -56,14 +56,6 @@ class Frame(NamedTuple):
 
 
 def get_frames_for_dir(d, transform_to_squares=False):
-    # parse the CVAT XML 1.1 for images file with the annotations, we assume it has the same name as the directory, but ends with ".xml"
-    """
-    annos_file = d.rstrip("/\\") + ".xml"
-    if os.path.isfile(annos_file):
-        annos = ET.parse(annos_file)
-    else:
-        raise "annotation file " + annos_file + " was not found!"
-    """
     file_names = os.listdir(d)
     file_names.sort()
     imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
@@ -100,11 +92,14 @@ def get_frames_for_dir(d, transform_to_squares=False):
     return result
 
 
-def load_image(f: Frame):
+def load_image(image_filename):
+    """
+        this functions loads an image in the correct format for the naoth library
+    """
     # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
     # and we need to make sure loading the dummy simulator shared library happens first
     import cv2
-    cv_img = cv2.imread(f)
+    cv_img = cv2.imread(image_filename)
 
     # convert image for bottom to yuv422
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
@@ -117,21 +112,10 @@ def load_image(f: Frame):
     return yuv422
 
 
-def create_debug_image(file, balls, patches):
-    import cv2
-
-    img = cv2.imread(file)
-
-    # draw the generated patches with their respective IOU (with first ball)
-    print()
-    print(patches)
-    for p in patches:
-        cv2.rectangle(img, (p.min.x, p.min.y), (p.max.x, p.max.y), (0, 0, 255))
-
-    return img
 
 
-class Evaluator:
+
+class PatchExecutor:
 
     def __init__(self):
         naoth_dir = get_naoth_dir()
@@ -226,8 +210,6 @@ class Evaluator:
             self.ball_detector.getRequire().at("Image").copyImageDataYUV422(
                 black.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8)), black.size)
 
-        print(frame.file)
-
         # load image in YUV422 format
         yuv422 = load_image(frame.file)
         p_data = yuv422.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))
@@ -253,7 +235,10 @@ class Evaluator:
             for r in range(0, 3):
                 p.rotation.c[c][r] = frame.cam_matrix_rotation[r, c]
 
-    def evaluate_detection(self, frame: Frame, eval_functions, debug_threshold=None):
+    def export_debug_images(self, frame: Frame):
+        """
+            this function exports the input images with the calculated patches overlayed
+        """
         import cv2
 
         # get the ball candidates from the module
@@ -262,69 +247,54 @@ class Evaluator:
         else:
             detected_balls = self.ball_detector.getProvide().at("BallCandidatesTop")
 
-        title = "Ball Evaluator: press any key to continue or Q to exit"
-        if True:
-            #cv2.namedWindow(title)
-            img = create_debug_image(
-                frame.file, frame.balls, detected_balls.patchesYUVClassified)
-            cv2.imwrite("test.png", img)
+        img = cv2.imread(frame.file)
+        for p in detected_balls.patchesYUVClassified:
+            cv2.rectangle(img, (p.min.x, p.min.y), (p.max.x, p.max.y), (0, 0, 255))
 
-            #cv2.imshow(title, img)
-            key = cv2.waitKey()
-        else:
-            img = np.ones((240, 320))*255
-            #cv2.imshow(title, img)
-            
-            quit()
-            key = cv2.waitKey(1)
+        output_file = self.output_folder / "debug_images" / Path(frame.file).name
+        Path(output_file.parent).mkdir(exist_ok=True, parents=True)
+        cv2.imwrite(str(output_file), img)
 
-        if key == 113 or key == 27:
-            exit(0)
-        elif key == 114:
-            # repeat execution of the current frame, but do not count in statistics
-            print("Repeating frame")
-            return True
+    def export_patches():
+        """
+            This should export patches as images for future training
+        """
+        pass
 
-                    
-        # Continue with next frame
-        return False
+    def get_output_folder(self, directory):
+        """
+            TODO can this be done cooler?
+            finds the parent folder of obj_train_data. In this folder new folders for various output are created.
+            This assumes we have yolo output
+        """
+        for parent_folder in Path(directory).parents:
+            if parent_folder.name == "obj_train_data":
+                return parent_folder.parent
+
+        print("arg")
+        sys.exit()
 
     def execute(self, directories):
         for d in directories:
             frames = get_frames_for_dir(d, False)
+            self.output_folder = self.get_output_folder(d)
+
+            # HACK: run first frame twice
             for f in frames:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
-                while self.evaluate_detection(f, eval_functions=False, debug_threshold=False):
-                    self.set_current_frame(f)
-                    self.sim.executeFrame()
+                self.export_debug_images(f)
+                break
 
-
-
-
+            for f in frames:
+                self.set_current_frame(f)
+                self.sim.executeFrame()
+                self.export_debug_images(f)
 
 
 if __name__ == "__main__":
-    #"""
-    #parser = argparse.ArgumentParser(
-    #    description='Evaluate ball detection on logfile images annotated with CVAT.')
-    #parser.add_argument('directory', nargs='+',
-    #                    help="""A list of directories containing the images files (as png with the integrated camera matrix).
-    #                    It is expected that an XML with the same name (but ending with .xml) is located in the parent folder of each given folder.""")
-
-    #parser.add_argument("--csv=F", type=str, dest="csv",
-    #                    help="Output the scores to the given CSV file")
-
-    #parser.add_argument("--squares", action="store_true",
-    #                    help="If given, transform the bounding boxes to squares before calculating the scores.")
-
-    #parser.add_argument('--debug-threshold=T', type=float, dest="debug_threshold",
-    #                    help="If an image has a score with a worse than the given threshold, include this image in a debug view.")
-    #args = parser.parse_args()
-    #"""
-    evaluator = Evaluator()
+    evaluator = PatchExecutor()
     with cppyy.ll.signals_as_exception():
-        bla = ["/home/stella/Downloads/obj_train_data/rc19-experiment/OUTDOOR1-top/"]
+        bla = ["/home/stella/RoboCup/Repositories/naoth-deeplearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
         evaluator.execute(bla)
-    
 

@@ -226,8 +226,8 @@ with requests.Session() as session:
     login(session)
     #get_projects(session)
     #download_dataset(session, task_id=66)
-    #download_unfinished_tasks(session, project_id=2)
-    #download_finished_tasks(session, project_id=2)
+    download_unfinished_tasks(session, project_id=3)
+    download_finished_tasks(session, project_id=3)
     unpack_zips()
 
     # TODO add function to combine train.txt files
