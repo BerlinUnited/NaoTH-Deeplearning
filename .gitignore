@@ -13,3 +13,4 @@ venv/*
 # ignore data
 data_cvat/
 data_balldetection/
+data_segmentation/
