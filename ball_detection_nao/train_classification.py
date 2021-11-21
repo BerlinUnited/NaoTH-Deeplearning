@@ -16,7 +16,7 @@ def load_model(cfg):
     if "model_name" in cfg.keys():
         method_to_call = getattr(model_zoo, cfg["model_name"])
         model = method_to_call()
-        # TODO how to handle execptions of getattr?
+        # TODO how to handle exceptions of getattr?
         return model
     else:
         print(
@@ -31,7 +31,6 @@ def main(config_name):
     cfg = config_dict[config_name]
     model = load_model(cfg)
     DATA_DIR = Path(cfg["data_root_path"]).resolve()
-
 
     data_file = str(DATA_DIR / cfg["trainings_data"])
     with open(data_file, "rb") as f:
@@ -57,7 +56,6 @@ def main(config_name):
     # history = model.fit(x, y, batch_size=args.batch_size, epochs=args.epochs, verbose=1,
     # validation_data=(X_test, Y_test),callbacks=callbacks)
     # TODO set seed so that validation split is the same for all
-    print("blablabla")
     history = model.fit(x, y, batch_size=cfg["batch_size"], epochs=cfg["epochs"], verbose=1,
                         validation_split=0.1,
                         callbacks=callbacks)
@@ -73,4 +71,3 @@ def main(config_name):
 
 if __name__ == '__main__':
     main("classification_2")
-

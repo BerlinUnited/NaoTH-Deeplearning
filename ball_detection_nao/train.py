@@ -19,7 +19,7 @@ def load_model(my_config):
     if "model_name" in my_config.keys():
         method_to_call = getattr(model_zoo, my_config["model_name"])
         model = method_to_call()
-        # TODO how to handle execptions of getattr?
+        # TODO how to handle exceptions of getattr?
         return model
     elif "proceed" in my_config.keys() and my_config["proceed"] is True:
         # if you use proceed then you have to give in a model
@@ -88,4 +88,3 @@ def main(config_name):
 
 if __name__ == '__main__':
     main("stella_config")
-

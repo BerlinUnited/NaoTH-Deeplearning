@@ -11,34 +11,35 @@ import h5py
 import toml
 from pathlib import Path
 import cv2
-import random
 
 from utility_functions.loader import calculate_mean, subtract_mean
 from utility_functions.bhuman_helper import download_bhuman2019
 
 
 def create_classification_dataset(data_root_path, negative_data, positive_data):
-    images = np.append(positive_data,negative_data,  axis=0)
-    mean = calculate_mean(images)
-    mean_images = subtract_mean(images, mean)
+    images = np.append(positive_data, negative_data, axis=0)
 
     negative_labels = [0] * len(negative_data)
     positive_labels = [1] * len(positive_data)
-    labels = positive_labels + negative_labels
-    
-    # randomize the images and the labels
-    c = list(zip(mean_images, labels))
-    random.shuffle(c)
-    mean_images, labels = zip(*c)
+    labels = np.array(positive_labels + negative_labels)
+
+    # initialize own pseudorandom number generator with seed
+    rng = np.random.default_rng(42)
+    indices = np.arange(images.shape[0])
+    rng.shuffle(indices)
+
+    images = images[indices]
+    labels = labels[indices]
+
+    mean = calculate_mean(images)
+    mean_images = subtract_mean(images, mean)
 
     with open(f"{data_root_path}/bhuman_classification.pkl", "wb") as f:
         pickle.dump(mean, f)
         pickle.dump(mean_images, f)
-        pickle.dump(np.array(labels), f)
-    
-    # resize bhuman images from 32x32 to 16x16
+        pickle.dump(labels, f)
 
-    # FIXME randomize is not used here
+    # resize bhuman images from 32x32 to 16x16
     smaller_data = list()
     for image in images:
         new_image = cv2.resize(image, dsize=(16, 16), interpolation=cv2.INTER_CUBIC)
@@ -53,7 +54,7 @@ def create_classification_dataset(data_root_path, negative_data, positive_data):
     with open(f"{data_root_path}/bhuman_classification_16x16.pkl", "wb") as f:
         pickle.dump(new_mean, f)
         pickle.dump(new_mean_images, f)
-        pickle.dump(np.array(labels), f)
+        pickle.dump(labels, f)
 
 
 def create_detection_dataset(data_root_path, negative_data, positive_data, negative_labels, positive_labels):
@@ -95,14 +96,14 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
         pickle.dump(new_labels, f)
 
 
-if __name__ == '__main__':
+def main():
     # load data folder from config file
     with open('classification.toml', 'r') as f:
         config_dict = toml.load(f)
     cfg = config_dict["classification_2"]
 
     data_root_path = Path(cfg["data_root_path"]).resolve()
- 
+
     # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
     download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
                         f"{data_root_path}/bhuman/b-alls-2019.hdf5")
@@ -111,11 +112,15 @@ if __name__ == '__main__':
 
     # get data
     f = h5py.File(f'{data_root_path}/bhuman/b-alls-2019.hdf5', 'r')
-    
+
     negative_data = np.array(f.get('negatives/data'))
     positive_data = np.array(f.get('positives/data'))
     negative_labels = np.array(f.get('negatives/labels'))
     positive_labels = np.array(f.get('positives/labels'))
-    
+
     create_classification_dataset(data_root_path, negative_data, positive_data)
-    #create_detection_dataset(data_root_path, negative_data, positive_data, negative_labels, positive_labels)
+    # create_detection_dataset(data_root_path, negative_data, positive_data, negative_labels, positive_labels)
+
+
+if __name__ == '__main__':
+    main()
