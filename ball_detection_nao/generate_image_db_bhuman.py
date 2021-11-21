@@ -18,6 +18,16 @@ from utility_functions.bhuman_helper import download_bhuman2019
 
 def create_classification_dataset(data_root_path, negative_data, positive_data):
     images = np.append(positive_data, negative_data, axis=0)
+    images = images / 255.0
+    """
+    min_val = list()
+    max_val = list()
+    for image in images:
+        min_val.append(image.min())
+        max_val.append(image.max())
+    print(np.array(min_val).min())
+    print(np.array(max_val).max())
+    """
 
     negative_labels = [0] * len(negative_data)
     positive_labels = [1] * len(positive_data)

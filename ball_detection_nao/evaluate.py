@@ -24,7 +24,6 @@ if __name__ == '__main__':
 
     with open(args.imgdb_path, "rb") as f:
         mean = pickle.load(f)
-        print("mean=" + str(mean))
         x = pickle.load(f)
         y = pickle.load(f)
 

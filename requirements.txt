@@ -2,10 +2,11 @@
 
 requests
 pyqt5 # so matplotlib can draw stuff
-opencv-python
+opencv-python==4.5.3.56
 numpy
 tensorflow==2.7.0
 toml==0.10.2
 cppyy==2.2.0
 kaggle==1.5.12
 h5py  # we need for b-human dataset but it comes in an old version with tensorflow
+pydot

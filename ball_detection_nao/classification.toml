@@ -3,8 +3,9 @@
 model_name = "naoth_classification1"
 metrics = ["ClassificationMetric", "IoU"]
 trainings_data = "bhuman_classification_16x16.pkl"
-batch_size = 16
+batch_size = 64
 epochs = 30
+mean_subtraction = true
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
 
 data_root_path = "../data_balldetection"
@@ -14,13 +15,30 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 
+# Classification stuff
+[classification_1_no_mean]
+model_name = "naoth_classification1"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "bhuman_classification_16x16.pkl"
+batch_size = 64
+epochs = 30
+mean_subtraction = false
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "../data_balldetection"
+output_path = "models"
+
+##### compile only options
+# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
+compile_debug = false
 
 [classification_2]
 model_name = "naoth_classification2"
 metrics = ["ClassificationMetric", "IoU"]
 trainings_data = "bhuman_classification.pkl"
-batch_size = 16
+batch_size = 64
 epochs = 30
+mean_subtraction = true
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
 
 data_root_path = "../data_balldetection"
@@ -30,12 +48,13 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 
-[classification_3]
-model_name = "naoth_classification1"
+[classification_2_no_mean]
+model_name = "naoth_classification2"
 metrics = ["ClassificationMetric", "IoU"]
-trainings_data = "tk03_synthetic_classification.pkl"
-batch_size = 16
+trainings_data = "bhuman_classification.pkl"
+batch_size = 64
 epochs = 30
+mean_subtraction = false
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
 
 data_root_path = "../data_balldetection"
@@ -45,12 +64,13 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 
-[classification_4]
+[classification_tk_natural]
 model_name = "naoth_classification1"
 metrics = ["ClassificationMetric", "IoU"]
 trainings_data = "tk03_natural_classification.pkl"
-batch_size = 16
+batch_size = 64
 epochs = 30
+mean_subtraction = true
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
 
 data_root_path = "../data_balldetection"
@@ -60,12 +80,29 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 
-[classification_5]
+[classification_tk_synthetic]
+model_name = "naoth_classification1"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "tk03_synthetic_classification.pkl"
+batch_size = 64
+epochs = 30
+mean_subtraction = true
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "../data_balldetection"
+output_path = "models"
+
+##### compile only options
+# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
+compile_debug = false
+
+[classification_tk_combined]
 model_name = "naoth_classification1"
 metrics = ["ClassificationMetric", "IoU"]
 trainings_data = "tk03_combined_classification.pkl"
 batch_size = 16
 epochs = 30
+mean_subtraction = true
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
 
 data_root_path = "../data_balldetection"
