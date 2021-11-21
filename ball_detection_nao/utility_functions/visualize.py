@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import pickle
 from pathlib import Path
+import matplotlib.patches as ptc
 from bhuman_helper import download_bhuman2019
 
-DATA_DIR = Path(Path(__file__).parent.parent.absolute() / "data").resolve()
-MODEL_DIR = Path(Path(__file__).parent.parent.absolute() / "data/best_models").resolve()
+DATA_DIR = Path(Path(__file__).parent.parent.parent.absolute() / "data_balldetection").resolve()
 
 
 class BhumanVisualizer(object):
@@ -21,12 +21,7 @@ class BhumanVisualizer(object):
         self.init_plot()
 
     def get_b_human_data(self):
-        download_bhuman2019("https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/b-alls-2019.hdf5",
-                            str(DATA_DIR) + "/bhuman/b-alls-2019.hdf5")
-        download_bhuman2019("https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/readme.txt",
-                            str(DATA_DIR) + "/bhuman/readme.txt")
-
-        f = h5py.File('../data/bhuman/b-alls-2019.hdf5', 'r')
+        f = h5py.File(f'{DATA_DIR}/bhuman/b-alls-2019.hdf5', 'r')
 
         # TODO combine the data and
         self.negative_data = np.array(f.get('negatives/data'))
@@ -138,6 +133,73 @@ class TK3Visualizer(object):
             plt.draw()
 
 
+class BhumanVisualizer2(object):
+    def __init__(self, index_start):
+        self.ind = index_start + 1
+        self.patch_size = 32
+
+        imgdb_path = str(DATA_DIR / 'bhuman_classification.pkl')
+        with open(imgdb_path, "rb") as f:
+            mean = pickle.load(f)
+            self.x = pickle.load(f)
+            self.y = pickle.load(f)
+
+        # set patch size to either 32 or 16
+        self.patch_size = self.x[0].shape[0]
+
+        self.init_plot()
+
+    def init_plot(self):
+        # Adjust bottom to make room for Buttons
+        fig = plt.figure(figsize=(8, 8))
+        columns = 4
+        rows = 5
+        start_value = 0
+
+        self.subplot_list = list()
+
+        for plot_idx, i in enumerate(range(start_value, start_value + columns * rows)):
+            img = self.x[i]
+            a = fig.add_subplot(rows, columns, plot_idx + 1)
+            self.subplot_list.append(a)
+            current_label = self.y[i]
+
+            # only draw patch overay if there is actually a positive annotation in the groundtruth
+            if current_label == 1:
+                rec = ptc.Rectangle((0, 0), width=self.patch_size + 1, height=self.patch_size + 1, alpha=0.3)
+                ax = fig.gca()
+                ax.add_patch(rec)
+
+            plt.imshow(img, cmap='gray')
+
+        # Connect to a "switch" Button, setting its left, top, width, and height
+        axswitch = plt.axes([0.40, 0.07, 0.2, 0.05])
+        bswitch = Button(axswitch, 'Next')
+        bswitch.on_clicked(self.next)
+        plt.show()
+
+    # This function is called when bswitch is clicked
+    def next(self, event):
+        for idx, subplot in enumerate(self.subplot_list):
+            subplot.cla()
+            # get new image data
+            img = self.x[self.ind]
+            current_label = self.y[self.ind]
+
+            # only draw patch overay if there is actually a positive annotation in the groundtruth
+            if current_label == 1:
+                rec = ptc.Rectangle((0, 0), width=self.patch_size + 1, height=self.patch_size + 1, alpha=0.3)
+                subplot.add_patch(rec)
+
+            subplot.imshow(img, cmap='gray')
+
+            self.ind += 1
+            plt.draw()
+
+
 if __name__ == '__main__':
-    # BhumanVisualizer(0)
-    TK3Visualizer(0)
+    #BhumanVisualizer(0)
+    #TK3Visualizer(0)
+
+    # bhuman visualizer2 which actually uses the created pkl files for visualization
+    BhumanVisualizer2(100)

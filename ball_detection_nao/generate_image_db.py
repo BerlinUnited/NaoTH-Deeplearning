@@ -17,7 +17,7 @@ from utility_functions.loader import create_natural_dataset, create_blender_dete
     subtract_mean, create_blender_segmentation_dataset, create_blender_classification_dataset, \
     create_blender_detection_dataset_without_classification
 
-DATA_DIR = Path(Path(__file__).parent.absolute() / "data").resolve()
+DATA_DIR = Path("../data_balldetection").resolve()
 
 
 def download_from_kaggle():

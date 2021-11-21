@@ -5,3 +5,4 @@ pyqt5 # so matplotlib can draw stuff
 opencv-python
 toml==0.10.2
 cppyy==2.2.0
+kaggle==1.5.12

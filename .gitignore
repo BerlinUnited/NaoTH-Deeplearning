@@ -14,3 +14,4 @@ venv/*
 data_cvat/
 data_balldetection/
 data_segmentation/
+ball_detection_nao/models/
