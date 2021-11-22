@@ -1,5 +1,6 @@
 # global requirements for all sub projects
 
+Pillow
 requests
 pyqt5 # so matplotlib can draw stuff
 opencv-python==4.5.3.56
