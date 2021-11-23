@@ -185,48 +185,23 @@ class PatchExecutor:
         self.moduleManager = cppyy.gbl.getModuleManager(cog)
 
         # get the ball detector module
-        self.ball_detector = self.moduleManager.getModule(
-            "CNNBallDetector").getModule()
+        self.ball_detector = self.moduleManager.getModule("CNNBallDetector").getModule()
+
+        # disable the modules providing the camera matrix, because we want to use our own
+        self.moduleManager.getModule("CameraMatrixFinder").setEnabled(False)
+        self.moduleManager.getModule("FakeCameraMatrixFinder").setEnabled(False)
 
         cppyy.cppdef("""
-               Pose3D* my_convert(CameraMatrix* m) { return static_cast<Pose3D*>(m); }
+               Pose3D* toPose3D(CameraMatrix* m) { return static_cast<Pose3D*>(m); }
                 """)
 
         # restore original working directory
         os.chdir(orig_working_dir)
 
-    def set_current_frame(self, frame):
-        # get reference to the image input representation
-        if frame.bottom:
-            imageRepresentation = self.ball_detector.getRequire().at("Image")
-            # set other image to black
-            black = np.zeros(640*480*2, np.uint8)
-            self.ball_detector.getRequire().at("ImageTop").copyImageDataYUV422(
-                black.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8)), black.size)
-        else:
-            imageRepresentation = self.ball_detector.getRequire().at("ImageTop")
-            # set other image to black
-            black = np.zeros(640*480*2, np.uint8)
-            self.ball_detector.getRequire().at("Image").copyImageDataYUV422(
-                black.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8)), black.size)
 
-        # load image in YUV422 format
-        yuv422 = load_image(frame.file)
-        p_data = yuv422.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))
-
-        # move image into representation
-        imageRepresentation.copyImageDataYUV422(p_data, yuv422.size)
-        # set camera matrix
-        if frame.bottom:
-            camMatrix = self.ball_detector.getRequire().at("CameraMatrix")
-            # invalidate other camera matrix
-            self.ball_detector.getRequire().at("CameraMatrixTop").valid = False
-        else:
-            camMatrix = self.ball_detector.getRequire().at("CameraMatrixTop")
-            # invalidate other camera matrix
-            self.ball_detector.getRequire().at("CameraMatrix").valid = False      
-
-        p = cppyy.gbl.my_convert(camMatrix)
+    def read_CameraMatrixFromFrame(self, frame, camMatrix):
+        
+        p = cppyy.gbl.toPose3D(camMatrix)
         p.translation.x = frame.cam_matrix_translation[0]
         p.translation.y = frame.cam_matrix_translation[1]
         p.translation.z = frame.cam_matrix_translation[2]
@@ -234,6 +209,46 @@ class PatchExecutor:
         for c in range(0, 3):
             for r in range(0, 3):
                 p.rotation.c[c][r] = frame.cam_matrix_rotation[r, c]
+                
+        return p
+        
+    # helper: write a numpy array of data to an image representation
+    def writeDataToImage(self, data, image):
+        # create a pointer
+        p_data = data.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))
+
+        # move image into representation
+        image.copyImageDataYUV422(p_data, data.size)
+
+    def set_current_frame(self, frame):
+    
+        # get access to relevant representations
+        imageBottom     = self.ball_detector.getRequire().at("Image")
+        imageTop        = self.ball_detector.getRequire().at("ImageTop")
+        camMatrixBottom = self.ball_detector.getRequire().at("CameraMatrix")
+        camMatrixTop    = self.ball_detector.getRequire().at("CameraMatrixTop")
+        
+        camMatrixBottom.valid = False
+        camMatrixTop.valid    = False
+        
+        # load image in YUV422 format
+        yuv422 = load_image(frame.file)
+        black = np.zeros(640*480*2, np.uint8)
+        
+        # get reference to the image input representation
+        if frame.bottom:
+            self.writeDataToImage(yuv422, imageBottom)
+            self.writeDataToImage(black , imageTop)
+            
+            self.read_CameraMatrixFromFrame(frame, camMatrixBottom)
+            camMatrixBottom.valid = True
+        else: # top
+            self.writeDataToImage(black , imageBottom)
+            self.writeDataToImage(yuv422, imageTop)
+            
+            self.read_CameraMatrixFromFrame(frame, camMatrixTop)
+            camMatrixBottom.valid = False
+
 
     def export_debug_images(self, frame: Frame):
         """
@@ -279,12 +294,16 @@ class PatchExecutor:
             frames = get_frames_for_dir(d, False)
             self.output_folder = self.get_output_folder(d)
 
-            # HACK: run first frame twice
-            for f in frames:
+            # DEBUG: repeat a frame
+            '''
+            f = frames[0]
+            for i in range(1,10):
+                input("Press Enter to continue...")
+                print("---- {} ------".format(i))
                 self.set_current_frame(f)
                 self.sim.executeFrame()
                 self.export_debug_images(f)
-                break
+            '''
 
             for f in frames:
                 self.set_current_frame(f)
@@ -295,6 +314,7 @@ class PatchExecutor:
 if __name__ == "__main__":
     evaluator = PatchExecutor()
     with cppyy.ll.signals_as_exception():
-        bla = ["/home/stella/RoboCup/Repositories/naoth-deeplearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
-        evaluator.execute(bla)
+        heinrich = ["/mnt/d/RoboCup/repo/NaoTH-DeepLearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
+        stella = ["/home/stella/RoboCup/Repositories/naoth-deeplearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
+        evaluator.execute(stella)
 
