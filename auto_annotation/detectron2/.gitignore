@@ -1,0 +1,10 @@
+# ignore python stuff
+.venv/*
+envs/*
+.idea/*
+
+# ignore trainings data
+data/*
+
+# ignore trainings output
+output/*
