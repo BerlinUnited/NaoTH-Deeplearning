@@ -1,0 +1,1 @@
+python main.py --multirun ball=ball1,ball2
