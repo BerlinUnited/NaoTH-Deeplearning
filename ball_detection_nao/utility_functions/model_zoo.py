@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Convolution2D, LeakyReLU, MaxPooling2D, Flat
     Softmax, concatenate, Dropout, UpSampling2D
 from tensorflow.keras import Model
 import inspect
-from utility_functions.metrics import ClassificationMetric, IoU
+from .metrics import ClassificationMetric, IoU
 
 # TODO maybe rewrite every model with functional api for more flexibility -> NN Compilers dont support that
 

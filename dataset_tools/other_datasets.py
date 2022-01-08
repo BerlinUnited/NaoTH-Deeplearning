@@ -2,7 +2,7 @@ from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
-from cvat_common_tools import get_data_root
+from common_tools import get_data_root
 
 
 def download_function(origin, target):

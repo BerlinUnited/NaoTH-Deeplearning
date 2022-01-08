@@ -13,6 +13,8 @@ This repo contains tools for datasets, learning, compiling and evaluating neural
 done as part of the RoboCup SPL efforts of the Berlin United Team.
 
 ## Dataset Tools
+TODO explain sshfs here
+
 - create pkl files for the old TK3 dataset as classification, detection and segmentation dataset
 - create pkl files for bhuman dataset
 - download annotated cvat datasets and create patches from those datasets

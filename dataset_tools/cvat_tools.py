@@ -27,7 +27,7 @@ import zipfile
 import os
 import urllib.parse
 
-from cvat_common_tools import login, get_data_root
+from common_tools import cvat_login, get_data_root
 
 
 def get_projects(session):
@@ -189,7 +189,7 @@ def download_all_tasks_from_project(relevant_project_ids):
     downloaded_datasets = list()
 
     with requests.Session() as session:
-        login(session)
+        cvat_login(session)
         exporter_format = get_annotation_formats(session)[0]  # coco format
         for project_id in relevant_project_ids:
             task_ids = get_all_tasks(session, project_id)
@@ -200,6 +200,33 @@ def download_all_tasks_from_project(relevant_project_ids):
                 downloaded_datasets.append(dataset_path)
 
     return downloaded_datasets
+
+
+def get_labels_from_tasks(session, task_id):
+    """
+        get the label names and id's that are valid for a given task
+
+        returns a dict like
+        {
+            name: id,
+            name: id
+        }
+        the label id's are needed for uploading annotations to a task
+    """
+    task_url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}'
+    try:
+        response = session.get(task_url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+
+    labels_list = response.json()["labels"]
+    label_dict = {}
+    for label in labels_list:
+
+        label_dict.update({label["name"]: label["id"]})
+
+    return label_dict
 
 
 def unpack_zips():
@@ -268,7 +295,7 @@ def fix_yolo_files(folder):
 
 def main():
     with requests.Session() as session:
-        login(session)
+        cvat_login(session)
         # get_projects(session)
         # exporters = get_annotation_formats(session)
         # exporters[0] is coco

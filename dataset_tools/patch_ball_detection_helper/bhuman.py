@@ -1,19 +1,37 @@
-"""
-Converts the b-human 2019 dataset to the naoth format so we can run performance comparisons
-
-TODO add option to make a balanced dataset
-TODO add option to only get negative images
-TODO randomize the result before writing it to a pickle file
-"""
-import pickle
 import numpy as np
-import h5py
-import toml
+import pickle
 from pathlib import Path
+from urllib.request import urlretrieve
+from urllib.error import HTTPError, URLError
 import cv2
 
-from utility_functions.loader import calculate_mean, subtract_mean
-from utility_functions.bhuman_helper import download_bhuman2019
+from .common import calculate_mean, subtract_mean
+
+
+# TODO rename and unify this with other locations where stuff is downloaded directly
+def download_bhuman2019(origin, target):
+    def dl_progress(count, block_size, total_size):
+        print('\r', 'Progress: {0:.2%}'.format(min((count * block_size) / total_size, 1.0)), sep='', end='', flush=True)
+
+    if not Path(target).exists():
+        target_folder = Path(target).parent
+        target_folder.mkdir(parents=True, exist_ok=True)
+    else:
+        return
+
+    error_msg = 'URL fetch failure on {} : {} -- {}'
+    try:
+        try:
+            urlretrieve(origin, target, dl_progress)
+            print('\nFinished')
+        except HTTPError as e:
+            raise Exception(error_msg.format(origin, e.code, e.reason))
+        except URLError as e:
+            raise Exception(error_msg.format(origin, e.errno, e.reason))
+    except (Exception, KeyboardInterrupt):
+        if Path(target).exists():
+            Path(target).unlink()
+        raise
 
 
 def create_classification_dataset(data_root_path, negative_data, positive_data):
@@ -44,7 +62,7 @@ def create_classification_dataset(data_root_path, negative_data, positive_data):
     mean = calculate_mean(images)
     mean_images = subtract_mean(images, mean)
 
-    with open(f"{data_root_path}/bhuman_classification.pkl", "wb") as f:
+    with open(f"{data_root_path}/bhuman_classification_32x32.pkl", "wb") as f:
         pickle.dump(mean, f)
         pickle.dump(mean_images, f)
         pickle.dump(labels, f)
@@ -82,7 +100,7 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
     mean = calculate_mean(images)
 
     mean_images = subtract_mean(images, mean)
-    with open(f"{data_root_path}/bhuman_detection.pkl", "wb") as f:
+    with open(f"{data_root_path}/bhuman_detection_32x32.pkl", "wb") as f:
         pickle.dump(mean, f)
         pickle.dump(mean_images, f)
         pickle.dump(new_labels, f)
@@ -104,33 +122,3 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
         pickle.dump(new_mean, f)
         pickle.dump(new_mean_images, f)
         pickle.dump(new_labels, f)
-
-
-def main():
-    # load data folder from config file
-    with open('classification.toml', 'r') as f:
-        config_dict = toml.load(f)
-    cfg = config_dict["classification_2"]
-
-    data_root_path = Path(cfg["data_root_path"]).resolve()
-
-    # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
-                        f"{data_root_path}/bhuman/b-alls-2019.hdf5")
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/readme.txt",
-                        f"{data_root_path}/bhuman/readme.txt")
-
-    # get data
-    f = h5py.File(f'{data_root_path}/bhuman/b-alls-2019.hdf5', 'r')
-
-    negative_data = np.array(f.get('negatives/data'))
-    positive_data = np.array(f.get('positives/data'))
-    negative_labels = np.array(f.get('negatives/labels'))
-    positive_labels = np.array(f.get('positives/labels'))
-
-    create_classification_dataset(data_root_path, negative_data, positive_data)
-    # create_detection_dataset(data_root_path, negative_data, positive_data, negative_labels, positive_labels)
-
-
-if __name__ == '__main__':
-    main()

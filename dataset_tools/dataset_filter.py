@@ -13,7 +13,7 @@ from pathlib import Path
 import toml
 from datumaro.components.dataset import Dataset
 
-from cvat_common_tools import get_data_root
+from common_tools import get_data_root
 
 
 def get_coco_dataset_from_path(dataset_path):

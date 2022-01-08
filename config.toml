@@ -1,2 +1,5 @@
 # Contains configs for downloading and creating datasets 
-data_root = "/home/stella/Documents/datasets/"
+#data_root = "/home/stella/Documents/datasets/"
+data_root = "C:/RoboCup/Datasets"
+# the usages of logs root expect the log folder on the repl server to be mounted via sshfs
+logs_root = "Q:/"

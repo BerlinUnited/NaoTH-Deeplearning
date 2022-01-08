@@ -10,6 +10,27 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from ..common_tools import get_data_root
+
+
+def download_tk03_dataset():
+    """
+    Downloading from kaggle only works if $HOME/.kaggle/kaggle.json with a working API Token exists. You can sign up to
+    kaggle and create your own: https://www.kaggle.com/docs/api
+
+    NaoTH Members can use the team credentials found in the accounts wiki page
+    """
+    os.environ['KAGGLE_USERNAME'] = 'hubnao'
+    os.environ['KAGGLE_KEY'] = '734455fc37853e123ff4a2a7a7f2ed2a'
+    from kaggle.api.kaggle_api_extended import KaggleApi
+    api = KaggleApi()
+    api.authenticate()
+
+    naoth_root_path = Path(get_data_root()) / "data_balldetection/naoth"
+
+    api.dataset_download_files('berlinunitednaoth/tk3balldetectionrobocup2019sydney',
+                               path=str(naoth_root_path / "TK-03"), quiet=False, unzip=True)
+
 
 def adjust_gamma(image, gamma=1.0):
     inv_gamma = 1.0 / gamma
@@ -637,11 +658,3 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
           " no ball images: " + str(len(complete_db_noball_list)))
 
     return input_images, targets, file_paths
-
-
-def calculate_mean(images):
-    return np.mean(images)
-
-
-def subtract_mean(images, mean):
-    return images - mean

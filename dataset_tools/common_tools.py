@@ -3,7 +3,7 @@ import requests
 import toml
 
 
-def login(session):
+def cvat_login(session):
     # TODO document credential file
     # TODO use main config toml instead of credential file (maybe)
     try:
@@ -25,3 +25,10 @@ def get_data_root():
         config_dict = toml.load(f)
 
     return config_dict["data_root"]
+
+
+def get_logs_root():
+    with open('../config.toml', 'r') as f:
+        config_dict = toml.load(f)
+
+    return config_dict["logs_root"]
