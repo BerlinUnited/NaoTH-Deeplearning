@@ -21,7 +21,7 @@ model_path = "fy_1500_new_tk03_combined_detection.h5"
 [stella_config]
 model_name = "fy_1500_new"
 metrics = ["ClassificationMetric", "IoU"]
-trainings_data = "tk03_combined_detection.pkl"
+trainings_data = "tk03_natural_detection.pkl"
 batch_size = 256
 epochs = 1
 proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
@@ -33,7 +33,7 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 #
-model_path = "fy_1500_new_tk03_combined_detection.h5"
+model_path = "fy_1500_new_tk03_natural_detection.h5"
 
 [config2]
 model_name = "fy_1500_old"

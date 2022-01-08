@@ -49,11 +49,10 @@ def main(config_name):
         x = (mean_x + mean)    
 
     # generate validation set
-    print(len(x))
     rng = np.random.default_rng(42)
-    a = rng.choice(x,3, replace=False)
-    print(a)
-    quit()
+    a = rng.choice(np.arange(len(x)), int(len(x) * 0.2), replace=False)
+    val_x = x[a]
+    val_y = y[a]
 
     """ 
         The save callback will overwrite the previous models if the new model is better then the last. Restarting the 
@@ -76,7 +75,7 @@ def main(config_name):
     # FIXME sometimes training gets stuck early on, then reducing the learning rate is not helpful
     # https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
     history = model.fit(x, y, batch_size=cfg["batch_size"], epochs=cfg["epochs"], verbose=1,
-                        validation_split=0.2, shuffle=True,
+                        validation_data=(val_x, val_y), shuffle=True,
                         callbacks=callbacks)
     history_filename = "history_" + model.name + "_" + Path(cfg["trainings_data"]).stem + ".pkl"
 
@@ -95,5 +94,5 @@ if __name__ == '__main__':
     #main("classification_tk_combined")
 
     # TODO patch size evaluation on more epochs
-    #main("classification_1")
-    main("classification_2")
+    main("classification_1")
+    #main("classification_2")

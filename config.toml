@@ -1,0 +1,2 @@
+# Contains configs for downloading and creating datasets 
+data_root = "/home/stella/Documents/datasets/"

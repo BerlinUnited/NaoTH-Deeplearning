@@ -13,5 +13,7 @@ venv/*
 # ignore data
 data_cvat/
 data_balldetection/
+data_logs/
 data_segmentation/
+data_logs/
 ball_detection_nao/models/

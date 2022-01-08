@@ -12,8 +12,6 @@ from tensorflow import keras as keras
 import utility_functions.metrics as metrics_module
 import utility_functions.model_zoo as model_zoo
 
-DATA_DIR = Path(Path(__file__).parent.absolute() / "data").resolve()
-
 
 def load_model(my_config):
     if "model_name" in my_config.keys():
@@ -43,11 +41,12 @@ def load_model(my_config):
 
 
 def main(config_name):
-    with open('config.toml', 'r') as f:
+    with open('detection.toml', 'r') as f:
         config_dict = toml.load(f)
 
     my_config = config_dict[config_name]
     model = load_model(my_config)
+    DATA_DIR = Path(my_config["data_root_path"]).resolve()
 
     data_file = str(DATA_DIR / my_config["trainings_data"])
     with open(data_file, "rb") as f:
@@ -61,7 +60,7 @@ def main(config_name):
     """
     filepath = Path(my_config["output_path"]) / (model.name + "_" + Path(my_config["trainings_data"]).stem + ".h5")
     save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='loss', verbose=1,
-                                                       save_best_only=True, mode='max')
+                                                       save_best_only=True, mode='auto')
 
     log_path = Path(my_config["output_path"]) / "logs" / (
             model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))

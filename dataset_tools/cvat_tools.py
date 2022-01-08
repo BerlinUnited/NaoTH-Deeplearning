@@ -1,27 +1,33 @@
 """
     list of helpful functions to interact with our dataset in kaggle, university server and cvat
+
+    Downloads are done in the configured download folder with the following structure
+
+    data_cvat
+    ->Project Name
+        -> unfinished
+            -> Coco Format
+            -> Yolo Format
+        -> finished
+            -> Coco Format
+            -> Yolo Format
+        -> combined
+            -> Coco Format
+            -> Yolo Format
+
+    NOTE:
+        - only yolo and coco formats are currently used be other scripts
 """
 
 import requests
-import tqdm 
-import json
+import tqdm
 from time import sleep
 from pathlib import Path
 import zipfile
-import fileinput
 import os
+import urllib.parse
 
-def login(session):
-    # TODO document credential file
-    try:
-        with open('.credentials') as f:
-            secrets = json.load(f)
-    except Exception as err:
-        raise SystemExit(err)
-
-    login_data = {'username':secrets["name"], 'password': secrets["pass"]}
-    response = session.post('https://ball.informatik.hu-berlin.de/api/v1/auth/login', data=login_data)
-    # TODO add error handling here
+from cvat_common_tools import login, get_data_root
 
 
 def get_projects(session):
@@ -45,7 +51,11 @@ def get_annotation_formats(session):
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
 
-    print(response.json()['exporters'][0]['name'])
+    exporter_list = list()
+    for exporter_format in response.json()['exporters']:
+        exporter_list.append(exporter_format['name'])
+
+    return exporter_list
 
 
 def get_project_name(session, project_id):
@@ -60,7 +70,7 @@ def get_project_name(session, project_id):
     return project_details["name"]
 
 
-def download_dataset(session, task_id, data_subfolder="unfinished"):
+def download_dataset(session, task_id, data_subfolder="unfinished", exporter_format="YOLO 1.1"):
     # get task details
     task_url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}'
     try:
@@ -68,22 +78,19 @@ def download_dataset(session, task_id, data_subfolder="unfinished"):
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
-    
+
     task_details = response.json()
-    project_name = get_project_name(session, task_details["project_id"])
-    # TODO use status to set the data_subfolder
 
-    # TODO make url more generic regarding annotation format
-    url = 'https://ball.informatik.hu-berlin.de/api/v1/tasks/{}/dataset?format=YOLO%201.1&action=download'.format(task_id)
+    # build the output folder structure
+    project_name = get_project_name(session, task_details["project_id"]).replace(" ", "_")
+    format_name = exporter_format.replace(" ", "_")
 
-    local_filename = Path(__file__).absolute().parent.parent /'data_cvat/{}/{}/{}.zip'.format(project_name, data_subfolder, task_id)
-
-    print(local_filename)
-    # create folder
+    local_filename = Path(get_data_root()) / f'data_cvat/{project_name}/{data_subfolder}/{format_name}/{task_id}.zip'
     Path(local_filename.parent).mkdir(parents=True, exist_ok=True)
-
     if Path(local_filename).exists():
-        return
+        return local_filename
+    format_quoted = urllib.parse.quote(exporter_format)
+    url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}/dataset?format={format_quoted}&action=download'
 
     with session.get(url, stream=True) as r:
         r.raise_for_status()
@@ -91,13 +98,15 @@ def download_dataset(session, task_id, data_subfolder="unfinished"):
             r = session.get(url, stream=True)
             sleep(1)
 
-        total_size_in_bytes= int(r.headers.get('content-length', 0))
+        total_size_in_bytes = int(r.headers.get('content-length', 0))
         progress_bar = tqdm.tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
         with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192): 
+            for chunk in r.iter_content(chunk_size=8192):
                 progress_bar.update(len(chunk))
                 f.write(chunk)
         progress_bar.close()
+
+    return local_filename
 
 
 def get_unfinished_tasks(session, project_id):
@@ -135,46 +144,61 @@ def get_finished_tasks(session, project_id):
     task_list = response_dict["tasks"]
     for task in task_list:
         if task["status"] == "completed":
-            finished_tasks.append(task["id"])        
+            finished_tasks.append(task["id"])
 
     return finished_tasks
 
 
-def download_unfinished_tasks(session, project_id):
+def get_all_tasks(session, project_id):
+    # TODO can be combine with finished and unfinished to one function
+    url = f"https://ball.informatik.hu-berlin.de/api/v1/projects/{project_id}"
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+
+    response_dict = response.json()
+
+    all_tasks = list()
+    task_list = response_dict["tasks"]
+
+    for task in task_list:
+        all_tasks.append(task)
+
+    return all_tasks
+
+
+def download_unfinished_tasks(session, project_id, exporter_format):
     task_list = get_unfinished_tasks(session, project_id)
     for task_id in task_list:
-        download_dataset(session, task_id, "unfinished")
+        download_dataset(session, task_id, data_subfolder="unfinished", exporter_format=exporter_format)
 
 
-def download_finished_tasks(session, project_id):
+def download_finished_tasks(session, project_id, exporter_format):
     task_list = get_finished_tasks(session, project_id)
-    print(task_list)
+
     for task_id in task_list:
-        download_dataset(session, task_id, "finished")
+        download_dataset(session, task_id, data_subfolder="finished", exporter_format=exporter_format)
 
 
 def unpack_zips():
     """
         This function assumes that all zips downloaded from cvat are in the yolo format
-    """    
-    input_folder_name = Path(__file__).absolute().parent.parent /'data_cvat/'
+    """
+    input_folder_name = Path(get_data_root()) / 'data_cvat/'
 
     zip_list = Path(input_folder_name).glob('**/*.zip')
 
     for zip_file in sorted(zip_list):
         print(zip_file)
-        # ../../108.zip becomes ../../108/
-        output_folder_name = zip_file.with_suffix("")
-        if output_folder_name.exists():
-            fix_yolo_files(output_folder_name)
-            continue
-        else:
-            # TODO catch errors here and remove folder if error occurs. Make sure ctrl+c is catched as well here
-            with zipfile.ZipFile(str(zip_file), 'r') as zip_ref:
-                zip_ref.extractall(str(output_folder_name))
+        # FIXME this logic does not make sense when downloading other formats than yolo
+        output_folder_name = zip_file.with_suffix("")  # ../../108.zip becomes ../../108/
 
-            fix_yolo_files(output_folder_name)
-        
+        # TODO catch errors here and remove folder if error occurs. Make sure ctrl+c is catched as well here
+        with zipfile.ZipFile(str(zip_file), 'r') as zip_ref:
+            zip_ref.extractall(str(output_folder_name))
+
 
 def fix_yolo_files(folder):
     """
@@ -197,13 +221,13 @@ def fix_yolo_files(folder):
             else:
                 new_line = line
             new_lines.append(new_line)
-    
+
     with open(str(obj_data_path), "w") as file1:
         file1.writelines(line + '\n' for line in new_lines)
-    
+
     # change paths in train.txt
     f = open(str(train_txt_path), "w")
-    
+
     # TODO add annotations to train.txt
     print(train_data_path)
     all_image_paths = list(Path(train_data_path).glob('**/*.png'))
@@ -217,22 +241,28 @@ def fix_yolo_files(folder):
             for line in lines:
                 # FIXME: order of values and scaling is wrong
                 annotation_data += " " + str(line).replace(" ", ",")
-        
+
         print(annotation_data)
         f.write(annotation_data + "\n")
 
 
-with requests.Session() as session:
-    login(session)
-    #get_projects(session)
-    #download_dataset(session, task_id=66)
-    download_unfinished_tasks(session, project_id=3)
-    download_finished_tasks(session, project_id=3)
-    unpack_zips()
+def main():
+    with requests.Session() as session:
+        login(session)
+        # get_projects(session)
+        # exporters = get_annotation_formats(session)
+        # exporters[0] is coco
+        # exporters[11] is yolo
 
-    # TODO add function to combine train.txt files
+        # download_dataset(session, task_id=66, exporter_format=exporters[11])
+        # download_dataset(session, task_id=66, exporter_format=exporters[0])
+        # download_unfinished_tasks(session, project_id=3, exporter_format=exporters[11])
+        # download_finished_tasks(session, project_id=3, exporter_format=exporters[11])
+        unpack_zips()
+
+        # TODO add function to combine train.txt files
+        # TODO the fix_yolo functions should go to another script
 
 
-
-    
-
+if __name__ == '__main__':
+    main()

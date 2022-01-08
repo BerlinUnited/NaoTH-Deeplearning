@@ -15,7 +15,6 @@ from cppyy_tools import *
 from pathlib import Path
 
 
-
 class Point2D(NamedTuple):
     x: float
     y: float
@@ -26,7 +25,6 @@ class Rectangle(NamedTuple):
     bottom_right: Point2D
 
     def intersection_over_union(self, xtl: float, ytl: float, xbr: float, ybr: float):
-
         # compute x and y coordinates of the intersection rectangle
         intersection_topleft = Point2D(
             max(self.top_left.x, xtl), max(self.top_left.y, ytl))
@@ -37,10 +35,10 @@ class Rectangle(NamedTuple):
 
         # compute the intersection, self and other area
         intersectionArea = max(0, intersection.bottom_right.x - intersection.top_left.x + 1) * \
-            max(0, intersection.bottom_right.y - intersection.top_left.y + 1)
+                           max(0, intersection.bottom_right.y - intersection.top_left.y + 1)
 
         selfArea = (self.bottom_right.x - self.top_left.x + 1) * \
-            (self.bottom_right.y - self.top_left.y + 1)
+                   (self.bottom_right.y - self.top_left.y + 1)
         otherArea = (xbr - xtl + 1) * (ybr - ytl + 1)
 
         # return the intersecton over union
@@ -63,7 +61,6 @@ def get_frames_for_dir(d, transform_to_squares=False):
 
     result = list()
     for file in imageFiles:
-
         # open image to get the metadata
         img = PIL.Image.open(file)
         bottom = img.info["CameraID"] == "1"
@@ -103,16 +100,13 @@ def load_image(image_filename):
 
     # convert image for bottom to yuv422
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(480*640*2, np.uint8)
+    yuv422 = np.ndarray(480 * 640 * 2, np.uint8)
     for i in range(0, 480 * 640, 2):
-        yuv422[i*2] = cv_img[i*3]
-        yuv422[i*2 + 1] = (cv_img[i*3 + 1] + cv_img[i*3 + 4]) / 2.0
-        yuv422[i*2 + 2] = cv_img[i*3 + 3]
-        yuv422[i*2 + 3] = (cv_img[i*3 + 2] + cv_img[i*3 + 5]) / 2.0
+        yuv422[i * 2] = cv_img[i * 3]
+        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
+        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
     return yuv422
-
-
-
 
 
 class PatchExecutor:
@@ -198,9 +192,8 @@ class PatchExecutor:
         # restore original working directory
         os.chdir(orig_working_dir)
 
-
     def read_CameraMatrixFromFrame(self, frame, camMatrix):
-        
+
         p = cppyy.gbl.toPose3D(camMatrix)
         p.translation.x = frame.cam_matrix_translation[0]
         p.translation.y = frame.cam_matrix_translation[1]
@@ -209,9 +202,9 @@ class PatchExecutor:
         for c in range(0, 3):
             for r in range(0, 3):
                 p.rotation.c[c][r] = frame.cam_matrix_rotation[r, c]
-                
+
         return p
-        
+
     # helper: write a numpy array of data to an image representation
     def writeDataToImage(self, data, image):
         # create a pointer
@@ -221,34 +214,33 @@ class PatchExecutor:
         image.copyImageDataYUV422(p_data, data.size)
 
     def set_current_frame(self, frame):
-    
+
         # get access to relevant representations
-        imageBottom     = self.ball_detector.getRequire().at("Image")
-        imageTop        = self.ball_detector.getRequire().at("ImageTop")
+        imageBottom = self.ball_detector.getRequire().at("Image")
+        imageTop = self.ball_detector.getRequire().at("ImageTop")
         camMatrixBottom = self.ball_detector.getRequire().at("CameraMatrix")
-        camMatrixTop    = self.ball_detector.getRequire().at("CameraMatrixTop")
-        
+        camMatrixTop = self.ball_detector.getRequire().at("CameraMatrixTop")
+
         camMatrixBottom.valid = False
-        camMatrixTop.valid    = False
-        
+        camMatrixTop.valid = False
+
         # load image in YUV422 format
         yuv422 = load_image(frame.file)
-        black = np.zeros(640*480*2, np.uint8)
-        
+        black = np.zeros(640 * 480 * 2, np.uint8)
+
         # get reference to the image input representation
         if frame.bottom:
             self.writeDataToImage(yuv422, imageBottom)
-            self.writeDataToImage(black , imageTop)
-            
+            self.writeDataToImage(black, imageTop)
+
             self.read_CameraMatrixFromFrame(frame, camMatrixBottom)
             camMatrixBottom.valid = True
-        else: # top
-            self.writeDataToImage(black , imageBottom)
+        else:  # top
+            self.writeDataToImage(black, imageBottom)
             self.writeDataToImage(yuv422, imageTop)
-            
+
             self.read_CameraMatrixFromFrame(frame, camMatrixTop)
             camMatrixBottom.valid = False
-
 
     def export_debug_images(self, frame: Frame):
         """
@@ -314,7 +306,8 @@ class PatchExecutor:
 if __name__ == "__main__":
     evaluator = PatchExecutor()
     with cppyy.ll.signals_as_exception():
-        heinrich = ["/mnt/d/RoboCup/repo/NaoTH-DeepLearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
-        stella = ["/home/stella/RoboCup/Repositories/naoth-deeplearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
+        heinrich = [
+            "/mnt/d/RoboCup/repo/NaoTH-DeepLearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
+        stella = [
+            "/home/stella/RoboCup/Repositories/naoth-deeplearning/data_cvat/RoboCup2019/finished/7/obj_train_data/rc19-experiment/INDOOR/GOALY_SET_top/"]
         evaluator.execute(stella)
-
