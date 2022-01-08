@@ -2,6 +2,7 @@ import json
 import requests
 import toml
 
+
 def login(session):
     # TODO document credential file
     # TODO use main config toml instead of credential file (maybe)

@@ -182,6 +182,26 @@ def download_finished_tasks(session, project_id, exporter_format):
         download_dataset(session, task_id, data_subfolder="finished", exporter_format=exporter_format)
 
 
+def download_all_tasks_from_project(relevant_project_ids):
+    """
+        returns a list of the paths to the downloaded zip files
+    """
+    downloaded_datasets = list()
+
+    with requests.Session() as session:
+        login(session)
+        exporter_format = get_annotation_formats(session)[0]  # coco format
+        for project_id in relevant_project_ids:
+            task_ids = get_all_tasks(session, project_id)
+            for task_id in task_ids:
+                # will download zipped datasets
+                dataset_path = download_dataset(session, task_id, data_subfolder="combined",
+                                                exporter_format=exporter_format)
+                downloaded_datasets.append(dataset_path)
+
+    return downloaded_datasets
+
+
 def unpack_zips():
     """
         This function assumes that all zips downloaded from cvat are in the yolo format
