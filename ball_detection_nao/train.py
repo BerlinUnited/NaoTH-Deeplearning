@@ -13,6 +13,28 @@ import utility_functions.metrics as metrics_module
 import utility_functions.model_zoo as model_zoo
 
 
+def run_training(model, dataset, modelname, params):
+
+    model.summary()
+
+    with open(dataset, "rb") as f:
+        pickle.load(f)  # skip mean
+        x = pickle.load(f)  # x are all input images
+        y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
+
+    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(modelname), monitor='loss', verbose=1,
+                                                       save_best_only=True, mode='auto')
+
+    log_path = Path(modelname).parent / "logs" / (
+            model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    log_callback = keras.callbacks.TensorBoard(log_dir=log_path, profile_batch=0)
+
+    callbacks = [save_callback, log_callback]
+    history = model.fit(x, y, batch_size=params["batch_size"], epochs=params["epochs"], verbose=1,
+                        validation_split=0.1,
+                        callbacks=callbacks)
+
+
 def load_model(my_config):
     if "model_name" in my_config.keys():
         method_to_call = getattr(model_zoo, my_config["model_name"])
