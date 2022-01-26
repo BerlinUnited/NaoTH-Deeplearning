@@ -3,7 +3,8 @@
 Pillow==8.4.0
 requests==2.26.0
 pyqt5==5.15.6 # so matplotlib can draw stuff
-opencv-python==4.5.3.56
+#opencv-python==4.5.5.62
+opencv-contrib-python==4.5.5.62  # we need to install only the contrib stuff, if opencv is installed as well it will shadow the contrib stuff
 numpy==1.19.5 # numpy==1.20.2 is needed for pycocotools to work in windows, not sure if all other libs can deal with it
 tensorflow==2.7.0
 toml==0.10.2
