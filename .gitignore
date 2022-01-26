@@ -2,13 +2,14 @@
 venv/*
 .venv/*
 /auto_annotation/models/__pycache__/
+/dataset_tools/__pycache__/
 *.cpython-39.pyc
 
 # ignore pycharm files
 .idea/*
 
 # ignore secret data
-.credentials
+config.toml
 
 # ignore data
 data_cvat/

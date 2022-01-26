@@ -8,7 +8,6 @@ numpy==1.19.5 # numpy==1.20.2 is needed for pycocotools to work in windows, not 
 tensorflow==2.7.0
 toml==0.10.2
 cppyy==2.2.0
-kaggle==1.5.12
 h5py==3.1.0  # we need for b-human dataset but it comes in an old version with tensorflow
 pydot==1.4.2
 tqdm==4.62.3

@@ -9,6 +9,8 @@
         - TODO export list of representations from logs
 """
 import os
+import sys
+import subprocess
 from pathlib import Path
 import shutil
 import tempfile
@@ -72,35 +74,55 @@ def image_from_proto(message):
 
 def list_events():
     logs_root = Path(get_logs_root())
-    for path in logs_root.iterdir():
-        print(path)
+    for path in sorted(logs_root.iterdir()):
+        if path.is_dir():
+            print(path)
 
 
-def extract_frames_from_videos(event_name="2019-11-21_Koeln"):
+def extract_frames_from_videos(event_name="2019-07-02_RC19-others"):
     event_root = Path(get_logs_root()) / event_name
     # iterate over all games of the event
-    for game in event_root.iterdir():
+    for game in sorted(event_root.iterdir()):
+        if not game.is_dir():
+            # ignore files inside the event root
+            continue
         print(game)
+
+        # ignore test games. This might be useful to change later. For now the games are more interesting
+        if "test" in str(game).lower():
+            print("\ttest games will be ignored")
+            continue
+        if "invisible" in str(game).lower():
+            print("\tgames against invisible will be ignored")
+            continue
+
         # check if frames.zip already exists if so put out a warning and continue
         output_zipfile = Path(game) / "extracted" / "frames.zip"
         if output_zipfile.is_file():
             print("\tframes.zip file already exists. Will continue with the next game")
             continue
+
         # check if only one video file exists
         video_folder = game / "videos"
-        video_files = list(Path(video_folder).rglob('*.mp4'))
+
+        # TODO test this in windows. Maybe it finds the same file twice there
+        video_files1 = list(Path(video_folder).rglob('*.MP4'))
+        video_files2 = list(Path(video_folder).rglob('*.mp4'))
+        video_files = video_files1 + video_files2
+
         if len(video_files) == 0:
             print("\tno video files found will continue with the next game")
             continue
         elif len(video_files) > 1:
             print(
-                "\t too many video files found. Can't decide which one is the correct video. Maybe you need to combine the videos? ")
+                "\ttoo many video files found. Can't decide which one is the correct video. Maybe you need to combine the videos? ")
             continue
         else:
             video_file = video_files[0]
-        # check if extracted/frames folder exists if not create it
-        frames_folder = Path(game) / "extracted" / "frames"
-        frames_folder.mkdir(parents=True, exist_ok=True)
+
+        # create extracted folder
+        extracted_folder = Path(game) / "extracted"
+        extracted_folder.mkdir(parents=True, exist_ok=True)
 
         f = tempfile.mkdtemp()
         temp_video_file_name = Path(f) / video_file.name
@@ -110,16 +132,32 @@ def extract_frames_from_videos(event_name="2019-11-21_Koeln"):
         print("\tdownloading video file to temp folder: ", f)
         shutil.copy(str(video_file), f)
 
-        cmd = f"ffmpeg.exe -i \"{str(temp_video_file_name)}\" " + "\"" + str(temp_frame_folder) + "\%04d.jpg\""
-        print("\trun ffmpg with: ", cmd)
-        os.system(cmd)
+        # ffmpeg executable is named differently on windows and linux
+        if sys.platform == 'win32':
+            ffmpeg_exe = "ffmpeg.exe"
+        else:
+            ffmpeg_exe = "ffmpeg"
 
-        #  zip the frames
+        # build the ffmpeg command 
+        # FIXME "/%06d.jpg\" must be changed to "\%06d.jpg\" in windows. Maybe i can figure out a way to make it work in both envs
+        cmd = f"{ffmpeg_exe} -i \"{str(temp_video_file_name)}\" " + "\"" + str(
+            temp_frame_folder) + "/%06d.jpg\"" + " -loglevel quiet -stats"
+        print("\trun ffmpg with: ", cmd)
+
+        try:
+            subprocess.call(cmd, shell=True)
+        except subprocess.CalledProcessError:
+            print("\tERROR: ffmpeg executable not found.")
+            quit()
+
         print("\tzipping frames ...")
         shutil.make_archive(str(temp_zipfile.parent / temp_zipfile.stem), 'zip', str(temp_frame_folder))
 
         print("\tcopy zip file to repl")
         shutil.copy(str(temp_zipfile), str(output_zipfile))
+
+        print("\tremove temp folder")
+        shutil.rmtree(f)
 
 
 def combine_logfiles(event_name="2019-11-21_Koeln"):
@@ -244,24 +282,39 @@ def save_image_to_png(j, img, cm, target_dir, cam_id, name):
     img.save(filename, pnginfo=meta)
 
 
-def get_representations_from_log(path_to_file):
-    # TODO save the result in a json file
-    my_parser = Parser()
+def get_representations_from_log(event_name="2019-07-02_RC19"):
+    """
+        for example this is useful to find logs that contain images
+    """
+    event_root = Path(get_logs_root()) / event_name
+    for game in sorted(event_root.iterdir()):
+        print(game)
+        game_log_folder = Path(get_logs_root()) / event_name / game / "game_logs"
 
-    logged_representation = set()
+        for robot in sorted(game_log_folder.iterdir()):
+            # TODO save the result in a json file
+            # TODO add images.log representations
+            print(f"\t{robot}")
+            gamelog = robot / "game.log"
+            img_log = robot / "images.log"
 
-    # iterate over the log and put the representation names in a set
-    log = LogReader(path_to_file, my_parser)
-    for i, frame in enumerate(log):
-        dict_keys = frame.get_names()
-        for key in dict_keys:
-            logged_representation.add(key)
-        # only check the first few frames
-        if i > 20:
-            break
+            logged_representation = set()
+            my_parser = Parser()
 
-    return logged_representation
+            log = LogReader(gamelog, my_parser)
+            for i, frame in enumerate(log):
+                dict_keys = frame.get_names()
+                for key in dict_keys:
+                    logged_representation.add(key)
+                # only check the first few frames
+                if i > 20:
+                    break
 
+            print(f"\t\t{logged_representation}")
+
+        break
+    return
+    
 
 def export_images_from_logs(event_name="2019-11-21_Koeln"):
     event_root = Path(get_logs_root()) / event_name
@@ -293,11 +346,6 @@ def export_images_from_logs(event_name="2019-11-21_Koeln"):
             with LogReader(log, my_parser) as reader:
                 images = map(get_images, reader.read())
                 export_images(log, images)
-
-
-def export_representation_list():
-    # TODO adapt this from https://scm.cms.hu-berlin.de/berlinunited/dummy_project
-    pass
 
 
 def create_image_log_dict(image_log):
@@ -339,4 +387,4 @@ def create_image_log_dict(image_log):
     return images_dict
 
 
-export_images_from_logs()
+get_representations_from_log()

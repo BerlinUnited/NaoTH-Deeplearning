@@ -1,0 +1,578 @@
+[
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_09-00-00_SPQR_vs_MiPal_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_09-00-00_SPQR_vs_MiPal_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_09-00-00_SPQR_vs_MiPal_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_09-00-00_SPQR_vs_MiPal_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_09-30-00_NomadZ_vs_RoboEireann_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_09-30-00_NomadZ_vs_RoboEireann_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_09-30-00_NomadZ_vs_RoboEireann_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_09-30-00_NomadZ_vs_RoboEireann_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-00-00_Nao-Team HTWK_vs_Naova_half1-D/extracted/frames.zip",
+    "name": "2019-07-04_10-00-00_Nao-Team HTWK_vs_Naova_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-00-00_Nao-Team HTWK_vs_Naova_half2-D/extracted/frames.zip",
+    "name": "2019-07-04_10-00-00_Nao-Team HTWK_vs_Naova_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half1-A/extracted/frames.zip",
+    "name": "2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half1_to-A/extracted/frames.zip",
+    "name": "2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half1_to-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half2-A/extracted/frames.zip",
+    "name": "2019-07-04_10-00-00_UT Austin Villa_vs_Camellia Dragons_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-30-00_Bembelbots_vs_SABANA Herons_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_10-30-00_Bembelbots_vs_SABANA Herons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_10-30-00_Bembelbots_vs_SABANA Herons_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_10-30-00_Bembelbots_vs_SABANA Herons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_11-00-00_Dutch Nao Team_vs_Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_11-00-00_Dutch Nao Team_vs_Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_11-00-00_Dutch Nao Team_vs_Starkit_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_11-00-00_Dutch Nao Team_vs_Starkit_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_11-30-00_HULKs_vs_UPennalizers_half1-A/extracted/frames.zip",
+    "name": "2019-07-04_11-30-00_HULKs_vs_UPennalizers_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_11-30-00_HULKs_vs_UPennalizers_half2-A/extracted/frames.zip",
+    "name": "2019-07-04_11-30-00_HULKs_vs_UPennalizers_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_12-00-00_SPQR_vs_SABANA Herons_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_12-00-00_SPQR_vs_SABANA Herons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_12-00-00_SPQR_vs_SABANA Herons_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_12-00-00_SPQR_vs_SABANA Herons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_12-00-00_rUNSWift_vs_Camellia Dragons_half1-D/extracted/frames.zip",
+    "name": "2019-07-04_12-00-00_rUNSWift_vs_Camellia Dragons_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_12-00-00_rUNSWift_vs_Camellia Dragons_half2-D/extracted/frames.zip",
+    "name": "2019-07-04_12-00-00_rUNSWift_vs_Camellia Dragons_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_12-30-00_NomadZ_vs_Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_12-30-00_NomadZ_vs_Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-00-00_B-Human_vs_HULKs_half1-D/extracted/frames.zip",
+    "name": "2019-07-04_13-00-00_B-Human_vs_HULKs_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-00-00_B-Human_vs_HULKs_half2-D/extracted/frames.zip",
+    "name": "2019-07-04_13-00-00_B-Human_vs_HULKs_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-30-00_Bembelbots_vs_MiPal_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_13-30-00_Bembelbots_vs_MiPal_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-30-00_Bembelbots_vs_MiPal_half1_to-C/extracted/frames.zip",
+    "name": "2019-07-04_13-30-00_Bembelbots_vs_MiPal_half1_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-30-00_Bembelbots_vs_MiPal_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_13-30-00_Bembelbots_vs_MiPal_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_13-30-00_Bembelbots_vs_MiPal_half2_to-C/extracted/frames.zip",
+    "name": "2019-07-04_13-30-00_Bembelbots_vs_MiPal_half2_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_14-00-00_Dutch Nao Team_vs_RoboEireann_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_14-00-00_Dutch Nao Team_vs_RoboEireann_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_14-00-00_Dutch Nao Team_vs_RoboEireann_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_14-00-00_Dutch Nao Team_vs_RoboEireann_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-00-00_Nao Devils_vs_NTU RoboPAL_half1-D/extracted/frames.zip",
+    "name": "2019-07-04_15-00-00_Nao Devils_vs_NTU RoboPAL_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-00-00_Nao Devils_vs_NTU RoboPAL_half2-D/extracted/frames.zip",
+    "name": "2019-07-04_15-00-00_Nao Devils_vs_NTU RoboPAL_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-00-00_SPQR_vs_Bembelbots_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_15-00-00_SPQR_vs_Bembelbots_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-00-00_SPQR_vs_Bembelbots_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_15-00-00_SPQR_vs_Bembelbots_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-00-00_SPQR_vs_Bembelbots_half2_to-C/extracted/frames.zip",
+    "name": "2019-07-04_15-00-00_SPQR_vs_Bembelbots_half2_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-30-00_NomadZ_vs_Dutch Nao Team_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_15-30-00_NomadZ_vs_Dutch Nao Team_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_15-30-00_NomadZ_vs_Dutch Nao Team_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_15-30-00_NomadZ_vs_Dutch Nao Team_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-00-00_TJArk_vs_Naova_half1-A/extracted/frames.zip",
+    "name": "2019-07-04_16-00-00_TJArk_vs_Naova_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-00-00_TJArk_vs_Naova_half2-A/extracted/frames.zip",
+    "name": "2019-07-04_16-00-00_TJArk_vs_Naova_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-00-00_TJArk_vs_Naova_half2_to-A/extracted/frames.zip",
+    "name": "2019-07-04_16-00-00_TJArk_vs_Naova_half2_to-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-00-00_rUNSWift_vs_UT Austin Villa_half1-E/extracted/frames.zip",
+    "name": "2019-07-04_16-00-00_rUNSWift_vs_UT Austin Villa_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-00-00_rUNSWift_vs_UT Austin Villa_half2-E/extracted/frames.zip",
+    "name": "2019-07-04_16-00-00_rUNSWift_vs_UT Austin Villa_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-30-00_MiPal_vs_SABANA Herons_half1-C/extracted/frames.zip",
+    "name": "2019-07-04_16-30-00_MiPal_vs_SABANA Herons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_16-30-00_MiPal_vs_SABANA Herons_half2-C/extracted/frames.zip",
+    "name": "2019-07-04_16-30-00_MiPal_vs_SABANA Herons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_17-00-00_RoboEireann_vs_Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_17-00-00_RoboEireann_vs_Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_17-00-00_RoboEireann_vs_Starkit_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_17-00-00_RoboEireann_vs_Starkit_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_18-00-00_SwiftArk_vs_Devil SMASH_half1-B/extracted/frames.zip",
+    "name": "2019-07-04_18-00-00_SwiftArk_vs_Devil SMASH_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-04_18-00-00_SwiftArk_vs_Devil SMASH_half2-B/extracted/frames.zip",
+    "name": "2019-07-04_18-00-00_SwiftArk_vs_Devil SMASH_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half2_to-C/extracted/frames.zip",
+    "name": "2019-07-05_09-00-00_UPennalizers_vs_NomadZ_half2_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-15-00_Naova_vs_SPQR_half2-B/extracted/frames.zip",
+    "name": "2019-07-05_09-15-00_Naova_vs_SPQR_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-45-00_NTU RoboPAL_vs_Bembelbots_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_09-45-00_NTU RoboPAL_vs_Bembelbots_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_09-45-00_NTU RoboPAL_vs_Bembelbots_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_09-45-00_NTU RoboPAL_vs_Bembelbots_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_10-00-00_Camellia Dragons_vs_Dutch Nao Team_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_10-00-00_Camellia Dragons_vs_Dutch Nao Team_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_10-00-00_Camellia Dragons_vs_Dutch Nao Team_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_10-00-00_Camellia Dragons_vs_Dutch Nao Team_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_10-45-00_Devil SMASH_vs_SPQR-Starkit_half1-D/extracted/frames.zip",
+    "name": "2019-07-05_10-45-00_Devil SMASH_vs_SPQR-Starkit_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_10-45-00_Devil SMASH_vs_SPQR-Starkit_half2-D/extracted/frames.zip",
+    "name": "2019-07-05_10-45-00_Devil SMASH_vs_SPQR-Starkit_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-00-00_B-Human_vs_SPQR_half1-E/extracted/frames.zip",
+    "name": "2019-07-05_12-00-00_B-Human_vs_SPQR_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-00-00_B-Human_vs_SPQR_half2-E/extracted/frames.zip",
+    "name": "2019-07-05_12-00-00_B-Human_vs_SPQR_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-30-00_Nao Devils_vs_Dutch Nao Team_half1-D/extracted/frames.zip",
+    "name": "2019-07-05_12-30-00_Nao Devils_vs_Dutch Nao Team_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-30-00_Nao Devils_vs_Dutch Nao Team_half2-D/extracted/frames.zip",
+    "name": "2019-07-05_12-30-00_Nao Devils_vs_Dutch Nao Team_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-30-00_Starkit_vs_MiPal_half1-B/extracted/frames.zip",
+    "name": "2019-07-05_12-30-00_Starkit_vs_MiPal_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_12-30-00_Starkit_vs_MiPal_half2-B/extracted/frames.zip",
+    "name": "2019-07-05_12-30-00_Starkit_vs_MiPal_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-00-00_SABANA Herons_vs_RoboEireann_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_13-00-00_SABANA Herons_vs_RoboEireann_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-00-00_SABANA Herons_vs_RoboEireann_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_13-00-00_SABANA Herons_vs_RoboEireann_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-00-00_rUNSWift_vs_Bembelbots_half1-E/extracted/frames.zip",
+    "name": "2019-07-05_13-00-00_rUNSWift_vs_Bembelbots_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-00-00_rUNSWift_vs_Bembelbots_half2-E/extracted/frames.zip",
+    "name": "2019-07-05_13-00-00_rUNSWift_vs_Bembelbots_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half1-D/extracted/frames.zip",
+    "name": "2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half2-D/extracted/frames.zip",
+    "name": "2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half2_to-D/extracted/frames.zip",
+    "name": "2019-07-05_13-30-00_Nao-Team HTWK_vs_NomadZ_half2_to-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-00-00_UT Austin Villa_vs_SPQR_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_14-00-00_UT Austin Villa_vs_SPQR_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-00-00_UT Austin Villa_vs_SPQR_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_14-00-00_UT Austin Villa_vs_SPQR_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half1_to-C/extracted/frames.zip",
+    "name": "2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half1_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_14-30-00_NTU RoboPAL_vs_MiPal_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-30-00_Nao Devils_vs_TJArk_half1-E/extracted/frames.zip",
+    "name": "2019-07-05_14-30-00_Nao Devils_vs_TJArk_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_14-30-00_Nao Devils_vs_TJArk_half2-E/extracted/frames.zip",
+    "name": "2019-07-05_14-30-00_Nao Devils_vs_TJArk_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_15-00-00_Camellia Dragons_vs_RoboEireann_half1-B/extracted/frames.zip",
+    "name": "2019-07-05_15-00-00_Camellia Dragons_vs_RoboEireann_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_15-00-00_Camellia Dragons_vs_RoboEireann_half2-B/extracted/frames.zip",
+    "name": "2019-07-05_15-00-00_Camellia Dragons_vs_RoboEireann_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_15-00-00_rUNSWift_vs_HULKs_half1-D/extracted/frames.zip",
+    "name": "2019-07-05_15-00-00_rUNSWift_vs_HULKs_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_15-00-00_rUNSWift_vs_HULKs_half2-D/extracted/frames.zip",
+    "name": "2019-07-05_15-00-00_rUNSWift_vs_HULKs_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-00-00_TJArk_vs_Dutch Nao Team_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_16-00-00_TJArk_vs_Dutch Nao Team_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-00-00_TJArk_vs_Dutch Nao Team_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_16-00-00_TJArk_vs_Dutch Nao Team_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-30-00_Naova_vs_SABANA Herons_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_16-30-00_Naova_vs_SABANA Herons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-30-00_Naova_vs_SABANA Herons_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_16-30-00_Naova_vs_SABANA Herons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-30-00_Naova_vs_SABANA Herons_half2_to-C/extracted/frames.zip",
+    "name": "2019-07-05_16-30-00_Naova_vs_SABANA Herons_half2_to-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-45-00_B-Human_vs_UT Austin Villa_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_16-45-00_B-Human_vs_UT Austin Villa_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_16-45-00_B-Human_vs_UT Austin Villa_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_16-45-00_B-Human_vs_UT Austin Villa_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_17-00-00_UPennalizers_vs_Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-05_17-00-00_UPennalizers_vs_Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_17-00-00_UPennalizers_vs_Starkit_half2-B/extracted/frames.zip",
+    "name": "2019-07-05_17-00-00_UPennalizers_vs_Starkit_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_17-30-00_HULKs_vs_Bembelbots_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_17-30-00_HULKs_vs_Bembelbots_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_17-30-00_HULKs_vs_Bembelbots_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_17-30-00_HULKs_vs_Bembelbots_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_18-15-00_Devil SMASH_vs_Team Team_half1-C/extracted/frames.zip",
+    "name": "2019-07-05_18-15-00_Devil SMASH_vs_Team Team_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_18-15-00_Devil SMASH_vs_Team Team_half2-C/extracted/frames.zip",
+    "name": "2019-07-05_18-15-00_Devil SMASH_vs_Team Team_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_18-30-00_SwiftArk_vs_SPQR-Starkit_half1-A/extracted/frames.zip",
+    "name": "2019-07-05_18-30-00_SwiftArk_vs_SPQR-Starkit_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-05_18-30-00_SwiftArk_vs_SPQR-Starkit_half2-A/extracted/frames.zip",
+    "name": "2019-07-05_18-30-00_SwiftArk_vs_SPQR-Starkit_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_09-15-00_SwiftArk_vs_Team Team_half1-A/extracted/frames.zip",
+    "name": "2019-07-06_09-15-00_SwiftArk_vs_Team Team_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_09-15-00_SwiftArk_vs_Team Team_half2-A/extracted/frames.zip",
+    "name": "2019-07-06_09-15-00_SwiftArk_vs_Team Team_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-00-00_Naova_vs_RoboEireann_half1-C/extracted/frames.zip",
+    "name": "2019-07-06_10-00-00_Naova_vs_RoboEireann_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-00-00_Naova_vs_RoboEireann_half2-C/extracted/frames.zip",
+    "name": "2019-07-06_10-00-00_Naova_vs_RoboEireann_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-00-00_UT Austin Villa_vs_Dutch Nao Team_half1-E/extracted/frames.zip",
+    "name": "2019-07-06_10-00-00_UT Austin Villa_vs_Dutch Nao Team_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-00-00_UT Austin Villa_vs_Dutch Nao Team_half2-E/extracted/frames.zip",
+    "name": "2019-07-06_10-00-00_UT Austin Villa_vs_Dutch Nao Team_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-30-00_UPennalizers_vs_MiPal_half1-B/extracted/frames.zip",
+    "name": "2019-07-06_10-30-00_UPennalizers_vs_MiPal_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_10-30-00_UPennalizers_vs_MiPal_half2-B/extracted/frames.zip",
+    "name": "2019-07-06_10-30-00_UPennalizers_vs_MiPal_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_11-30-00_NTU RoboPAL_vs_Starkit_half2-A/extracted/frames.zip",
+    "name": "2019-07-06_11-30-00_NTU RoboPAL_vs_Starkit_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_11-30-00_TJArk_vs_SPQR_half1-E/extracted/frames.zip",
+    "name": "2019-07-06_11-30-00_TJArk_vs_SPQR_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_11-30-00_TJArk_vs_SPQR_half2-E/extracted/frames.zip",
+    "name": "2019-07-06_11-30-00_TJArk_vs_SPQR_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_11-30-00_TJArk_vs_SPQR_half2_to-E/extracted/frames.zip",
+    "name": "2019-07-06_11-30-00_TJArk_vs_SPQR_half2_to-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_12-00-00_Camellia Dragons_vs_SABANA Herons_half1-B/extracted/frames.zip",
+    "name": "2019-07-06_12-00-00_Camellia Dragons_vs_SABANA Herons_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_12-00-00_Camellia Dragons_vs_SABANA Herons_half2-B/extracted/frames.zip",
+    "name": "2019-07-06_12-00-00_Camellia Dragons_vs_SABANA Herons_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_12-15-00_HULKs_vs_NomadZ_half1-D/extracted/frames.zip",
+    "name": "2019-07-06_12-15-00_HULKs_vs_NomadZ_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_12-15-00_HULKs_vs_NomadZ_half2-D/extracted/frames.zip",
+    "name": "2019-07-06_12-15-00_HULKs_vs_NomadZ_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-00-00_B-Human_vs_Bembelbots_half1-E/extracted/frames.zip",
+    "name": "2019-07-06_13-00-00_B-Human_vs_Bembelbots_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-00-00_B-Human_vs_Bembelbots_half2-E/extracted/frames.zip",
+    "name": "2019-07-06_13-00-00_B-Human_vs_Bembelbots_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-00-00_UPennalizers_vs_NTU RoboPAL_half1-C/extracted/frames.zip",
+    "name": "2019-07-06_13-00-00_UPennalizers_vs_NTU RoboPAL_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-00-00_UPennalizers_vs_NTU RoboPAL_half2-C/extracted/frames.zip",
+    "name": "2019-07-06_13-00-00_UPennalizers_vs_NTU RoboPAL_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-30-00_Naova_vs_Camellia Dragons_half1-B/extracted/frames.zip",
+    "name": "2019-07-06_13-30-00_Naova_vs_Camellia Dragons_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-30-00_Naova_vs_Camellia Dragons_half2-B/extracted/frames.zip",
+    "name": "2019-07-06_13-30-00_Naova_vs_Camellia Dragons_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-45-00_Nao-Team HTWK_vs_UT Austin Villa_half1-D/extracted/frames.zip",
+    "name": "2019-07-06_13-45-00_Nao-Team HTWK_vs_UT Austin Villa_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_13-45-00_Nao-Team HTWK_vs_UT Austin Villa_half2-D/extracted/frames.zip",
+    "name": "2019-07-06_13-45-00_Nao-Team HTWK_vs_UT Austin Villa_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_14-30-00_Nao Devils_vs_HULKs_half1-E/extracted/frames.zip",
+    "name": "2019-07-06_14-30-00_Nao Devils_vs_HULKs_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_14-30-00_Nao Devils_vs_HULKs_half2-E/extracted/frames.zip",
+    "name": "2019-07-06_14-30-00_Nao Devils_vs_HULKs_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-00-00_NTU RoboPAL_vs_SABANA Herons_half1-C/extracted/frames.zip",
+    "name": "2019-07-06_15-00-00_NTU RoboPAL_vs_SABANA Herons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-00-00_NTU RoboPAL_vs_SABANA Herons_half2-C/extracted/frames.zip",
+    "name": "2019-07-06_15-00-00_NTU RoboPAL_vs_SABANA Herons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-15-00_rUNSWift_vs_TJArk_half1-D/extracted/frames.zip",
+    "name": "2019-07-06_15-15-00_rUNSWift_vs_TJArk_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-15-00_rUNSWift_vs_TJArk_half2-D/extracted/frames.zip",
+    "name": "2019-07-06_15-15-00_rUNSWift_vs_TJArk_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-30-00_Camellia Dragons_vs_Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-06_15-30-00_Camellia Dragons_vs_Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_15-30-00_Camellia Dragons_vs_Starkit_half2-B/extracted/frames.zip",
+    "name": "2019-07-06_15-30-00_Camellia Dragons_vs_Starkit_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half1-B/extracted/frames.zip",
+    "name": "2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half1-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half2-B/extracted/frames.zip",
+    "name": "2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half2-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half2_to-B/extracted/frames.zip",
+    "name": "2019-07-06_17-00-00_Team Team_vs_SPQR-Starkit_half2_to-B"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_09-10-00_B-Human_vs_rUNSWift_half1-D/extracted/frames.zip",
+    "name": "2019-07-07_09-10-00_B-Human_vs_rUNSWift_half1-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_09-10-00_B-Human_vs_rUNSWift_half2-D/extracted/frames.zip",
+    "name": "2019-07-07_09-10-00_B-Human_vs_rUNSWift_half2-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_09-10-00_B-Human_vs_rUNSWift_half2_to-D/extracted/frames.zip",
+    "name": "2019-07-07_09-10-00_B-Human_vs_rUNSWift_half2_to-D"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_10-00-00_Nao-Team HTWK_vs_Nao Devils_half1-E/extracted/frames.zip",
+    "name": "2019-07-07_10-00-00_Nao-Team HTWK_vs_Nao Devils_half1-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_10-00-00_Nao-Team HTWK_vs_Nao Devils_half2-E/extracted/frames.zip",
+    "name": "2019-07-07_10-00-00_Nao-Team HTWK_vs_Nao Devils_half2-E"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_11-00-00_NTU RoboPAL_vs_Camellia Dragons_half1-C/extracted/frames.zip",
+    "name": "2019-07-07_11-00-00_NTU RoboPAL_vs_Camellia Dragons_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_11-00-00_NTU RoboPAL_vs_Camellia Dragons_half2-C/extracted/frames.zip",
+    "name": "2019-07-07_11-00-00_NTU RoboPAL_vs_Camellia Dragons_half2-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half1-A/extracted/frames.zip",
+    "name": "2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half2-A/extracted/frames.zip",
+    "name": "2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half2_to-A/extracted/frames.zip",
+    "name": "2019-07-07_12-00-00_rUNSWift_vs_Nao Devils_half2_to-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_13-30-00_B-Human_vs_Nao-Team HTWK_half1-A/extracted/frames.zip",
+    "name": "2019-07-07_13-30-00_B-Human_vs_Nao-Team HTWK_half1-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_13-30-00_B-Human_vs_Nao-Team HTWK_half2-A/extracted/frames.zip",
+    "name": "2019-07-07_13-30-00_B-Human_vs_Nao-Team HTWK_half2-A"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_14-30-00_SABANA Herons_vs_Starkit_half1-C/extracted/frames.zip",
+    "name": "2019-07-07_14-30-00_SABANA Herons_vs_Starkit_half1-C"
+  },
+  {
+    "path": "/repl/2019-07-02_RC19-others/2019-07-07_14-30-00_SABANA Herons_vs_Starkit_half2-C/extracted/frames.zip",
+    "name": "2019-07-07_14-30-00_SABANA Herons_vs_Starkit_half2-C"
+  }
+]
