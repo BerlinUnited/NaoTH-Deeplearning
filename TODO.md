@@ -28,7 +28,8 @@
       - it might be cool to set annotations per image, then we could download each image from a task, calculate the blurredness factor and upload the annotation via curl patch call.
 
 # Later Tasks
-- add documentation for manual tasks cvat
+- add documentation for tasks cvat
+  - explain how to use the track feature for gopro videos
 - update premake5
   - windows must still be done, then we can fix the warnings code
 - add functionality to use the detectron inference result for uploading to cvat

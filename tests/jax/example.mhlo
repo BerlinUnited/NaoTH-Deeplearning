@@ -1,0 +1,11 @@
+module  {
+  func @main(%arg0: tensor<50xf32>) -> tensor<50xf32> {
+    %0 = mhlo.constant dense<false> : tensor<i1>
+    %1 = mhlo.constant dense<false> : tensor<i1>
+    %2 = mhlo.constant dense<0.000000e+00> : tensor<f32>
+    %3 = "mhlo.broadcast_in_dim"(%2) {broadcast_dimensions = dense<> : tensor<0xi64>} : (tensor<f32>) -> tensor<50xf32>
+    %4 = mhlo.maximum %arg0, %3 : tensor<50xf32>
+    return %4 : tensor<50xf32>
+  }
+}
+
