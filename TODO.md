@@ -1,9 +1,11 @@
 # Next Todos
-- test what happens if you upload annotations in a track with some frames left out. I hope it will automatically interpolate
-  - looks like it works, check on actual useful data again
-- cleanup upload tools
+- write python generation for frugally 0.7.8-p0
+- make sure my frugally branches use the newest release not the newest head
+- make sure fplus is also updated
+- write python generation for newest frugally release
 
 # NaoTH Tasks
+- cleanup upload tools
 - fix /vol/repl261-vol4/naoth/logs/2019-07-02_RC19/2019-07-05_10-45-00_BnB_vs_SwiftArk_half2/videos
 - cleanup image extraction from logs
   - use get_representations_from_log better
