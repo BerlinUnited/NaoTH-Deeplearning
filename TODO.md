@@ -1,3 +1,11 @@
+# Dataset Generation Tasks
+- fix specifying export format. It should be a dict instead of a list
+  - fix usages as well
+- fix filtering after downloading. It should be optional
+- build first version of patch extraction script
+- dataset generation from patches should actually go into dataset tools
+
+
 # Next Todos
 - write python generation for frugally 0.7.8-p0
 - make sure my frugally branches use the newest release not the newest head

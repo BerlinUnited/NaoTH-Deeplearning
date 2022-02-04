@@ -71,7 +71,7 @@ def get_project_name(session, project_id):
     return project_details["name"]
 
 
-def download_dataset(session, task_id, data_subfolder="unfinished", exporter_format="YOLO 1.1"):
+def download_dataset(session, task_id, data_subfolder="unfinished", export_format="YOLO 1.1"):
     # get task details
     task_url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}'
     try:
@@ -84,13 +84,13 @@ def download_dataset(session, task_id, data_subfolder="unfinished", exporter_for
 
     # build the output folder structure
     project_name = get_project_name(session, task_details["project_id"]).replace(" ", "_")
-    format_name = exporter_format.replace(" ", "_")
+    format_name = export_format.replace(" ", "_")
 
     local_filename = Path(get_data_root()) / f'data_cvat/{project_name}/{data_subfolder}/{format_name}/{task_id}.zip'
     Path(local_filename.parent).mkdir(parents=True, exist_ok=True)
     if Path(local_filename).exists():
         return local_filename
-    format_quoted = urllib.parse.quote(exporter_format)
+    format_quoted = urllib.parse.quote(export_format)
     url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}/dataset?format={format_quoted}&action=download'
 
     with session.get(url, stream=True) as r:
@@ -183,7 +183,7 @@ def download_finished_tasks(session, project_id, exporter_format):
         download_dataset(session, task_id, data_subfolder="finished", exporter_format=exporter_format)
 
 
-def download_all_tasks_from_project(relevant_project_ids):
+def download_all_tasks_from_project(relevant_project_ids, export_format=None):
     """
         returns a list of the paths to the downloaded zip files
     """
@@ -191,13 +191,20 @@ def download_all_tasks_from_project(relevant_project_ids):
 
     with requests.Session() as session:
         cvat_login(session)
-        exporter_format = get_annotation_formats(session)[0]  # coco format
+        available_export_formats = get_annotation_formats(session)
+        if export_format is None:
+            export_format = 'COCO 1.0'
+
+        elif export_format not in available_export_formats:
+            print("ERROR: Only the following export formats are supported")
+            print(available_export_formats)
+
         for project_id in relevant_project_ids:
             task_ids = get_all_tasks(session, project_id)
             for task_id in task_ids:
                 # will download zipped datasets
                 dataset_path = download_dataset(session, task_id, data_subfolder="combined",
-                                                exporter_format=exporter_format)
+                                                export_format=export_format)
                 downloaded_datasets.append(dataset_path)
 
     return downloaded_datasets
@@ -229,17 +236,13 @@ def get_labels_from_tasks(session, task_id):
     return label_dict
 
 
-def unpack_zips():
+def unpack_zips(downloaded_datasets):
     """
-        This function assumes that all zips downloaded from cvat are in the yolo format
+        
     """
-    input_folder_name = Path(get_data_root()) / 'data_cvat/'
 
-    zip_list = Path(input_folder_name).glob('**/*.zip')
-
-    for zip_file in sorted(zip_list):
+    for zip_file in sorted(downloaded_datasets):
         print(zip_file)
-        # FIXME this logic does not make sense when downloading other formats than yolo
         output_folder_name = zip_file.with_suffix("")  # ../../108.zip becomes ../../108/
 
         # TODO catch errors here and remove folder if error occurs. Make sure ctrl+c is catched as well here
@@ -380,6 +383,8 @@ def create_tasks_from_json(json_file, project_id):
 def main():
     with requests.Session() as session:
         cvat_login(session)
+        output = get_annotation_formats(session)
+        print(output)
         # get_projects(session)
         # exporters = get_annotation_formats(session)
         # exporters[0] is coco
@@ -389,7 +394,7 @@ def main():
         # download_dataset(session, task_id=66, exporter_format=exporters[0])
         # download_unfinished_tasks(session, project_id=3, exporter_format=exporters[11])
         # download_finished_tasks(session, project_id=3, exporter_format=exporters[11])
-        unpack_zips()
+        #unpack_zips()
 
         # TODO add function to combine train.txt files
         # TODO the fix_yolo functions should go to another script

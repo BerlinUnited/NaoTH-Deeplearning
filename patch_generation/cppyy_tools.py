@@ -23,7 +23,8 @@ def get_toolchain_dir():
 
 def setup_shared_lib(naoth_dir, toolchain_dir):
     """
-    load shared lib and general includes
+    load shared lib and general + patch specific includes
+    # TODO the patch specific stuff should eventually go into separate function
     """
     shared_lib_name = "libscriptsim.so"
     if sys.platform.startswith("win32"):
@@ -48,4 +49,23 @@ def setup_shared_lib(naoth_dir, toolchain_dir):
         toolchain_dir, "toolchain_native/extern/include/glib-2.0"))
     cppyy.add_include_path(os.path.join(
         toolchain_dir, "toolchain_native/extern/lib/glib-2.0/include"))
+
+    # include platform
+    cppyy.include(os.path.join(
+        naoth_dir, "Framework/Commons/Source/PlatformInterface/Platform.h"))
+    cppyy.include(os.path.join(
+        naoth_dir, "Framework/Platforms/Source/DummySimulator/DummySimulator.h"))
+
+    # make more representations available to cppyy
+    cppyy.include(os.path.join(
+        naoth_dir, "Framework/Commons/Source/ModuleFramework/ModuleManager.h"))
+    cppyy.include(os.path.join(
+        naoth_dir, "NaoTHSoccer/Source/Cognition/Cognition.h"))
+    cppyy.include(os.path.join(
+        naoth_dir, "NaoTHSoccer/Source/Representations/Perception/BallCandidates.h"))
+    cppyy.include(os.path.join(
+        naoth_dir, "NaoTHSoccer/Source/Representations/Perception/CameraMatrix.h"))
+
+    # change working directory so that the configuration is found
+    os.chdir(os.path.join(naoth_dir, "NaoTHSoccer"))
 

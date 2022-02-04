@@ -11,8 +11,7 @@
 """
 from pathlib import Path
 from datumaro.components.dataset import Dataset
-
-from common_tools import get_data_root
+from zipfile import ZipFile
 
 
 def get_coco_dataset_from_path(dataset_path):
@@ -51,8 +50,11 @@ def unzip_and_filter(downloaded_datasets):
         print(zip_file)
         output_folder_name = Path(zip_file).with_suffix("")  # ../../108.zip becomes ../../108/
 
-        with zipfile.ZipFile(str(zip_file), 'r') as zip_ref:
+        with ZipFile(str(zip_file), 'r') as zip_ref:
             zip_ref.extractall(str(output_folder_name))
+
+        # FIXME filtering does not make that much sense for images from log
+        # TODO move it to extra function, filtering makes only sense like this if we actually downloaded in coco format
 
         # filter part
         ball_dataset = get_coco_dataset_from_path(output_folder_name)
@@ -63,5 +65,5 @@ def unzip_and_filter(downloaded_datasets):
         nao_dataset = create_nao_only_dataset(nao_dataset)
         nao_dataset = remove_unlabeled_images(nao_dataset)
 
-        save_coco_dataset(ball_dataset, str(output_folder_name) + "_wo-unlabelled_ball")
-        save_coco_dataset(nao_dataset, str(output_folder_name) + "_wo-unlabelled_nao")
+        #save_coco_dataset(ball_dataset, str(output_folder_name) + "_wo-unlabelled_ball")
+        #save_coco_dataset(nao_dataset, str(output_folder_name) + "_wo-unlabelled_nao")
