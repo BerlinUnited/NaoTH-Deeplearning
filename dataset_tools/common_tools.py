@@ -31,14 +31,16 @@ def cvat_login(session):
 
 
 def get_data_root():
-    with open('../config.toml', 'r') as f:
+    config_path = Path(__file__).parent.parent.resolve() / "config.toml"
+    with open(str(config_path), 'r') as f:
         config_dict = toml.load(f)
 
     return config_dict["data_root"]
 
 
 def get_logs_root():
-    with open('../config.toml', 'r') as f:
+    config_path = Path(__file__).parent.parent.resolve() / "config.toml"
+    with open(str(config_path), 'r') as f:
         config_dict = toml.load(f)
 
     return config_dict["logs_root"]

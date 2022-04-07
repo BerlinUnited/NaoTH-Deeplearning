@@ -111,3 +111,19 @@ output_path = "models"
 ##### compile only options
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
+
+[classification_tk_combined-balanced]
+model_name = "naoth_classification1"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "tk03_combined_balanced_classification.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "/home/stella/Documents/datasets/data_balldetection/naoth"
+output_path = "models"
+
+##### compile only options
+# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
+compile_debug = false

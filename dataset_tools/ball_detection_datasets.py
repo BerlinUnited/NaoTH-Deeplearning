@@ -97,6 +97,24 @@ def create_tk03_classification_datasets():
     print("save classification dataset with combined images")
     output_name = str(naoth_root_path / 'tk03_combined_classification.pkl')
     store_output(output_name, combined_mean, X_mean, Y)  # FIXME paths are missing here
+    #----------------------------------------------
+    # Do simple balancing here
+    print("len x", len(x))
+    print("len x_syn", len(x_syn))
+    x_new_syn = x_syn[:len(x)]
+    y_new_syn = y_syn[:len(x)]
+    print(len(x_new_syn))
+
+    # merge the original and balanced synthetic datasets
+    X_NEW = np.concatenate((x, x_new_syn))
+    Y_NEW = np.concatenate((y, y_new_syn))
+    combined_mean_new = calculate_mean(X_NEW)
+    X_NEW_mean = X_NEW - combined_mean
+
+    print("save classification dataset with balanced combined images")
+    output_name = str(naoth_root_path / 'tk03_combined_balanced_classification.pkl')
+    store_output(output_name, combined_mean_new, X_NEW_mean, Y_NEW)  # FIXME paths are missing here
+    #----------------------------------------------
 
 
 def create_tk03_detection_datasets():
@@ -252,7 +270,8 @@ def create_tk03_segmentation_datasets():
     output_name = str(naoth_root_path / 'tk03_combined_segmentation.pkl')
     store_output(output_name, combined_mean, X_mean, Y)
 
+create_tk03_classification_datasets()
 
-create_tk03_segmentation_datasets()
-create_tk03_detection2_datasets()
-create_tk03_detection_datasets()
+#create_tk03_segmentation_datasets()
+#create_tk03_detection2_datasets()
+#create_tk03_detection_datasets()

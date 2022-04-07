@@ -10,7 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from ..common_tools import get_data_root, download_function
+from common_tools import get_data_root, download_function
 
 
 def download_tk03_dataset():

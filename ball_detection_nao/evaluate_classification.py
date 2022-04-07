@@ -11,8 +11,16 @@ import toml
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-DATA_DIR = Path(Path(__file__).parent.parent.absolute() / "data_balldetection").resolve()
-MODEL_DIR = Path(Path(__file__).parent.absolute() / "models").resolve()
+def get_data_root():
+    # FIXME This is a copy because imports are annoying in python
+    config_path = Path(__file__).parent.parent.resolve() / "config.toml"
+    with open(str(config_path), 'r') as f:
+        config_dict = toml.load(f)
+
+    return config_dict["data_root"]
+
+DATA_DIR = Path(Path(get_data_root()) / "data_balldetection").resolve()
+MODEL_DIR = Path(Path(get_data_root()) / "models").resolve()
 
 
 def main(config_name):
@@ -35,8 +43,6 @@ def main(config_name):
 
     dot_img_file = 'model_1.png'
     keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
-
-
     #
 
     predictions = model.predict(x)

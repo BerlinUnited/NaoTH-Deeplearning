@@ -3,7 +3,10 @@ import os
 from cppyy_tools import get_naoth_dir, get_toolchain_dir, setup_shared_lib
 from typing import NamedTuple, Tuple, List
 import numpy as np
-
+from pathlib import Path
+import PIL.Image
+import sys
+import ctypes
 
 def load_image_as_yuv422(image_filename):
     """
@@ -62,6 +65,41 @@ class Frame(NamedTuple):
     cam_matrix_translation: Tuple[float, float, float]
     cam_matrix_rotation: np.array
 
+def get_frames_for_dir(d, transform_to_squares=False):
+    file_names = os.listdir(d)
+    file_names.sort()
+    imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
+        os.path.join(d, f)) and f.endswith(".png")]
+
+    result = list()
+    for file in imageFiles:
+        # open image to get the metadata
+        img = PIL.Image.open(file)
+        bottom = img.info["CameraID"] == "1"
+        # parse camera matrix using metadata in the PNG file
+        cam_matrix_translation = (float(img.info["t_x"]), float(
+            img.info["t_y"]), float(img.info["t_z"]))
+
+        cam_matrix_rotation = np.array(
+            [
+                [float(img.info["r_11"]), float(
+                    img.info["r_12"]), float(img.info["r_13"])],
+                [float(img.info["r_21"]), float(
+                    img.info["r_22"]), float(img.info["r_23"])],
+                [float(img.info["r_31"]), float(
+                    img.info["r_32"]), float(img.info["r_33"])]
+            ])
+
+        # add ground truth (all actual balls) to the frame
+        balls = list()
+
+        frame = Frame(file, bottom, balls, cam_matrix_translation,
+                      cam_matrix_rotation)
+
+        result.append(frame)
+
+    return result
+
 
 class PatchExecutor:
     """
@@ -91,8 +129,6 @@ class PatchExecutor:
 
         self.sim.registerCognition(callable_cog)
         self.sim.registerMotion(callable_mo)
-
-        
 
         # get access to the module manager and return it to the calling function
         self.moduleManager = cppyy.gbl.getModuleManager(cog)
@@ -200,9 +236,15 @@ class PatchExecutor:
             finds the parent folder of obj_train_data. In this folder new folders for various output are created.
             This assumes we have yolo output
         """
+        # create output path for yolo input
         for parent_folder in Path(directory).parents:
             if parent_folder.name == "obj_train_data":
                 return parent_folder.parent
+
+        # create output path for coco input structure
+        for parent_folder in Path(directory).parents:
+            if parent_folder.parent.name == "COCO_1.0":
+                return parent_folder
 
         print("arg")
         sys.exit()
@@ -211,17 +253,6 @@ class PatchExecutor:
         for d in directories:
             frames = get_frames_for_dir(d, False)
             self.output_folder = self.get_output_folder(d)
-
-            # DEBUG: repeat a frame
-            '''
-            f = frames[0]
-            for i in range(1,10):
-                input("Press Enter to continue...")
-                print("---- {} ------".format(i))
-                self.set_current_frame(f)
-                self.sim.executeFrame()
-                self.export_debug_images(f)
-            '''
 
             for f in frames:
                 self.set_current_frame(f)

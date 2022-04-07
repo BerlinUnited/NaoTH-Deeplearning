@@ -92,7 +92,8 @@ if __name__ == '__main__':
     #main("classification_tk_natural")
     #main("classification_tk_synthetic")
     #main("classification_tk_combined")
+    main("classification_tk_combined-balanced")
 
     # TODO patch size evaluation on more epochs
-    main("classification_1")
+    #main("classification_1")
     #main("classification_2")
