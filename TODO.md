@@ -45,6 +45,7 @@
 - add functionality to use the detectron inference result for uploading to cvat
   - requires my windows machine
 - Fix cvat api to use org everwhere
+- in generall there is a lot of folder recursing and stuff going on. Its annoying and makes the code hard to understand. There should be a clear concept which is well documented
 
 ### Importing SPL style annotations
 things to think about:

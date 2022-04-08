@@ -224,11 +224,32 @@ class PatchExecutor:
         Path(output_file.parent).mkdir(exist_ok=True, parents=True)
         cv2.imwrite(str(output_file), img)
 
-    def export_patches():
+    def export_patches(self, frame: Frame):
         """
             This should export patches as images for future training
         """
-        pass
+        import cv2
+
+        # get the ball candidates from the module
+        if frame.bottom:
+            detected_balls = self.ball_detector.getProvide().at("BallCandidates")
+        else:
+            detected_balls = self.ball_detector.getProvide().at("BallCandidatesTop")
+
+        img = cv2.imread(frame.file)
+        # create folder for the patches
+        patch_folder = self.output_folder / "patches"
+        Path(patch_folder).mkdir(exist_ok=True, parents=True)
+        print()
+        for idx, p in enumerate(detected_balls.patchesYUVClassified):
+            # TODO what to do with patches that are smaller than the target
+            # TODO sort them into ball and no ball images
+            # TODO add more patches around the real ball annotation
+            crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
+            patch_file_name = patch_folder / (Path(frame.file).stem + f"_{idx}.png")
+            cv2.imwrite(str(patch_file_name), crop_img)
+
+        quit()
 
     def get_output_folder(self, directory):
         """
@@ -250,11 +271,13 @@ class PatchExecutor:
         sys.exit()
 
     def execute(self, directories):
-        for d in directories:
+        for d in sorted(directories):
+            print("working in", d)
             frames = get_frames_for_dir(d, False)
             self.output_folder = self.get_output_folder(d)
-
+            
             for f in frames:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
-                self.export_debug_images(f)
+                #self.export_debug_images(f)
+                self.export_patches(f)
