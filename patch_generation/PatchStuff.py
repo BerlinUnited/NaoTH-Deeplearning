@@ -272,53 +272,6 @@ class PatchExecutor:
         Path(output_file.parent).mkdir(exist_ok=True, parents=True)
         cv2.imwrite(str(output_file), img)
 
-    def export_patches(self, frame: Frame):
-        """
-            This should export patches as images for future training
-        """
-        import cv2
-
-        # get the ball candidates from the module
-        if frame.bottom:
-            detected_balls = self.ball_detector.getProvide().at("BallCandidates")
-        else:
-            detected_balls = self.ball_detector.getProvide().at("BallCandidatesTop")
-
-        img = cv2.imread(frame.file)
-        # create folder for the patches
-        patch_size = 64
-        # TODO: export to different folder according to top/bottom
-        # TODO: i could put all the meta data into the png header. But this would mean to reload the image with pillow after writing it with opencv
-        ball_patch_folder = self.output_folder / f"patches_{patch_size}" / "ball"
-        noball_patch_folder = self.output_folder / f"patches_{patch_size}" / "noball"
-        Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
-        Path(noball_patch_folder).mkdir(exist_ok=True, parents=True)
-
-        # TODO use naoth like resizing (subsampling) like in Patchwork.cpp line 39
-        # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
-        for idx, p in enumerate(detected_balls.patchesYUVClassified):
-            # check the IOU and sort them accordingly
-            iou_flag = False
-            for gt_ball in frame.gt_balls:
-                # cv2.rectangle(img, gt_ball.top_left, gt_ball.bottom_right, (0, 255, 0))
-                iou = gt_ball.intersection_over_union(p.min.x, p.min.y, p.max.x, p.max.y)
-                if iou > 0.3:
-                    iou_flag = True
-                    crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-                    # resize it to patch size
-                    crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
-
-                    patch_file_name = ball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
-                    cv2.imwrite(str(patch_file_name), crop_img)
-
-            # if there are not gt_ball or none trigger iou threshold its a noball patch
-            if iou_flag:
-                continue
-            crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-            crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
-            patch_file_name = noball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
-            cv2.imwrite(str(patch_file_name), crop_img)
-
     def export_patches2(self, frame: Frame):
         """
             This should export patches as images for future training
