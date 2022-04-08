@@ -7,6 +7,7 @@ from pathlib import Path
 import PIL.Image
 import sys
 import ctypes
+import json
 
 def load_image_as_yuv422(image_filename):
     """
@@ -61,11 +62,21 @@ class Rectangle(NamedTuple):
 class Frame(NamedTuple):
     file: str
     bottom: bool
-    balls: List[Rectangle]
+    gt_balls: List[Rectangle]
     cam_matrix_translation: Tuple[float, float, float]
     cam_matrix_rotation: np.array
 
 def get_frames_for_dir(d, transform_to_squares=False):
+    """
+        This code assumes that annoations are in coco format for now
+    """
+    # ----------------------------------------------------------------------------------------
+    # Load COCO annotation data
+    annotation_file = Path(d).parent.parent.parent.parent / "annotations/instances_default.json"
+    print(annotation_file)
+    with open(annotation_file) as json_data:
+        annotation_data = json.load(json_data)
+    # ----------------------------------------------------------------------------------------
     file_names = os.listdir(d)
     file_names.sort()
     imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
@@ -73,6 +84,22 @@ def get_frames_for_dir(d, transform_to_squares=False):
 
     result = list()
     for file in imageFiles:
+        # ----------------------------------------------------------------------------------------
+        # actually load all the groundtruth ball data
+        gt_balls = list()
+        # get image id in coco annotation file for given image path
+        image_path_anno = file.split("images/")[-1]
+        for img in annotation_data["images"]:
+            if img["file_name"] == image_path_anno:
+                id = img["id"]
+        # use id to locate the bounding box annotation data
+        for anno in annotation_data["annotations"]:
+            # when multiple balls are present the if clause hits multiple times
+            if anno["image_id"] == id:
+                print(anno["bbox"])  # [x,y,width,height]
+                gt_rectangle = Rectangle((anno["bbox"][0], anno["bbox"][1]),(anno["bbox"][0] + anno["bbox"][3]), anno["bbox"][1]+ anno["bbox"][4])
+                gt_balls.append(gt_rectangle)
+        # ----------------------------------------------------------------------------------------
         # open image to get the metadata
         img = PIL.Image.open(file)
         bottom = img.info["CameraID"] == "1"
@@ -90,12 +117,8 @@ def get_frames_for_dir(d, transform_to_squares=False):
                     img.info["r_32"]), float(img.info["r_33"])]
             ])
 
-        # add ground truth (all actual balls) to the frame
-        balls = list()
 
-        frame = Frame(file, bottom, balls, cam_matrix_translation,
-                      cam_matrix_rotation)
-
+        frame = Frame(file, bottom, gt_balls, cam_matrix_translation, cam_matrix_rotation)
         result.append(frame)
 
     return result
