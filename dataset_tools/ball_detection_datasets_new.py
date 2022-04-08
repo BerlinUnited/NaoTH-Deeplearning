@@ -1,5 +1,8 @@
 """
     The functions create datasets for the new cppyy patch data
+
+    TODO implement resizing here
+    TODO implement the new simpler folder structure
 """
 from pathlib import Path
 import cv2
@@ -9,7 +12,9 @@ import pickle
 from common_tools import get_data_root
 
 
-def create_2019_patch_dataset(patch_size=16, color=False):
+def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh = 0.3):
+    """
+    """
     naoth_root_path = Path(get_data_root()) / "data_balldetection/naoth"
     rc19_path = Path(get_data_root()) / "data_cvat/RoboCup2019/combined/COCO_1.0/"
 
@@ -24,30 +29,25 @@ def create_2019_patch_dataset(patch_size=16, color=False):
     # get all dataset paths
     subfu = [f for f in rc19_path.iterdir() if f.is_dir()]
     for folder in subfu:
-        ball_image_paths = Path(folder / f"patches_{patch_size}" / "ball").glob('**/*.png')
-        for ball_path in ball_image_paths:
+        patch_paths = Path(folder / "all_patches").glob('**/*.png')
+        for patch_path in patch_paths:
             if color:
-                img = cv2.imread(str(ball_path))
+                img_cv = cv2.imread(str(patch_path))
             else:
-                img = cv2.imread(str(ball_path), cv2.IMREAD_GRAYSCALE)
-            img_normalized = img.astype(float) / 255.0
+                img_cv = cv2.imread(str(patch_path), cv2.IMREAD_GRAYSCALE)
+            img_normalized = img_cv.astype(float) / 255.0
+
+            # TODO load meta data
+
+            # TODO resize here
+
+            # TODO change this according to iou and iou_thresh
             target = np.array([1.0]) # ball
             ball_images.append(img_normalized)
             ball_targets.append(target)
 
-        noball_image_paths = Path(folder / f"patches_{patch_size}" / "noball").glob('**/*.png')
-        for noball_path in noball_image_paths:
-            if color:
-                img = cv2.imread(str(noball_path))
-            else:
-                img = cv2.imread(str(noball_path), cv2.IMREAD_GRAYSCALE)
-            img_normalized = img.astype(float) / 255.0
-            target = np.array([0.0]) # noball
-            noball_images.append(img_normalized)
-            noball_targets.append(target)
-
     # TODO balancing here
-
+    # TODO add option for per image mean vs global mean vs no mean
     all_images = ball_images + noball_images
     mean_all_images = np.mean(all_images)
     all_images_wo_mean = all_images - mean_all_images

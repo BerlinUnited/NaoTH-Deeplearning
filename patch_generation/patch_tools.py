@@ -1,6 +1,5 @@
 """
-    TODO figure out what representation of the labeled images i should use to get the real ball data in the best way. YOLO, cvat or coco
-        TODO: next step for this is to export patches regardless of ball or no ball but the patches must be sampled to a specific size (e.g. 16x16)
+
 """
 
 import cppyy
@@ -14,9 +13,17 @@ def get_coco_dataset_paths():
     """
     finds the parent folder of each image under the coco root. The set of all those parent folders will be used for
     input to cppyy
+    For reference the coco folder structure:
+    coco_1.0
+        -> 4                            #  (those numbers are cvat project ids)
+        -> 5
+            -> images                   #  (this folder is created by the cvat download)
+            -> annotations              #  (this folder is created by the cvat download)
+            -> debug_images             #  (this folder is created by this script)
+            --> all_patches             #  (this folder iis created by this script)
     """
-    #coco_root = Path("/home/stella/Documents/datasets/data_cvat/RoboCup2019/combined/COCO_1.0/")
-    coco_root = Path("C://RoboCup//Datasets//data_cvat//RoboCup2019//combined//COCO_1.0")
+    # FIXME use config here for base path
+    coco_root = Path("/home/stella/Documents/datasets/data_cvat/RoboCup2019/combined/COCO_1.0/")
     all_images = coco_root.glob('**/images/**/*.png')  # don't accidentally include debug images
     all_parents = [f.parent for f in all_images]
     all_parents = list(set(all_parents))

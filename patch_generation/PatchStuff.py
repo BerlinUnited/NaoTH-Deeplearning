@@ -60,6 +60,22 @@ class Rectangle(NamedTuple):
         # return the intersecton over union
         return intersection_area / float(self_area + other_area - intersection_area)
 
+    def get_radius(self):
+        width = round((self.bottom_right[0] - self.top_left[0]) / 2)
+        height = round((self.bottom_right[1] - self.top_left[1]) / 2)
+
+        return min(width, height)
+
+    def get_center(self):
+        """
+            this will calculate the center of the rectangle in the coordinate frame the coordinates are in
+        """
+        width = self.bottom_right[0] - self.top_left[0]
+        height = self.bottom_right[1] - self.top_left[1]
+
+        x = round(self.top_left[0] + width / 2)
+        y = round(self.top_left[1] + height / 2)
+        return x, y
 
 class Frame(NamedTuple):
     file: str
@@ -312,38 +328,53 @@ class PatchExecutor:
         # get the ball candidates from the module
         if frame.bottom:
             detected_balls = self.ball_detector.getProvide().at("BallCandidates")
+            cam_id = 1
         else:
             detected_balls = self.ball_detector.getProvide().at("BallCandidatesTop")
+            cam_id = 0
 
         img = cv2.imread(frame.file)
         # create folder for the patches
-        patch_size = 64
-        # TODO: export to different folder according to top/bottom
-        # TODO: i could put all the meta data into the png header. But this would mean to reload the image with pillow after writing it with opencv
-        patch_folder = self.output_folder / f"all_patches_{patch_size}"
+
+        patch_folder = self.output_folder / f"all_patches"
         Path(patch_folder).mkdir(exist_ok=True, parents=True)
 
-        # TODO use naoth like resizing (subsampling) like in Patchwork.cpp line 39
-        # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
         for idx, p in enumerate(detected_balls.patchesYUVClassified):
-            # check the IOU and sort them accordingly
+            iou = 0.0
+            x = 0.0
+            y = 0.0
+            radius = 0.0
+            # calculate the best iou for a given patch
             for gt_ball in frame.gt_balls:
-                iou = gt_ball.intersection_over_union(p.min.x, p.min.y, p.max.x, p.max.y)
+                new_iou = gt_ball.intersection_over_union(p.min.x, p.min.y, p.max.x, p.max.y)
+                if new_iou > iou:
+                    iou = new_iou
+                    # those values are relativ to the origin (top left) of the patch 
+                    x, y = gt_ball.get_center()
+                    x = x - p.min.x
+                    y = y - p.min.y
+                    radius = gt_ball.get_radius()
 
-                crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-                # resize it to patch size
-                crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
 
-                patch_file_name = patch_folder / (Path(frame.file).stem + f"_{idx}.png")
-                cv2.imwrite(str(patch_file_name), crop_img)
+            # crop full image to calculated patch
+            # TODO use naoth like resizing (subsampling) like in Patchwork.cpp line 39
+            crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
+            # don't resize here. do it later
+            #crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
 
-                # section for writing meta data
-                meta = PngImagePlugin.PngInfo()
-                meta.add_text("CameraID", "bottom")
+            patch_file_name = patch_folder / (Path(frame.file).stem + f"_{idx}.png")
+            cv2.imwrite(str(patch_file_name), crop_img)
 
-                with PIL.Image.open(str(patch_file_name)) as img:
-                    img.save(str(patch_file_name), pnginfo=meta)
-        quit()
+            # section for writing meta data
+            meta = PngImagePlugin.PngInfo()
+            meta.add_text("CameraID", str(cam_id))
+            meta.add_text("iou", str(iou))
+            meta.add_text("center_x", str(x))
+            meta.add_text("center_y", str(y))
+            meta.add_text("radius", str(radius))
+
+            with PIL.Image.open(str(patch_file_name)) as im_pill:
+                im_pill.save(str(patch_file_name), pnginfo=meta)
 
     def get_output_folder(self, directory):
         """
@@ -374,4 +405,4 @@ class PatchExecutor:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
                 # self.export_debug_images(f)
-                self.export_patches(f)
+                self.export_patches2(f)
