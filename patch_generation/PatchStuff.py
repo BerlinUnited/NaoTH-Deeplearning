@@ -41,18 +41,18 @@ class Rectangle(NamedTuple):
     def intersection_over_union(self, xtl: float, ytl: float, xbr: float, ybr: float):
         # compute x and y coordinates of the intersection rectangle
         intersection_topleft = Point2D(
-            max(self.top_left.x, xtl), max(self.top_left.y, ytl))
+            max(self.top_left[0], xtl), max(self.top_left[1], ytl))
         intersection_bottomright = Point2D(
-            min(self.bottom_right.x, xbr), min(self.bottom_right.y, ybr))
+            min(self.bottom_right[0], xbr), min(self.bottom_right[1], ybr))
         intersection = Rectangle(intersection_topleft,
                                  intersection_bottomright)
 
         # compute the intersection, self and other area
-        intersectionArea = max(0, intersection.bottom_right.x - intersection.top_left.x + 1) * \
-                           max(0, intersection.bottom_right.y - intersection.top_left.y + 1)
+        intersectionArea = max(0, intersection.bottom_right[0] - intersection.top_left[0] + 1) * \
+                           max(0, intersection.bottom_right[1] - intersection.top_left[1] + 1)
 
-        selfArea = (self.bottom_right.x - self.top_left.x + 1) * \
-                   (self.bottom_right.y - self.top_left.y + 1)
+        selfArea = (self.bottom_right[0] - self.top_left[0] + 1) * \
+                   (self.bottom_right[1] - self.top_left[1] + 1)
         otherArea = (xbr - xtl + 1) * (ybr - ytl + 1)
 
         # return the intersecton over union
@@ -66,63 +66,7 @@ class Frame(NamedTuple):
     cam_matrix_translation: Tuple[float, float, float]
     cam_matrix_rotation: np.array
 
-def get_frames_for_dir(d, transform_to_squares=False):
-    """
-        This code assumes that annoations are in coco format for now
-    """
-    # ----------------------------------------------------------------------------------------
-    # Load COCO annotation data
-    annotation_file = Path(d).parent.parent.parent.parent / "annotations/instances_default.json"
-    print(annotation_file)
-    with open(annotation_file) as json_data:
-        annotation_data = json.load(json_data)
-    # ----------------------------------------------------------------------------------------
-    file_names = os.listdir(d)
-    file_names.sort()
-    imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
-        os.path.join(d, f)) and f.endswith(".png")]
 
-    result = list()
-    for file in imageFiles:
-        # ----------------------------------------------------------------------------------------
-        # actually load all the groundtruth ball data
-        gt_balls = list()
-        # get image id in coco annotation file for given image path
-        image_path_anno = file.split("images/")[-1]
-        for img in annotation_data["images"]:
-            if img["file_name"] == image_path_anno:
-                id = img["id"]
-        # use id to locate the bounding box annotation data
-        for anno in annotation_data["annotations"]:
-            # when multiple balls are present the if clause hits multiple times
-            if anno["image_id"] == id:
-                top_left = (round(anno["bbox"][0]), round(anno["bbox"][1]))
-                bottom_right = (round(anno["bbox"][0] + anno["bbox"][2]), round(anno["bbox"][1]+ anno["bbox"][3]))
-                gt_rectangle = Rectangle(top_left, bottom_right)
-                gt_balls.append(gt_rectangle)
-        # ----------------------------------------------------------------------------------------
-        # open image to get the metadata
-        img = PIL.Image.open(file)
-        bottom = img.info["CameraID"] == "1"
-        # parse camera matrix using metadata in the PNG file
-        cam_matrix_translation = (float(img.info["t_x"]), float(
-            img.info["t_y"]), float(img.info["t_z"]))
-
-        cam_matrix_rotation = np.array(
-            [
-                [float(img.info["r_11"]), float(
-                    img.info["r_12"]), float(img.info["r_13"])],
-                [float(img.info["r_21"]), float(
-                    img.info["r_22"]), float(img.info["r_23"])],
-                [float(img.info["r_31"]), float(
-                    img.info["r_32"]), float(img.info["r_33"])]
-            ])
-
-
-        frame = Frame(file, bottom, gt_balls, cam_matrix_translation, cam_matrix_rotation)
-        result.append(frame)
-
-    return result
 
 
 class PatchExecutor:
@@ -170,6 +114,64 @@ class PatchExecutor:
 
         # restore original working directory
         os.chdir(orig_working_dir)
+    
+    def get_frames_for_dir(self, d, transform_to_squares=False):
+        """
+            This code assumes that annoations are in coco format for now
+        """
+        # ----------------------------------------------------------------------------------------
+        # Load COCO annotation data
+        annotation_file = Path(self.output_folder) / "annotations/instances_default.json"
+        print("annotation file",annotation_file)
+        with open(annotation_file) as json_data:
+            annotation_data = json.load(json_data)
+        # ----------------------------------------------------------------------------------------
+        file_names = os.listdir(d)
+        file_names.sort()
+        imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
+            os.path.join(d, f)) and f.endswith(".png")]
+
+        result = list()
+        for file in imageFiles:
+            # ----------------------------------------------------------------------------------------
+            # actually load all the groundtruth ball data
+            gt_balls = list()
+            # get image id in coco annotation file for given image path
+            image_path_anno = file.split("images/")[-1]
+            for img in annotation_data["images"]:
+                if img["file_name"] == image_path_anno:
+                    id = img["id"]
+            # use id to locate the bounding box annotation data
+            for anno in annotation_data["annotations"]:
+                # when multiple balls are present the if clause hits multiple times
+                if anno["image_id"] == id:
+                    top_left = (round(anno["bbox"][0]), round(anno["bbox"][1]))
+                    bottom_right = (round(anno["bbox"][0] + anno["bbox"][2]), round(anno["bbox"][1]+ anno["bbox"][3]))
+                    gt_rectangle = Rectangle(top_left, bottom_right)
+                    gt_balls.append(gt_rectangle)
+            # ----------------------------------------------------------------------------------------
+            # open image to get the metadata
+            img = PIL.Image.open(file)
+            bottom = img.info["CameraID"] == "1"
+            # parse camera matrix using metadata in the PNG file
+            cam_matrix_translation = (float(img.info["t_x"]), float(
+                img.info["t_y"]), float(img.info["t_z"]))
+
+            cam_matrix_rotation = np.array(
+                [
+                    [float(img.info["r_11"]), float(
+                        img.info["r_12"]), float(img.info["r_13"])],
+                    [float(img.info["r_21"]), float(
+                        img.info["r_22"]), float(img.info["r_23"])],
+                    [float(img.info["r_31"]), float(
+                        img.info["r_32"]), float(img.info["r_33"])]
+                ])
+
+
+            frame = Frame(file, bottom, gt_balls, cam_matrix_translation, cam_matrix_rotation)
+            result.append(frame)
+
+        return result
 
     def set_camera_matrix_representation(self, frame, camMatrix):
         """
@@ -246,8 +248,6 @@ class PatchExecutor:
 
         # draw groundtruth
         for gt_ball in frame.gt_balls:
-            print(gt_ball)
-            print()
             cv2.rectangle(img, gt_ball.top_left, gt_ball.bottom_right, (0, 255, 0))
 
         output_file = self.output_folder / "debug_images" / Path(frame.file).name
@@ -268,18 +268,38 @@ class PatchExecutor:
 
         img = cv2.imread(frame.file)
         # create folder for the patches
-        patch_folder = self.output_folder / "patches"
-        Path(patch_folder).mkdir(exist_ok=True, parents=True)
-        print()
+        ball_patch_folder = self.output_folder / "patches" / "ball"
+        noball_patch_folder = self.output_folder / "patches" / "noball"
+        Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
+        Path(noball_patch_folder).mkdir(exist_ok=True, parents=True)
+
+        # TODO add more patches around the real ball annotation
+        # TODO use naoth like resizeing (subsampling) like in Patchwork.cpp line 39
+        # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
+        # TODO use different names in output folder according to patchsize
         for idx, p in enumerate(detected_balls.patchesYUVClassified):
-            # TODO what to do with patches that are smaller than the target
-            # TODO sort them into ball and no ball images
-            # TODO add more patches around the real ball annotation
+            # check the IOU and sort them accordingly
+            iou_flag = False
+            for gt_ball in frame.gt_balls:
+                # cv2.rectangle(img, gt_ball.top_left, gt_ball.bottom_right, (0, 255, 0))
+                iou = gt_ball.intersection_over_union(p.min.x, p.min.y, p.max.x, p.max.y)
+                if iou > 0.3:
+                    iou_flag = True
+                    crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
+                    # resize it to patch size # TODO make the patch size global
+                    cv2.resize(crop_img, (16, 16), interpolation= cv2.INTER_LINEAR)
+
+                    patch_file_name = ball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
+                    cv2.imwrite(str(patch_file_name), crop_img)
+
+            # if there are not gt_ball or none trigger iou threshold its a noball patch
+            if iou_flag:
+                continue
             crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-            patch_file_name = patch_folder / (Path(frame.file).stem + f"_{idx}.png")
+            cv2.resize(crop_img, (16, 16), interpolation= cv2.INTER_LINEAR)
+            patch_file_name = noball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
             cv2.imwrite(str(patch_file_name), crop_img)
 
-        quit()
 
     def get_output_folder(self, directory):
         """
@@ -303,11 +323,12 @@ class PatchExecutor:
     def execute(self, directories):
         for d in sorted(directories):
             print("working in", d)
-            frames = get_frames_for_dir(d, False)
             self.output_folder = self.get_output_folder(d)
+            frames = self.get_frames_for_dir(d, False)
+            
             
             for f in frames:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
-                self.export_debug_images(f)
-                #self.export_patches(f)
+                #self.export_debug_images(f)
+                self.export_patches(f)
