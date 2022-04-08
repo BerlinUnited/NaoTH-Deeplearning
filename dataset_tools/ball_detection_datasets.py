@@ -1,14 +1,7 @@
 """
     Tools for creating a dataset suitable to train ball detection networks that can run on the nao
-    TODO move the generate db stuff here
-    TODO add the patchgeneration stuff here
 
-    TODO: where should the datasets be saved
-    TODO: incorporate patch generation stuff in here
-    TODO: can I create different size patches with cppyy?
-
-    TODO: download all relevant data to laptop because cppyy stuff i can do in hospital
-    TODO:
+    TODO: I could put all annotations inside the png files. Then i could remove all the csv nonsense
 """
 import numpy as np
 import h5py
