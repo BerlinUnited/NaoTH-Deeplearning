@@ -268,15 +268,15 @@ class PatchExecutor:
 
         img = cv2.imread(frame.file)
         # create folder for the patches
-        ball_patch_folder = self.output_folder / "patches" / "ball"
-        noball_patch_folder = self.output_folder / "patches" / "noball"
+        patch_size = 64
+        ball_patch_folder = self.output_folder / f"patches_{patch_size}" / "ball"
+        noball_patch_folder = self.output_folder / f"patches_{patch_size}" / "noball"
         Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
         Path(noball_patch_folder).mkdir(exist_ok=True, parents=True)
 
         # TODO add more patches around the real ball annotation
         # TODO use naoth like resizeing (subsampling) like in Patchwork.cpp line 39
         # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
-        # TODO use different names in output folder according to patchsize
         for idx, p in enumerate(detected_balls.patchesYUVClassified):
             # check the IOU and sort them accordingly
             iou_flag = False
@@ -286,8 +286,8 @@ class PatchExecutor:
                 if iou > 0.3:
                     iou_flag = True
                     crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-                    # resize it to patch size # TODO make the patch size global
-                    cv2.resize(crop_img, (16, 16), interpolation= cv2.INTER_LINEAR)
+                    # resize it to patch size
+                    crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation= cv2.INTER_NEAREST)
 
                     patch_file_name = ball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
                     cv2.imwrite(str(patch_file_name), crop_img)
@@ -296,7 +296,7 @@ class PatchExecutor:
             if iou_flag:
                 continue
             crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-            cv2.resize(crop_img, (16, 16), interpolation= cv2.INTER_LINEAR)
+            crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation= cv2.INTER_NEAREST)
             patch_file_name = noball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
             cv2.imwrite(str(patch_file_name), crop_img)
 
