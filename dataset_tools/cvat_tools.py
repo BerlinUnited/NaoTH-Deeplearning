@@ -47,7 +47,7 @@ def get_projects(session):
 
 def get_annotation_formats(session):
     try:
-        response = session.get('https://ball.informatik.hu-berlin.de/api/v1/server/annotation/formats')
+        response = session.get('https://ball.informatik.hu-berlin.de/api/server/annotation/formats')
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
@@ -60,7 +60,7 @@ def get_annotation_formats(session):
 
 
 def get_project_name(session, project_id):
-    project_url = f"https://ball.informatik.hu-berlin.de/api/v1/projects/{project_id}"
+    project_url = f"https://ball.informatik.hu-berlin.de/api/projects/{project_id}"
     try:
         response = session.get(project_url)
         response.raise_for_status()
@@ -73,7 +73,7 @@ def get_project_name(session, project_id):
 
 def download_dataset(session, task_id, data_subfolder="unfinished", export_format="YOLO 1.1"):
     # get task details
-    task_url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}'
+    task_url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}'
     try:
         response = session.get(task_url)
         response.raise_for_status()
@@ -91,7 +91,7 @@ def download_dataset(session, task_id, data_subfolder="unfinished", export_forma
     if Path(local_filename).exists():
         return local_filename
     format_quoted = urllib.parse.quote(export_format)
-    url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}/dataset?format={format_quoted}&action=download'
+    url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/dataset?format={format_quoted}&action=download'
 
     with session.get(url, stream=True) as r:
         r.raise_for_status()
@@ -111,7 +111,7 @@ def download_dataset(session, task_id, data_subfolder="unfinished", export_forma
 
 
 def get_unfinished_tasks(session, project_id):
-    url = f"https://ball.informatik.hu-berlin.de/api/v1/projects/{project_id}"
+    url = f"https://ball.informatik.hu-berlin.de/api/projects/{project_id}"
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -132,7 +132,7 @@ def get_unfinished_tasks(session, project_id):
 
 
 def get_finished_tasks(session, project_id):
-    url = f"https://ball.informatik.hu-berlin.de/api/v1/projects/{project_id}"
+    url = f"https://ball.informatik.hu-berlin.de/api/projects/{project_id}"
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -152,7 +152,7 @@ def get_finished_tasks(session, project_id):
 
 def get_all_tasks(session, project_id):
     # TODO can be combine with finished and unfinished to one function
-    url = f"https://ball.informatik.hu-berlin.de/api/v1/projects/{project_id}"
+    url = f"https://ball.informatik.hu-berlin.de/api/projects/{project_id}"
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -221,7 +221,7 @@ def get_labels_from_tasks(session, task_id):
         }
         the label id's are needed for uploading annotations to a task
     """
-    task_url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}'
+    task_url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}'
     try:
         response = session.get(task_url)
         response.raise_for_status()
@@ -305,7 +305,7 @@ def delete_all_tasks_in_project(project_id):
         tasks = get_all_tasks(session, project_id)
 
         for task_id in tqdm(tasks):
-            url = f"https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}?org="
+            url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}?org="
             csrftoken = session.cookies['csrftoken']
             token = session.cookies['token']
             try:
@@ -317,7 +317,7 @@ def delete_all_tasks_in_project(project_id):
 
 
 def create_task(session, task_dict, project_id):
-    url = "https://ball.informatik.hu-berlin.de/api/v1/tasks?org="
+    url = "https://ball.informatik.hu-berlin.de/api/tasks?org="
     # setting this token is important for some reason but only for post requests, it seems
     csrftoken = session.cookies['csrftoken']
     token = session.cookies['token']
@@ -352,12 +352,12 @@ def create_task(session, task_dict, project_id):
     task_id = response['id']
 
     # add data to task
-    url = f'https://ball.informatik.hu-berlin.de/api/v1/tasks/{task_id}/data?org='
+    url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/data?org='
     response = session.post(url, data=data, headers={"Authorization": "token " + token})
 
     # check for completion of data before returning
     while True:
-        url = 'https://ball.informatik.hu-berlin.de/api/v1/tasks/{}/status'.format(task_id)
+        url = 'https://ball.informatik.hu-berlin.de/api/tasks/{}/status'.format(task_id)
         response = session.get(url)
         print(response.json())
         if response.json()["state"] == "Finished":

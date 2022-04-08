@@ -18,7 +18,7 @@ def cvat_login(session):
 
     login_data = {'username': username, 'password': password}
     try:
-        response = session.post('https://ball.informatik.hu-berlin.de/api/v1/auth/login', data=login_data)
+        response = session.post('https://ball.informatik.hu-berlin.de/api/auth/login', data=login_data)
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)

@@ -14,7 +14,7 @@ def download_gopro_rc19_datasets():
 
 def download_rc19_log_datasets():
     # the project ids that contain the rc19 log images
-    downloaded_datasets = download_all_tasks_from_project(relevant_project_ids=[4], export_format="CVAT for images 1.1")
+    downloaded_datasets = download_all_tasks_from_project(relevant_project_ids=[4], export_format="COCO 1.0")
     unpack_zips(downloaded_datasets)
 
 
