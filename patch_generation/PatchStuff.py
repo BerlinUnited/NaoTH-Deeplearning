@@ -9,6 +9,7 @@ import sys
 import ctypes
 import json
 
+
 def load_image_as_yuv422(image_filename):
     """
         this functions loads an image from a file to the correct format for the naoth library
@@ -48,15 +49,15 @@ class Rectangle(NamedTuple):
                                  intersection_bottomright)
 
         # compute the intersection, self and other area
-        intersectionArea = max(0, intersection.bottom_right[0] - intersection.top_left[0] + 1) * \
-                           max(0, intersection.bottom_right[1] - intersection.top_left[1] + 1)
+        intersection_area = max(0, intersection.bottom_right[0] - intersection.top_left[0] + 1) * \
+                            max(0, intersection.bottom_right[1] - intersection.top_left[1] + 1)
 
-        selfArea = (self.bottom_right[0] - self.top_left[0] + 1) * \
-                   (self.bottom_right[1] - self.top_left[1] + 1)
-        otherArea = (xbr - xtl + 1) * (ybr - ytl + 1)
+        self_area = (self.bottom_right[0] - self.top_left[0] + 1) * \
+                    (self.bottom_right[1] - self.top_left[1] + 1)
+        other_area = (xbr - xtl + 1) * (ybr - ytl + 1)
 
         # return the intersecton over union
-        return intersectionArea / float(selfArea + otherArea - intersectionArea)
+        return intersection_area / float(self_area + other_area - intersection_area)
 
 
 class Frame(NamedTuple):
@@ -67,12 +68,11 @@ class Frame(NamedTuple):
     cam_matrix_rotation: np.array
 
 
-
-
 class PatchExecutor:
     """
     TODO add documentation here
     """
+
     def __init__(self):
         orig_working_dir = os.getcwd()
         naoth_dir = get_naoth_dir()
@@ -114,25 +114,25 @@ class PatchExecutor:
 
         # restore original working directory
         os.chdir(orig_working_dir)
-    
-    def get_frames_for_dir(self, d, transform_to_squares=False):
+
+    def get_frames_for_dir(self, d):
         """
-            This code assumes that annoations are in coco format for now
+            This code assumes that annotations are in coco format for now
         """
         # ----------------------------------------------------------------------------------------
         # Load COCO annotation data
         annotation_file = Path(self.output_folder) / "annotations/instances_default.json"
-        print("annotation file",annotation_file)
+        print("annotation file", annotation_file)
         with open(annotation_file) as json_data:
             annotation_data = json.load(json_data)
         # ----------------------------------------------------------------------------------------
         file_names = os.listdir(d)
         file_names.sort()
-        imageFiles = [os.path.join(d, f) for f in file_names if os.path.isfile(
+        image_files = [os.path.join(d, f) for f in file_names if os.path.isfile(
             os.path.join(d, f)) and f.endswith(".png")]
 
         result = list()
-        for file in imageFiles:
+        for file in image_files:
             # ----------------------------------------------------------------------------------------
             # actually load all the groundtruth ball data
             gt_balls = list()
@@ -146,7 +146,7 @@ class PatchExecutor:
                 # when multiple balls are present the if clause hits multiple times
                 if anno["image_id"] == id:
                     top_left = (round(anno["bbox"][0]), round(anno["bbox"][1]))
-                    bottom_right = (round(anno["bbox"][0] + anno["bbox"][2]), round(anno["bbox"][1]+ anno["bbox"][3]))
+                    bottom_right = (round(anno["bbox"][0] + anno["bbox"][2]), round(anno["bbox"][1] + anno["bbox"][3]))
                     gt_rectangle = Rectangle(top_left, bottom_right)
                     gt_balls.append(gt_rectangle)
             # ----------------------------------------------------------------------------------------
@@ -167,18 +167,18 @@ class PatchExecutor:
                         img.info["r_32"]), float(img.info["r_33"])]
                 ])
 
-
             frame = Frame(file, bottom, gt_balls, cam_matrix_translation, cam_matrix_rotation)
             result.append(frame)
 
         return result
 
-    def set_camera_matrix_representation(self, frame, camMatrix):
+    @staticmethod
+    def set_camera_matrix_representation(frame, cam_matrix):
         """
             reads the camera matrix information from a frame object and writes it to the
             naoth camMatrix representation
         """
-        p = cppyy.gbl.toPose3D(camMatrix)
+        p = cppyy.gbl.toPose3D(cam_matrix)
         p.translation.x = frame.cam_matrix_translation[0]
         p.translation.y = frame.cam_matrix_translation[1]
         p.translation.z = frame.cam_matrix_translation[2]
@@ -190,7 +190,8 @@ class PatchExecutor:
         return p
 
     # helper: write a numpy array of data to an image representation
-    def write_data_to_image_representation(self, data, image):
+    @staticmethod
+    def write_data_to_image_representation(data, image):
         # create a pointer
         p_data = data.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))
 
@@ -201,13 +202,13 @@ class PatchExecutor:
     def set_current_frame(self, frame):
 
         # get access to relevant representations
-        imageBottom = self.ball_detector.getRequire().at("Image")
-        imageTop = self.ball_detector.getRequire().at("ImageTop")
-        camMatrixBottom = self.ball_detector.getRequire().at("CameraMatrix")
-        camMatrixTop = self.ball_detector.getRequire().at("CameraMatrixTop")
+        image_bottom = self.ball_detector.getRequire().at("Image")
+        image_top = self.ball_detector.getRequire().at("ImageTop")
+        cam_matrix_bottom = self.ball_detector.getRequire().at("CameraMatrix")
+        cam_matrix_top = self.ball_detector.getRequire().at("CameraMatrixTop")
 
-        camMatrixBottom.valid = False
-        camMatrixTop.valid = False
+        cam_matrix_bottom.valid = False
+        cam_matrix_top.valid = False
 
         # load image in YUV422 format
         yuv422 = load_image_as_yuv422(frame.file)
@@ -218,17 +219,17 @@ class PatchExecutor:
         we set the image for bottom image and the top image to black
         """
         if frame.bottom:
-            self.write_data_to_image_representation(yuv422, imageBottom)
-            self.write_data_to_image_representation(black, imageTop)
+            self.write_data_to_image_representation(yuv422, image_bottom)
+            self.write_data_to_image_representation(black, image_top)
 
-            self.set_camera_matrix_representation(frame, camMatrixBottom)
-            camMatrixBottom.valid = True
+            self.set_camera_matrix_representation(frame, cam_matrix_bottom)
+            cam_matrix_bottom.valid = True
         else:  # image is from top camera
-            self.write_data_to_image_representation(black, imageBottom)
-            self.write_data_to_image_representation(yuv422, imageTop)
+            self.write_data_to_image_representation(black, image_bottom)
+            self.write_data_to_image_representation(yuv422, image_top)
 
-            self.set_camera_matrix_representation(frame, camMatrixTop)
-            camMatrixBottom.valid = False
+            self.set_camera_matrix_representation(frame, cam_matrix_top)
+            cam_matrix_bottom.valid = False
 
     def export_debug_images(self, frame: Frame):
         """
@@ -275,8 +276,7 @@ class PatchExecutor:
         Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
         Path(noball_patch_folder).mkdir(exist_ok=True, parents=True)
 
-        # TODO add more patches around the real ball annotation
-        # TODO use naoth like resizeing (subsampling) like in Patchwork.cpp line 39
+        # TODO use naoth like resizing (subsampling) like in Patchwork.cpp line 39
         # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
         for idx, p in enumerate(detected_balls.patchesYUVClassified):
             # check the IOU and sort them accordingly
@@ -288,7 +288,7 @@ class PatchExecutor:
                     iou_flag = True
                     crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
                     # resize it to patch size
-                    crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation= cv2.INTER_NEAREST)
+                    crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
 
                     patch_file_name = ball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
                     cv2.imwrite(str(patch_file_name), crop_img)
@@ -297,10 +297,9 @@ class PatchExecutor:
             if iou_flag:
                 continue
             crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
-            crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation= cv2.INTER_NEAREST)
+            crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
             patch_file_name = noball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
             cv2.imwrite(str(patch_file_name), crop_img)
-
 
     def get_output_folder(self, directory):
         """
@@ -325,11 +324,10 @@ class PatchExecutor:
         for d in sorted(directories):
             print("working in", d)
             self.output_folder = self.get_output_folder(d)
-            frames = self.get_frames_for_dir(d, False)
-            
-            
+            frames = self.get_frames_for_dir(d)
+
             for f in frames:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
-                #self.export_debug_images(f)
+                # self.export_debug_images(f)
                 self.export_patches(f)

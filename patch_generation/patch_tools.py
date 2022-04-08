@@ -9,21 +9,23 @@ from cppyy_tools import *
 from PatchStuff import PatchExecutor
 from pathlib import Path
 
+
 def get_coco_dataset_paths():
     """
-    finds the parent folder of each image under the coco root. The set of all those parent folders will be used for input to cppyy
+    finds the parent folder of each image under the coco root. The set of all those parent folders will be used for
+    input to cppyy
     """
-    coco_root = Path("/home/stella/Documents/datasets/data_cvat/RoboCup2019/combined/COCO_1.0/")
-    all_images = coco_root.glob('**/images/**/*.png')  # dont accidently include debug images
+    #coco_root = Path("/home/stella/Documents/datasets/data_cvat/RoboCup2019/combined/COCO_1.0/")
+    coco_root = Path("C://RoboCup//Datasets//data_cvat//RoboCup2019//combined//COCO_1.0")
+    all_images = coco_root.glob('**/images/**/*.png')  # don't accidentally include debug images
     all_parents = [f.parent for f in all_images]
     all_parents = list(set(all_parents))
 
     return all_parents
+
 
 if __name__ == "__main__":
     sub_folders = get_coco_dataset_paths()
     evaluator = PatchExecutor()
     with cppyy.ll.signals_as_exception():
         evaluator.execute(sub_folders)
-
-        
