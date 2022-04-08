@@ -269,6 +269,7 @@ class PatchExecutor:
         img = cv2.imread(frame.file)
         # create folder for the patches
         patch_size = 64
+        # TODO: export to different folder according to top/bottom
         ball_patch_folder = self.output_folder / f"patches_{patch_size}" / "ball"
         noball_patch_folder = self.output_folder / f"patches_{patch_size}" / "noball"
         Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
