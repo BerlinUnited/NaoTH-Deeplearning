@@ -96,8 +96,9 @@ def get_frames_for_dir(d, transform_to_squares=False):
         for anno in annotation_data["annotations"]:
             # when multiple balls are present the if clause hits multiple times
             if anno["image_id"] == id:
-                print(anno["bbox"])  # [x,y,width,height]
-                gt_rectangle = Rectangle((anno["bbox"][0], anno["bbox"][1]),(anno["bbox"][0] + anno["bbox"][3]), anno["bbox"][1]+ anno["bbox"][4])
+                top_left = (round(anno["bbox"][0]), round(anno["bbox"][1]))
+                bottom_right = (round(anno["bbox"][0] + anno["bbox"][2]), round(anno["bbox"][1]+ anno["bbox"][3]))
+                gt_rectangle = Rectangle(top_left, bottom_right)
                 gt_balls.append(gt_rectangle)
         # ----------------------------------------------------------------------------------------
         # open image to get the metadata
@@ -243,6 +244,12 @@ class PatchExecutor:
         for p in detected_balls.patchesYUVClassified:
             cv2.rectangle(img, (p.min.x, p.min.y), (p.max.x, p.max.y), (0, 0, 255))
 
+        # draw groundtruth
+        for gt_ball in frame.gt_balls:
+            print(gt_ball)
+            print()
+            cv2.rectangle(img, gt_ball.top_left, gt_ball.bottom_right, (0, 255, 0))
+
         output_file = self.output_folder / "debug_images" / Path(frame.file).name
         Path(output_file.parent).mkdir(exist_ok=True, parents=True)
         cv2.imwrite(str(output_file), img)
@@ -302,5 +309,5 @@ class PatchExecutor:
             for f in frames:
                 self.set_current_frame(f)
                 self.sim.executeFrame()
-                #self.export_debug_images(f)
-                self.export_patches(f)
+                self.export_debug_images(f)
+                #self.export_patches(f)
