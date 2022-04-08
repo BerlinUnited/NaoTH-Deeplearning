@@ -8,6 +8,7 @@ import PIL.Image
 import sys
 import ctypes
 import json
+from PIL import PngImagePlugin
 
 
 def load_image_as_yuv422(image_filename):
@@ -271,6 +272,7 @@ class PatchExecutor:
         # create folder for the patches
         patch_size = 64
         # TODO: export to different folder according to top/bottom
+        # TODO: i could put all the meta data into the png header. But this would mean to reload the image with pillow after writing it with opencv
         ball_patch_folder = self.output_folder / f"patches_{patch_size}" / "ball"
         noball_patch_folder = self.output_folder / f"patches_{patch_size}" / "noball"
         Path(ball_patch_folder).mkdir(exist_ok=True, parents=True)
@@ -300,6 +302,48 @@ class PatchExecutor:
             crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
             patch_file_name = noball_patch_folder / (Path(frame.file).stem + f"_{idx}.png")
             cv2.imwrite(str(patch_file_name), crop_img)
+
+    def export_patches2(self, frame: Frame):
+        """
+            This should export patches as images for future training
+        """
+        import cv2
+
+        # get the ball candidates from the module
+        if frame.bottom:
+            detected_balls = self.ball_detector.getProvide().at("BallCandidates")
+        else:
+            detected_balls = self.ball_detector.getProvide().at("BallCandidatesTop")
+
+        img = cv2.imread(frame.file)
+        # create folder for the patches
+        patch_size = 64
+        # TODO: export to different folder according to top/bottom
+        # TODO: i could put all the meta data into the png header. But this would mean to reload the image with pillow after writing it with opencv
+        patch_folder = self.output_folder / f"all_patches_{patch_size}"
+        Path(patch_folder).mkdir(exist_ok=True, parents=True)
+
+        # TODO use naoth like resizing (subsampling) like in Patchwork.cpp line 39
+        # TODO this is good enough for classification but for detection we need the center and radius of the groundtruth in relation to the deteced patches
+        for idx, p in enumerate(detected_balls.patchesYUVClassified):
+            # check the IOU and sort them accordingly
+            for gt_ball in frame.gt_balls:
+                iou = gt_ball.intersection_over_union(p.min.x, p.min.y, p.max.x, p.max.y)
+
+                crop_img = img[p.min.y:p.max.y, p.min.x:p.max.x]
+                # resize it to patch size
+                crop_img = cv2.resize(crop_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
+
+                patch_file_name = patch_folder / (Path(frame.file).stem + f"_{idx}.png")
+                cv2.imwrite(str(patch_file_name), crop_img)
+
+                # section for writing meta data
+                meta = PngImagePlugin.PngInfo()
+                meta.add_text("CameraID", "bottom")
+
+                with PIL.Image.open(str(patch_file_name)) as img:
+                    img.save(str(patch_file_name), pnginfo=meta)
+        quit()
 
     def get_output_folder(self, directory):
         """
