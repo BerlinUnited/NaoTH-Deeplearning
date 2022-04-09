@@ -77,6 +77,7 @@ class Rectangle(NamedTuple):
         y = round(self.top_left[1] + height / 2)
         return x, y
 
+
 class Frame(NamedTuple):
     file: str
     bottom: bool
@@ -329,7 +330,8 @@ class PatchExecutor:
             with PIL.Image.open(str(patch_file_name)) as im_pill:
                 im_pill.save(str(patch_file_name), pnginfo=meta)
 
-    def get_output_folder(self, directory):
+    @staticmethod
+    def get_output_folder(directory):
         """
             TODO can this be done cooler?
             finds the parent folder of obj_train_data. In this folder new folders for various output are created.
