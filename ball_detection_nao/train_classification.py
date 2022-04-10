@@ -107,8 +107,12 @@ if __name__ == '__main__':
     # main("classification_12_bw_combined")
     # main("classification_24_bw_combined")
     # main("classification_32_bw_combined")
-    # main("classification_64_bw_combined")
+    # main("classification_64_bw_combined")  # TODO do it again
 
     # patch size experiment part 2
+    #main("classification_8_bw_combined_bhuman")
+    #main("classification_12_bw_combined_bhuman")
+    #main("classification_16_bw_combined_bhuman")
+    #main("classification_24_bw_combined_bhuman")
     main("classification_32_bw_combined_bhuman")
     pass

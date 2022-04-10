@@ -302,12 +302,11 @@ def hulks_ball_classification_model():
     model.summary()
 
 
-def bhuman_base():
+def bhuman_base(input_shape=(32, 32, 1)):
     """
     architecture taken from the bhuman code release 2019
     :return:
     """
-    input_shape = (32, 32, 1)
     model = Sequential()
     model._name = "bhuman_classificator2019"
 
@@ -329,21 +328,147 @@ def bhuman_base():
     model.add(ReLU(name="activation_3"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_3"))
 
-    # we don't know the kernel size b-human used
-    model.add(Convolution2D(32, (3, 3), padding='same', name="Conv2D_4"))
-    model.add(BatchNormalization())
-    model.add(ReLU(name="activation_4"))
-    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_4"))
+    if input_shape[0] > 12:
+        # we don't know the kernel size b-human used
+        model.add(Convolution2D(32, (3, 3), padding='same', name="Conv2D_4"))
+        model.add(BatchNormalization())
+        model.add(ReLU(name="activation_4"))
+        model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_4"))
 
     return model
 
 
-def bhuman_classificator():
+def bhuman_classificator_8():
     """
     architecture taken from the bhuman code release 2019
     :return:
     """
-    model = bhuman_base()
+    model = bhuman_base((8, 8, 1))
+
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def bhuman_classificator_12():
+    """
+    architecture taken from the bhuman code release 2019
+    :return:
+    """
+    model = bhuman_base((12, 12, 1))
+
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def bhuman_classificator_16():
+    """
+    architecture taken from the bhuman code release 2019
+    :return:
+    """
+    model = bhuman_base((16, 16, 1))
+
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def bhuman_classificator_24():
+    """
+    architecture taken from the bhuman code release 2019
+    :return:
+    """
+    model = bhuman_base((24, 24, 1))
+
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def bhuman_classificator_32():
+    """
+    architecture taken from the bhuman code release 2019
+    :return:
+    """
+    model = bhuman_base((32, 32, 1))
+
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
+def bhuman_classificator_64():
+    """
+    architecture taken from the bhuman code release 2019
+    :return:
+    """
+    model = bhuman_base((64, 64, 1))
 
     model.add(Flatten(name="flatten_1"))
     model.add(Dense(32, name="dense_1"))
