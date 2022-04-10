@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 file_list = list()
-file_list.append("models/history_naoth_classification1_tk03_natural_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_synthetic_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_combined_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_combined-balanced_classification.pkl")
+file_list.append("models/history_naoth_classification_16_16_rc19_classification_16_bw_combined.pkl")
+file_list.append("models/history_naoth_classification_16_16_rc19_classification_16_bw_bottom.pkl")
+file_list.append("models/history_naoth_classification_16_16_rc19_classification_16_bw_top.pkl")
 
 
 def plot_loss():
@@ -25,7 +24,7 @@ def plot_loss():
             plt.figure(1)
 
             loss = np.array(history['val_loss'])
-            new_label = str(Path(filename).name).split("_")[-2]
+            new_label = str(Path(filename).name).split("_")[-1]
 
             # plot trainings progress
             plt.plot(history['val_loss'], label=new_label, linewidth=3)
@@ -36,7 +35,7 @@ def plot_loss():
 
     plt.tight_layout()
     # plt.show()
-    plt.savefig('exp1_val_loss.png')
+    plt.savefig('exp_cam_val_loss.png')
     plt.clf()
 
 
@@ -51,7 +50,7 @@ def plot_val():
             plt.figure(1)
 
             acc = np.array(history['val_accuracy'])
-            new_label = str(Path(filename).name).split("_")[-2]
+            new_label = str(Path(filename).name).split("_")[-1]
 
             plt.plot(history['val_accuracy'], label=new_label, linewidth=3)
             plt.ylabel('accuracy')
@@ -59,7 +58,7 @@ def plot_val():
             plt.legend(loc='lower right')
 
     plt.tight_layout()
-    plt.savefig('exp1_val_acc.png')
+    plt.savefig('exp_cam_val_acc.png')
     # plt.show()
     plt.clf()
 

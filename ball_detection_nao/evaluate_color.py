@@ -8,10 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 file_list = list()
-file_list.append("models/history_naoth_classification1_tk03_natural_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_synthetic_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_combined_classification.pkl")
-file_list.append("models/history_naoth_classification1_tk03_combined-balanced_classification.pkl")
+file_list.append("models/history_naoth_classification_16_16_rc19_classification_16_bw_combined.pkl")
+file_list.append("models/history_naoth_classification_16_16_color_rc19_classification_16_color_combined.pkl")
 
 
 def plot_loss():
@@ -36,7 +34,7 @@ def plot_loss():
 
     plt.tight_layout()
     # plt.show()
-    plt.savefig('exp1_val_loss.png')
+    plt.savefig('exp_color_val_loss.png')
     plt.clf()
 
 
@@ -59,7 +57,7 @@ def plot_val():
             plt.legend(loc='lower right')
 
     plt.tight_layout()
-    plt.savefig('exp1_val_acc.png')
+    plt.savefig('exp_color_val_acc.png')
     # plt.show()
     plt.clf()
 

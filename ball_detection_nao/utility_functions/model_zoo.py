@@ -7,7 +7,8 @@
 """
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Convolution2D, LeakyReLU, MaxPooling2D, Flatten, Dense, ReLU, Input, \
-    Softmax, concatenate, Dropout, UpSampling2D
+    Softmax, concatenate, Dropout, UpSampling2D, BatchNormalization
+from tensorflow.keras.activations import sigmoid
 from tensorflow.keras import Model
 import inspect
 from .metrics import ClassificationMetric, IoU
@@ -220,25 +221,25 @@ def bhuman_base():
 
     # we don't know the kernel size b-human used
     model.add(Convolution2D(8, (3, 3), input_shape=input_shape, padding='same', name="Conv2D_1"))
-    # Batch Norm
+    model.add(BatchNormalization())
     model.add(ReLU(name="activation_1"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
 
     # we don't know the kernel size b-human used
     model.add(Convolution2D(16, (3, 3), padding='same', name="Conv2D_2"))
-    # Batch Norm
+    model.add(BatchNormalization())
     model.add(ReLU(name="activation_2"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_2"))
 
     # we don't know the kernel size b-human used
     model.add(Convolution2D(16, (3, 3), padding='same', name="Conv2D_3"))
-    # Batch Norm
+    model.add(BatchNormalization())
     model.add(ReLU(name="activation_3"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_3"))
 
     # we don't know the kernel size b-human used
     model.add(Convolution2D(32, (3, 3), padding='same', name="Conv2D_4"))
-    # Batch Norm
+    model.add(BatchNormalization())
     model.add(ReLU(name="activation_4"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_4"))
 
@@ -253,11 +254,18 @@ def bhuman_classificator():
     # TODO batch norm is missing
     model = bhuman_base()
     model.add(Flatten(name="flatten_1"))
-    model.add(Dense(32, activation="relu", name="dense_1"))
-    model.add(Dense(64, activation="relu", name="dense_2"))
-    model.add(Dense(16, activation="relu", name="dense_3"))
-    model.add(Dense(1, activation="relu", name="dense_4"))
-
+    model.add(Dense(32,name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(16, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(1, name="dense_4"))
+    model.add(BatchNormalization())
+    model.add(sigmoid())
     return model
 
 
@@ -269,9 +277,15 @@ def bhuman_detector():
     # TODO batch norm is missing
     model = bhuman_base()
     model.add(Flatten(name="flatten_1"))
-    model.add(Dense(32, activation="relu", name="dense_1"))
-    model.add(Dense(64, activation="relu", name="dense_2"))
-    model.add(Dense(3, activation="relu", name="dense_3"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(64, name="dense_2"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
+    model.add(Dense(3, name="dense_3"))
+    model.add(BatchNormalization())
+    model.add(ReLU())
 
     return model
 

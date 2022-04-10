@@ -13,5 +13,6 @@ h5py==3.1.0  # we need for b-human dataset but it comes in an old version with t
 pydot==1.4.2
 tqdm==4.62.3
 naoth
+matplotlib
 # a fix for python3.9 on windows is not yet released, so install it from repo
 git+https://github.com/openvinotoolkit/datumaro.git#egg=datumaro

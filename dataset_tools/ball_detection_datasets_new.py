@@ -30,6 +30,7 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
     bottom_noball_targets = list()
 
     # get all dataset paths
+    # TODO the for loops can go into a function
     subfu = [f for f in rc19_path.iterdir() if f.is_dir()]
     for folder in subfu:
         patch_paths = Path(folder / "all_patches").glob('**/*.png')
@@ -76,16 +77,21 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
                     top_noball_images.append(img_cv_resized)
                     top_noball_targets.append(target)
 
-    # TODO create validation dataset
     """
-    has the same interface as balance function
-    it should save it directly. This way i can see at evaluation time what images perform worse. I couldnt see that if
-    i combine all the images to one eval set
-    
+    # create validation datasets. For better evaluation i split the bottom and top images
     """
+    # create bottom eval dataset
+    val_img, val_target = create_val_sets(bottom_ball_images, bottom_noball_images, bottom_ball_targets, bottom_noball_targets)
+    output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_val_btm.pkl')
+    save_datasets(val_img, val_target, output_name)
 
-    # TODO balancing here
+    # create top eval dataset
+    val_img, val_target = create_val_sets(top_ball_images, top_noball_images, top_ball_targets, top_noball_targets)
+    output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_val_top.pkl')
+    save_datasets(val_img, val_target, output_name)
+
     """
+    TODO balancing here
     # boilerplate code for balancing
     btm_img, btm_targets = balance(bottom_ball_images, bottom_noball_images, bottom_ball_targets, bottom_noball_targets)
     top_img, top_targets = balance(top_ball_images, top_noball_images, top_ball_targets, top_noball_targets)
@@ -102,7 +108,7 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
         all_images = all_bottom_images + all_top_images
         all_targets = all_bottom_targets + all_top_targets
 
-        output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}.pkl')
+        output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_combined.pkl')
         save_datasets(all_images, all_targets, output_name)
     else:
         output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_bottom.pkl')
@@ -111,7 +117,15 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
         save_datasets(all_top_images, all_top_targets, output_name)
 
 
-def create_val_sets():
+def create_val_sets(ball_img, noball_img, ball_targets, noball_targets):
+    # TODO maybe something more random should go here
+    val_img = ball_img[0:100] + noball_img[0:100]
+    val_targets = ball_targets[0:100] + noball_targets[0:100]
+
+    return val_img, val_targets
+
+
+def balance_datases(ball_img, noball_img, ball_targets, noball_targets):
     pass
 
 
@@ -134,6 +148,7 @@ def save_datasets(all_images, targets, output_name):
     all_targets = np.array(targets)
 
     # shuffle data
+    # TODO set random seed
     p = np.random.permutation(len(all_images))
     all_images = all_images[p]
     all_targets = all_targets[p]
@@ -145,5 +160,17 @@ def save_datasets(all_images, targets, output_name):
 
 
 if __name__ == "__main__":
-    create_2019_patch_dataset(16, color=False, cam_combined=False)
-    create_2019_patch_dataset(16, color=False, cam_combined=True)
+    # Top vs bottom vs combined experiment
+    #create_2019_patch_dataset(16, color=False, cam_combined=False)
+    #create_2019_patch_dataset(16, color=False, cam_combined=True)
+
+    # color experiment
+    #create_2019_patch_dataset(16, color=True, cam_combined=True)
+
+    # patch size experiment
+    #create_2019_patch_dataset(8, color=False, cam_combined=True)
+    #create_2019_patch_dataset(12, color=False, cam_combined=True)
+    #create_2019_patch_dataset(24, color=False, cam_combined=True)
+    #create_2019_patch_dataset(32, color=False, cam_combined=True)
+    create_2019_patch_dataset(64, color=False, cam_combined=True)
+    pass

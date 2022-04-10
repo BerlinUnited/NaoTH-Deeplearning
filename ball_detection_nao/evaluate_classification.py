@@ -11,6 +11,7 @@ import toml
 from pathlib import Path
 import matplotlib.pyplot as plt
 
+
 def get_data_root():
     # FIXME This is a copy because imports are annoying in python
     config_path = Path(__file__).parent.parent.resolve() / "config.toml"
@@ -18,6 +19,7 @@ def get_data_root():
         config_dict = toml.load(f)
 
     return config_dict["data_root"]
+
 
 DATA_DIR = Path(Path(get_data_root()) / "data_balldetection").resolve()
 MODEL_DIR = Path(Path(get_data_root()) / "models").resolve()
@@ -51,10 +53,10 @@ def main(config_name):
     nicht_erkannt = list()
     for idx, value in enumerate(difference):
         if value == 0.0:
-            #print("cool")
+            # print("cool")
             pass
         elif value == -1.0:
-            #print("nicht erkannt")
+            # print("nicht erkannt")
             nicht_erkannt.append(idx)
         else:
             print(value)
@@ -63,19 +65,19 @@ def main(config_name):
     vis_images = x + mean
     print(len(nicht_erkannt))
     for idx in nicht_erkannt:
-        cv2.imshow('image window', vis_images[idx] / 255.0 )
+        cv2.imshow('image window', vis_images[idx] / 255.0)
         print(vis_images[idx])
         k = cv2.waitKey(0)
-        if k==27:    # Esc key to stop
+        if k == 27:  # Esc key to stop
             break
         else:
             continue
     cv2.destroyAllWindows()
 
-
     result = model.evaluate(x, y)
     for idx in range(0, len(result)):
         print(model.metrics_names[idx] + ":", result[idx])
+
 
 if __name__ == '__main__':
     main("classification_1")

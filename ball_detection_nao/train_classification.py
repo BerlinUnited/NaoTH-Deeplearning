@@ -5,14 +5,15 @@ from inspect import isclass, isfunction
 from pathlib import Path
 from sys import exit
 import numpy as np
+import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 # TODO encode dataset into output model name
 import tensorflow as tf
 from tensorflow import keras as keras
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 import utility_functions.classification_models as model_zoo
-import utility_functions.lr_schedules as lr
 
 
 def load_model(cfg):
@@ -33,7 +34,7 @@ def main(config_name):
 
     cfg = config_dict[config_name]
     model = load_model(cfg)
-    DATA_DIR = Path(cfg["data_root_path"]).resolve()
+    DATA_DIR = Path(cfg["data_root_path"]).resolve()  # FIXME the root path should not be in the classification.toml
 
     data_file = str(DATA_DIR / cfg["trainings_data"])
     with open(data_file, "rb") as f:
@@ -41,14 +42,14 @@ def main(config_name):
         mean_x = pickle.load(f)  # x are all input images
         y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
 
-    # adjust the mean scaling
+    # adjust the mean scaling  # FIXME this should go into dataset creation and not in training
     if cfg["mean_subtraction"]:
-        x = mean_x 
+        x = mean_x
     else:
         # revert mean subtraction
-        x = (mean_x + mean)    
+        x = (mean_x + mean)
 
-    # generate validation set
+        # generate validation set
     rng = np.random.default_rng(42)
     a = rng.choice(np.arange(len(x)), int(len(x) * 0.2), replace=False)
     val_x = x[a]
@@ -88,14 +89,27 @@ def main(config_name):
 
 
 if __name__ == '__main__':
-    # TODO do evaluations on fixed validation set again
-    #main("classification_tk_natural")
-    #main("classification_tk_synthetic")
-    #main("classification_tk_combined")
-    #main("classification_tk_combined-balanced")
-    main("classification_rc19_8_bw")
-    main("classification_rc19_8_color")
+    # synthetic vs natural experiment
+    # main("classification_tk_natural")
+    # main("classification_tk_synthetic")
+    # main("classification_tk_combined")
+    # main("classification_tk_combined-balanced")
 
-    # TODO patch size evaluation on more epochs
-    #main("classification_1")
-    #main("classification_2")
+    # top vs bottom vs combined camera experiment
+    # main("classification_16_bw_combined")
+    # main("classification_16_bw_top")
+    # main("classification_16_bw_bottom")
+
+    # color vs bw experiment
+    # main("classification_16_color_combined")
+
+    # patch size experiment
+    # main("classification_8_bw_combined")
+    # main("classification_12_bw_combined")
+    # main("classification_24_bw_combined")
+    # main("classification_32_bw_combined")
+    # main("classification_64_bw_combined")
+
+    # patch size experiment part 2
+    main("classification_32_bw_combined_bhuman")
+    pass

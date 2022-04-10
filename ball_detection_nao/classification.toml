@@ -128,50 +128,140 @@ output_path = "models"
 # Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
 compile_debug = false
 
-[classification_rc19_8_bw]
+# ----------------------------------------------------------------------------------------------------------------------
+# top and bottom exeperiments
+# ----------------------------------------------------------------------------------------------------------------------
+[classification_16_bw_combined]
+model_name = "naoth_classification_16_16"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_16_bw_combined.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+
+[classification_16_bw_top]
+model_name = "naoth_classification_16_16"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_16_bw_top.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+
+[classification_16_bw_bottom]
+model_name = "naoth_classification_16_16"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_16_bw_bottom.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+# ----------------------------------------------------------------------------------------------------------------------
+# color vs bw experiment
+# ----------------------------------------------------------------------------------------------------------------------
+[classification_16_color_combined]
+model_name = "naoth_classification_16_16_color"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_16_color_combined.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+# ----------------------------------------------------------------------------------------------------------------------
+# patch size experiment
+# ----------------------------------------------------------------------------------------------------------------------
+[classification_8_bw_combined]
 model_name = "naoth_classification_8_8"
 metrics = ["ClassificationMetric", "IoU"]
-trainings_data = "rc19_classification_8_bw.pkl"
+trainings_data = "rc19_classification_8_bw_combined.pkl"
 batch_size = 16
 epochs = 30
 mean_subtraction = true
-proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
 
-data_root_path = "/home/stella/Documents/datasets/data_balldetection/naoth"
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
 output_path = "models"
 
-##### compile only options
-# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
-compile_debug = false
-
-[classification_rc19_8_color]
-model_name = "naoth_classification_8_8_color"
+[classification_12_bw_combined]
+model_name = "naoth_classification_12_12"
 metrics = ["ClassificationMetric", "IoU"]
-trainings_data = "rc19_classification_8_color.pkl"
+trainings_data = "rc19_classification_12_bw_combined.pkl"
 batch_size = 16
 epochs = 30
 mean_subtraction = true
-proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
 
-data_root_path = "/home/stella/Documents/datasets/data_balldetection/naoth"
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
 output_path = "models"
 
-##### compile only options
-# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
-compile_debug = false
-
-[classification_rc19_16_bw]
-model_name = "naoth_classification1"
+[classification_24_bw_combined]
+model_name = "naoth_classification_24_24"
 metrics = ["ClassificationMetric", "IoU"]
-trainings_data = "rc19_classification_16_bw.pkl"
+trainings_data = "rc19_classification_24_bw_combined.pkl"
 batch_size = 16
 epochs = 30
 mean_subtraction = true
-proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
 
-data_root_path = "/home/stella/Documents/datasets/data_balldetection/naoth"
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
 output_path = "models"
 
-##### compile only options
-# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
-compile_debug = false
+[classification_32_bw_combined]
+model_name = "naoth_classification_32_32"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_32_bw_combined.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+
+[classification_64_bw_combined]
+model_name = "naoth_classification_64_64"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_64_bw_combined.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
+
+# ----------------------------------------------------------------------------------------------------------------------
+# patch size experiment 2
+# ----------------------------------------------------------------------------------------------------------------------
+[classification_32_bw_combined_bhuman]
+model_name = "bhuman_classificator"
+metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "rc19_classification_32_bw_combined.pkl"
+batch_size = 16
+epochs = 30
+mean_subtraction = true
+# proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+proceed = false
+
+data_root_path = "C://RoboCup//Datasets//data_balldetection//naoth"
+output_path = "models"
