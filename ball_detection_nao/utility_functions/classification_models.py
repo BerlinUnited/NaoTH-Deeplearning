@@ -5,7 +5,8 @@ import inspect
 
 import tensorflow.keras as keras
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.activations import sigmoid
+from tensorflow.keras import layers
+from tensorflow.keras import activations
 from tensorflow.keras.layers import Convolution2D, ReLU, MaxPooling2D, Flatten, Dense, Concatenate, BatchNormalization, \
     Softmax
 
@@ -343,6 +344,7 @@ def bhuman_classificator():
     :return:
     """
     model = bhuman_base()
+
     model.add(Flatten(name="flatten_1"))
     model.add(Dense(32, name="dense_1"))
     model.add(BatchNormalization())
@@ -355,5 +357,7 @@ def bhuman_classificator():
     model.add(ReLU())
     model.add(Dense(1, name="dense_4"))
     model.add(BatchNormalization())
-    model.add(sigmoid())
+    model.add(layers.Activation(activations.sigmoid))
+
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model

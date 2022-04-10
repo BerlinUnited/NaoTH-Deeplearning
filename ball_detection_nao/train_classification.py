@@ -1,7 +1,6 @@
 import pickle
 import toml
 from datetime import datetime
-from inspect import isclass, isfunction
 from pathlib import Path
 from sys import exit
 import numpy as np
