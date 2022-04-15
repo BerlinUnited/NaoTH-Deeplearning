@@ -275,7 +275,7 @@ class PatchExecutor:
 
     def export_patches2(self, frame: Frame):
         """
-            This should export patches as images for future training
+            This function exports patches as images for future training. All interesting meta information is saved inside the png header
         """
         import cv2
 
@@ -335,7 +335,7 @@ class PatchExecutor:
         """
             TODO can this be done cooler?
             finds the parent folder of obj_train_data. In this folder new folders for various output are created.
-            This assumes we have yolo output
+            This assumes we have yolo or coco output
         """
         # create output path for yolo input
         for parent_folder in Path(directory).parents:

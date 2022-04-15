@@ -1,7 +1,5 @@
 """
     The functions create datasets for the new cppyy patch data
-
-    TODO implement the new simpler folder structure
 """
 from pathlib import Path
 import cv2
@@ -172,5 +170,4 @@ if __name__ == "__main__":
     #create_2019_patch_dataset(12, color=False, cam_combined=True)
     #create_2019_patch_dataset(24, color=False, cam_combined=True)
     #create_2019_patch_dataset(32, color=False, cam_combined=True)
-    create_2019_patch_dataset(64, color=False, cam_combined=True)
     pass
