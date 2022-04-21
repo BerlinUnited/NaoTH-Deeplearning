@@ -5,6 +5,10 @@ from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
 
+def my_cool_function():
+    print("Hello World")
+
+
 def cvat_login(session):
     try:
         with open('../config.toml', 'r') as f:
@@ -23,7 +27,7 @@ def cvat_login(session):
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
 
-    # CVAT requires that each post/patch/delete call sends the authorization token as well. 
+    # CVAT requires that each post/patch/delete call sends the authorization token as well.
     # This is a weird mix of token and session cookie authorization
     # Here we put the cvat token inside the session cookie so that later retrieval is easier
     my_cookie = {"name": "token", "value": response.json()["key"]}

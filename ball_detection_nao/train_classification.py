@@ -95,12 +95,12 @@ if __name__ == '__main__':
     # main("classification_tk_combined-balanced")
 
     # top vs bottom vs combined camera experiment
-    # main("classification_16_bw_combined")
+    main("classification_16_bw_combined")
     # main("classification_16_bw_top")
     # main("classification_16_bw_bottom")
 
     # color vs bw experiment
-    # main("classification_16_color_combined")
+    main("classification_16_color_combined")
 
     # patch size experiment
     # main("classification_8_bw_combined")
@@ -114,5 +114,5 @@ if __name__ == '__main__':
     #main("classification_12_bw_combined_bhuman")
     #main("classification_16_bw_combined_bhuman")
     #main("classification_24_bw_combined_bhuman")
-    main("classification_32_bw_combined_bhuman")
+    #main("classification_32_bw_combined_bhuman")
     pass

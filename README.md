@@ -3,7 +3,8 @@ This repo contains tools for datasets, learning, compiling and evaluating neural
 done as part of the RoboCup SPL efforts of the Berlin United Team.
 
 ## Setup
-The scripts were developed with python 3.9. They might work with other python versions as well but they were not tested. You may create a suitable environment with:
+The scripts were developed with python 3.9. They might work with other python versions as well but they were not tested. 
+You may create a suitable environment with:
 ```bash
 sudo apt install python3.9 python3.9-venv python3.9-dev
 python3.9 -m venv venv

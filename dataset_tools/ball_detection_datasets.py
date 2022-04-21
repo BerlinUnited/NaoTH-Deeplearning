@@ -13,7 +13,7 @@ from patch_ball_detection_helper.naoth_patch_helper import create_natural_datase
     create_blender_segmentation_dataset, create_blender_classification_dataset, \
     create_blender_detection_dataset_without_classification, download_tk03_dataset
 from patch_ball_detection_helper.common import calculate_mean, subtract_mean, store_output
-from common_tools import get_data_root
+from common_tools.main import get_data_root
 
 
 def generate_bhuman_datasets():

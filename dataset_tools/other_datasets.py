@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from common_tools import get_data_root, download_function
+from common_tools.main import get_data_root, download_function
 
 
 def download_runswift_segmentation_dataset():

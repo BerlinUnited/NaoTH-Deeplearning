@@ -8,9 +8,9 @@ from matplotlib.widgets import Button
 import pickle
 from pathlib import Path
 import matplotlib.patches as ptc
-from bhuman_helper import download_bhuman2019
+from common_tools.main import get_data_root
 
-DATA_DIR = Path(Path(__file__).parent.parent.parent.absolute() / "data_balldetection").resolve()
+DATA_DIR = Path(get_data_root()) / "data_balldetection"
 
 
 class BhumanVisualizer(object):
@@ -50,7 +50,7 @@ class BhumanVisualizer(object):
             plt.imshow(img, cmap='gray')
 
         # Connect to a "switch" Button, setting its left, top, width, and height
-        axswitch = plt.axes([0.40, 0.07, 0.2, 0.05])
+        axswitch = plt.axes([0.40, 0.01, 0.2, 0.05])
         bswitch = Button(axswitch, 'Next')
         bswitch.on_clicked(self.next)
         plt.show()
@@ -75,12 +75,14 @@ class TK3Visualizer(object):
     def __init__(self, index_start):
         self.ind = index_start + 1
 
-        imgdb_path = str(DATA_DIR / 'tk03_natural_detection.pkl')
+        imgdb_path = str(DATA_DIR / 'naoth/tk03_natural_detection.pkl')
         with open(imgdb_path, "rb") as f:
             mean = pickle.load(f)
             self.x = pickle.load(f)
             self.y = pickle.load(f)
 
+        print(sum(self.y[:,-1]))
+        print(len(self.y) - sum(self.y[:,-1]))
         self.init_plot()
 
     def init_plot(self):
@@ -104,11 +106,11 @@ class TK3Visualizer(object):
                 circle1 = plt.Circle((current_label[1] * 16, current_label[2] * 16), current_label[0] * 16, color='r',
                                      alpha=0.5)
                 ax = fig.gca()
-                ax.add_patch(circle1)
+                #ax.add_patch(circle1)
             plt.imshow(img, cmap='gray')
 
         # Connect to a "switch" Button, setting its left, top, width, and height
-        axswitch = plt.axes([0.40, 0.07, 0.2, 0.05])
+        axswitch = plt.axes([0.40, 0.01, 0.2, 0.05])
         bswitch = Button(axswitch, 'Next')
         bswitch.on_clicked(self.next)
         plt.show()
@@ -125,7 +127,7 @@ class TK3Visualizer(object):
             if current_label[3] == 1.0:
                 circle1 = plt.Circle((current_label[1] * 16, current_label[2] * 16), current_label[0] * 16, color='r',
                                      alpha=0.5)
-                subplot.add_patch(circle1)
+                #subplot.add_patch(circle1)
 
             subplot.imshow(img, cmap='gray')
 
@@ -199,7 +201,7 @@ class BhumanVisualizer2(object):
 
 if __name__ == '__main__':
     #BhumanVisualizer(0)
-    #TK3Visualizer(0)
+    TK3Visualizer(0)
 
     # bhuman visualizer2 which actually uses the created pkl files for visualization
-    BhumanVisualizer2(100)
+    # BhumanVisualizer2(100)

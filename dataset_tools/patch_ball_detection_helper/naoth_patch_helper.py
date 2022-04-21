@@ -46,6 +46,7 @@ def get_blender_patch_paths(path):
 
 def create_blender_classification_dataset(path, res):
     db = []
+    num_ball_img = 0
     print(f"Loading images from {path} ...")
     for patch_folder, mask_folder in get_blender_patch_paths(path):
         patch_images = list(Path(patch_folder).glob('**/*.png'))
@@ -60,8 +61,10 @@ def create_blender_classification_dataset(path, res):
                 img_mask = cv2.imread(str(f_mask), cv2.IMREAD_GRAYSCALE)
                 img_mask = cv2.resize(img_mask, (res["x"], res["y"]))
                 y = np.array([1.0])
+                num_ball_img = num_ball_img + 1
             elif "noball" in mask_folder:
                 y = np.array([0.0])
+                # TODO check if really all blender images are ball images.
             else:
                 raise "Missing mask file for " + str(patch_image)
 
@@ -75,7 +78,7 @@ def create_blender_classification_dataset(path, res):
     y = y.reshape(*y.shape)
 
     print("Loading finished")
-    print("Number of images: " + str(len(x)))
+    print(f"Number of blender images: {len(x)} with {num_ball_img} ball images")
     return x, y
 
 

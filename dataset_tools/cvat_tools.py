@@ -28,7 +28,7 @@ import os
 import json
 import urllib.parse
 
-from common_tools import cvat_login, get_data_root
+from common_tools.main import cvat_login, get_data_root
 
 
 def get_projects(session):
