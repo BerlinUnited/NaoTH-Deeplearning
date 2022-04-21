@@ -1,9 +1,12 @@
+# Next Todos
+- improve loading of datasets
+
 # Dataset Generation Tasks
 - fix specifying export format. It should be a dict instead of a list
   - fix usages as well
 - fix filtering after downloading. It should be optional
 
-# Next Todos
+# Frugally Todos
 - write python generation for frugally 0.7.8-p0
 - make sure my frugally branches use the newest release not the newest head
 - make sure fplus is also updated

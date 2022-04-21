@@ -5,13 +5,19 @@ from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 
 
+def get_config_toml():
+    toml_path = Path(__file__).parent.parent.parent.parent / "config.toml"
+    with open(str(toml_path), 'r') as f:
+        config_dict = toml.load(f)
+    return config_dict
+
+
 def cvat_login(session):
     try:
-        with open('../config.toml', 'r') as f:
-            config_dict = toml.load(f)
+        config_dict = get_config_toml()
 
-            username = config_dict["cvat_user"]
-            password = config_dict["cvat_pass"]
+        username = config_dict["cvat_user"]
+        password = config_dict["cvat_pass"]
     except Exception as err:
         print("Could not get credentials from toml file")
         raise SystemExit(err)
@@ -23,7 +29,7 @@ def cvat_login(session):
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
 
-    # CVAT requires that each post/patch/delete call sends the authorization token as well. 
+    # CVAT requires that each post/patch/delete call sends the authorization token as well.
     # This is a weird mix of token and session cookie authorization
     # Here we put the cvat token inside the session cookie so that later retrieval is easier
     my_cookie = {"name": "token", "value": response.json()["key"]}
@@ -31,17 +37,13 @@ def cvat_login(session):
 
 
 def get_data_root():
-    config_path = Path(__file__).parent.parent.resolve() / "config.toml"
-    with open(str(config_path), 'r') as f:
-        config_dict = toml.load(f)
+    config_dict = get_config_toml()
 
     return config_dict["data_root"]
 
 
 def get_logs_root():
-    config_path = Path(__file__).parent.parent.resolve() / "config.toml"
-    with open(str(config_path), 'r') as f:
-        config_dict = toml.load(f)
+    config_dict = get_config_toml()
 
     return config_dict["logs_root"]
 

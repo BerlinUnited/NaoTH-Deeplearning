@@ -21,7 +21,7 @@ from PIL import Image as PIL_Image
 from naoth.log import Parser
 from naoth.log import Reader as LogReader
 from naoth.pb.Framework_Representations_pb2 import Image
-from common_tools import get_logs_root
+from common_tools.main import get_logs_root
 
 
 def get_images(frame):

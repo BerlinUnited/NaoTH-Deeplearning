@@ -5,8 +5,7 @@
         - TODO: fix annotation upload function
 """
 import requests
-import json
-from common_tools import cvat_login
+from common_tools.main import cvat_login
 from cvat_tools import get_labels_from_tasks, create_task
 
 

@@ -486,3 +486,98 @@ def bhuman_classificator_64():
 
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
+
+
+def devils():
+    """
+    architecture used for ball classification by the devils
+    """
+    input_shape = (16, 16, 1)
+    model = Sequential()
+    model._name = inspect.currentframe().f_code.co_name  # get the name of the function
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(4, (3, 3), input_shape=input_shape, padding='same', name="Conv2D_1"))
+    # Batch Norm
+    model.add(ReLU(name="activation_1"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(8, (3, 3), padding='same', name="Conv2D_2"))
+    # Batch Norm
+    model.add(ReLU(name="activation_2"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_2"))
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(16, (3, 3), padding='same', name="Conv2D_3"))
+    # Batch Norm
+    model.add(ReLU(name="activation_3"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_3"))
+
+    model.add(Convolution2D(2, (2, 2), padding='valid', name="Conv2D_4", activation="softmax"))
+
+    # For using custom loss import your loss function and use the name of the function as loss argument.
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    return model
+
+
+def hulks_preclassifier_2021():
+    """
+    architecture used for ball classification by the hulks
+    TODO finish me
+    """
+    input_shape = (32, 32, 1)
+    model = Sequential()
+    model._name = inspect.currentframe().f_code.co_name  # get the name of the function
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(2, (5, 5), strides=(2, 2), input_shape=input_shape, padding='same', name="Conv2D_1"))
+
+    model.summary()
+
+
+def htwk_classifier_2017():
+    """
+    architecture used for ball classification by the htwk
+    https://robots.htwk-leipzig.de/fileadmin/portal/m_nao/Publikationen/TRR_2017.pdf?lang=de
+    TODO finish me
+    """
+    input_shape = (20, 20, 1)
+    model = Sequential()
+    model._name = inspect.currentframe().f_code.co_name  # get the name of the function
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(8, (5, 5), strides=(1, 1), input_shape=input_shape, name="Conv2D_1"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
+    model.add(Convolution2D(10, (5, 5), strides=(1, 1), input_shape=input_shape, name="Conv2D_2"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_2"))
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(Dense(2, name="dense_2"))
+
+    model.summary()
+
+
+def htwk_classifier_2018():
+    """
+    architecture used for ball classification by the htwk
+    https://robots.htwk-leipzig.de/fileadmin/portal/m_nao/Publikationen/TRR_2018.pdf?lang=de
+    TODO finish me
+    """
+    input_shape = (12, 12, 1)
+    model = Sequential()
+    model._name = inspect.currentframe().f_code.co_name  # get the name of the function
+
+    # we don't know the kernel size b-human used
+    model.add(Convolution2D(8, (3, 3), strides=(1, 1), input_shape=input_shape, name="Conv2D_1"))
+    model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))  # change to average pooling
+    model.add(Convolution2D(10, (3, 3), strides=(1, 1), input_shape=input_shape, name="Conv2D_2"))
+    model.add(Flatten(name="flatten_1"))
+    model.add(Dense(32, name="dense_1"))
+    model.add(Dense(4, name="dense_2"))
+
+    model.summary()
+
+
+htwk_classifier_2018()

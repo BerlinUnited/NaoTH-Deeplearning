@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 from PIL import Image
 
-from common_tools import get_data_root
+from common_tools.main import get_data_root
 
 
 def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_combined=True):
@@ -130,6 +130,7 @@ def balance_datases(ball_img, noball_img, ball_targets, noball_targets):
 def handle_mean(images, mean_flag="global"):
     """
     TODO describe what the format of images should be
+    Note that the devils compiler do make assumptions about mean stuff. See predict function in the generated cpp file
     """
     mean_val = np.mean(images)
     all_images_wo_mean = images - mean_val
