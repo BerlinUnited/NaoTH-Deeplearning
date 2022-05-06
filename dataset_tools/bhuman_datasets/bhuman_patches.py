@@ -4,9 +4,14 @@ from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 import cv2
+import h5py
 
-from .common import calculate_mean, subtract_mean
+def calculate_mean(images):
+    return np.mean(images)
 
+
+def subtract_mean(images, mean):
+    return images - mean
 
 # TODO rename and unify this with other locations where stuff is downloaded directly
 def download_bhuman2019(origin, target):
@@ -122,3 +127,34 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
         pickle.dump(new_mean, f)
         pickle.dump(new_mean_images, f)
         pickle.dump(new_labels, f)
+
+def generate_bhuman_datasets():
+    """
+    Downloading the 2019 dataset released by B-Human. Additionally it will create multiple datasets in the format we
+    expect for ball training on patches
+    """
+    # TODO add option to make a balanced dataset
+    # TODO add option to only get negative images
+    # TODO randomize the result before writing it to a pickle file
+
+    bhuman_root_path = Path(get_data_root()) / "data_balldetection/bhuman"
+
+    # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
+    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
+                        f"{bhuman_root_path}/b-alls-2019.hdf5")
+    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/readme.txt",
+                        f"{bhuman_root_path}/readme.txt")
+
+    # get data
+    f = h5py.File(f'{bhuman_root_path}/b-alls-2019.hdf5', 'r')
+
+    negative_data = np.array(f.get('negatives/data'))
+    positive_data = np.array(f.get('positives/data'))
+    negative_labels = np.array(f.get('negatives/labels'))
+    positive_labels = np.array(f.get('positives/labels'))
+
+    create_classification_dataset(bhuman_root_path, negative_data, positive_data)
+    create_detection_dataset(bhuman_root_path, negative_data, positive_data, negative_labels, positive_labels)
+
+if __name__ == '__main__':
+    generate_bhuman_datasets()
