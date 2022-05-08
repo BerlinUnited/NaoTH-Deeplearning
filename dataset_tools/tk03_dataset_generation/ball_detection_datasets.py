@@ -4,45 +4,28 @@
     TODO: I could put all annotations inside the png files. Then i could remove all the csv nonsense
 """
 import numpy as np
-import h5py
 from pathlib import Path
-
-from patch_ball_detection_helper.bhuman import download_bhuman2019, create_classification_dataset, \
-    create_detection_dataset
-from patch_ball_detection_helper.naoth_patch_helper import create_natural_dataset, create_blender_detection_dataset, \
+import pickle
+from dataset_tools.tk03_dataset_generation.naoth_patch_helper import create_natural_dataset, create_blender_detection_dataset, \
     create_blender_segmentation_dataset, create_blender_classification_dataset, \
     create_blender_detection_dataset_without_classification, download_tk03_dataset
-from patch_ball_detection_helper.common import calculate_mean, subtract_mean, store_output
 from common_tools.main import get_data_root
 
+# TODO maybe move those 3 functions to common tools
+def calculate_mean(images):
+    return np.mean(images)
 
-def generate_bhuman_datasets():
-    """
-    Downloading the 2019 dataset released by B-Human. Additionally it will create multiple datasets in the format we
-    expect for ball training on patches
-    """
-    # TODO add option to make a balanced dataset
-    # TODO add option to only get negative images
-    # TODO randomize the result before writing it to a pickle file
 
-    bhuman_root_path = Path(get_data_root()) / "data_balldetection/bhuman"
+def subtract_mean(images, mean):
+    return images - mean
 
-    # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
-                        f"{bhuman_root_path}/b-alls-2019.hdf5")
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/readme.txt",
-                        f"{bhuman_root_path}/readme.txt")
 
-    # get data
-    f = h5py.File(f'{bhuman_root_path}/b-alls-2019.hdf5', 'r')
-
-    negative_data = np.array(f.get('negatives/data'))
-    positive_data = np.array(f.get('positives/data'))
-    negative_labels = np.array(f.get('negatives/labels'))
-    positive_labels = np.array(f.get('positives/labels'))
-
-    create_classification_dataset(bhuman_root_path, negative_data, positive_data)
-    create_detection_dataset(bhuman_root_path, negative_data, positive_data, negative_labels, positive_labels)
+def store_output(output_file, mean, x, y, p=None):
+    with open(output_file, "wb") as f:
+        pickle.dump(mean, f)
+        pickle.dump(x, f)
+        pickle.dump(y, f)
+        pickle.dump(p, f)
 
 
 def create_tk03_classification_datasets():
