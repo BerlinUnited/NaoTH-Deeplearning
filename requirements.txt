@@ -2,17 +2,18 @@
 
 Pillow==8.4.0
 requests==2.26.0
-pyqt5==5.15.6 # so matplotlib can draw stuff
+#pyqt5==5.15.6 # so matplotlib can draw stuff
 #opencv-python==4.5.5.62
-opencv-contrib-python==4.5.5.62  # we need to install only the contrib stuff, if opencv is installed as well it will shadow the contrib stuff
+#opencv-contrib-python==4.5.5.62  # we need to install only the contrib stuff, if opencv is installed as well it will shadow the contrib stuff
 numpy==1.19.5 # numpy==1.20.2 is needed for pycocotools to work in windows, not sure if all other libs can deal with it
-tensorflow==2.8.0
+#tensorflow==2.8.0
 toml==0.10.2
-cppyy==2.2.0
+#cppyy==2.2.0
 h5py==3.1.0  # we need for b-human dataset but it comes in an old version with tensorflow
 pydot==1.4.2
 tqdm==4.62.3
 naoth
 matplotlib
+cvat-sdk
 # a fix for python3.9 on windows is not yet released, so install it from repo
-git+https://github.com/openvinotoolkit/datumaro.git#egg=datumaro
+#git+https://github.com/openvinotoolkit/datumaro.git#egg=datumaro
