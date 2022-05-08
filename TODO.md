@@ -1,5 +1,10 @@
 # Next Todos
-- improve loading of datasets
+- improve loading of b-human datasets
+- fix running keras models on gpu for some reason it takes soooo much longer
+- implement backup of cvat data
+- check out runswift stuff and document it somewhere: https://github.com/UNSWComputing/rUNSWift-2019-release/blob/master/research/Poster.pdf
+  - https://github.com/UNSWComputing/rUNSWift-2019-release/blob/master/rUNSWift_Team_Report.pdf
+- move cvat tools to core
 
 # Dataset Generation Tasks
 - fix specifying export format. It should be a dict instead of a list

@@ -1,10 +1,11 @@
 import numpy as np
 import pickle
 from pathlib import Path
-from urllib.request import urlretrieve
-from urllib.error import HTTPError, URLError
 import cv2
 import h5py
+
+from core.main import get_data_root, download_function
+
 
 def calculate_mean(images):
     return np.mean(images)
@@ -12,31 +13,6 @@ def calculate_mean(images):
 
 def subtract_mean(images, mean):
     return images - mean
-
-# TODO rename and unify this with other locations where stuff is downloaded directly
-def download_bhuman2019(origin, target):
-    def dl_progress(count, block_size, total_size):
-        print('\r', 'Progress: {0:.2%}'.format(min((count * block_size) / total_size, 1.0)), sep='', end='', flush=True)
-
-    if not Path(target).exists():
-        target_folder = Path(target).parent
-        target_folder.mkdir(parents=True, exist_ok=True)
-    else:
-        return
-
-    error_msg = 'URL fetch failure on {} : {} -- {}'
-    try:
-        try:
-            urlretrieve(origin, target, dl_progress)
-            print('\nFinished')
-        except HTTPError as e:
-            raise Exception(error_msg.format(origin, e.code, e.reason))
-        except URLError as e:
-            raise Exception(error_msg.format(origin, e.errno, e.reason))
-    except (Exception, KeyboardInterrupt):
-        if Path(target).exists():
-            Path(target).unlink()
-        raise
 
 
 def create_classification_dataset(data_root_path, negative_data, positive_data):
@@ -128,7 +104,8 @@ def create_detection_dataset(data_root_path, negative_data, positive_data, negat
         pickle.dump(new_mean_images, f)
         pickle.dump(new_labels, f)
 
-def generate_bhuman_datasets():
+
+def generate_bhuman_ball_datasets_2019():
     """
     Downloading the 2019 dataset released by B-Human. Additionally it will create multiple datasets in the format we
     expect for ball training on patches
@@ -140,9 +117,9 @@ def generate_bhuman_datasets():
     bhuman_root_path = Path(get_data_root()) / "data_balldetection/bhuman"
 
     # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
+    download_function("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
                         f"{bhuman_root_path}/b-alls-2019.hdf5")
-    download_bhuman2019("https://logs.naoth.de/Experiments/bhuman/readme.txt",
+    download_function("https://logs.naoth.de/Experiments/bhuman/readme.txt",
                         f"{bhuman_root_path}/readme.txt")
 
     # get data
@@ -156,5 +133,6 @@ def generate_bhuman_datasets():
     create_classification_dataset(bhuman_root_path, negative_data, positive_data)
     create_detection_dataset(bhuman_root_path, negative_data, positive_data, negative_labels, positive_labels)
 
+
 if __name__ == '__main__':
-    generate_bhuman_datasets()
+    generate_bhuman_ball_datasets_2019()

@@ -1,3 +1,6 @@
+"""
+structure taken from https://github.com/pypa/sampleproject
+"""
 from setuptools import setup, find_packages
 
 setup(name='naoth_common_tools',
