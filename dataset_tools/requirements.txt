@@ -1,0 +1,2 @@
+# global requirements for all sub projects
+cvat-sdk
