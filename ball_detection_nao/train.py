@@ -45,16 +45,18 @@ def load_model(my_config):
         # if you use proceed then you have to give in a model
         print("Loading model " + my_config.model_path)
 
-        toml_metrics = my_config["metrics"]
-        metrics_dict = {}
-        for metrics_name in toml_metrics:
-            reference = getattr(metrics_module, metrics_name)
-            if isfunction(reference):
-                metrics_dict.update({metrics_name: reference})
-            if isclass(reference):
-                metrics_dict.update({metrics_name: reference()})
+        #toml_metrics = my_config["metrics"]
+        #metrics_dict = {}
+        #for metrics_name in toml_metrics:
+        #    reference = getattr(metrics_module, metrics_name)
+        #    if isfunction(reference):
+        #        metrics_dict.update({metrics_name: reference})
+        #    if isclass(reference):
+        #        metrics_dict.update({metrics_name: reference()})
 
-        model = tf.keras.models.load_model(my_config.model_path, custom_objects=metrics_dict)
+        # FIXME custom objects create problems for evaluate and compile
+        #model = tf.keras.models.load_model(my_config.model_path, custom_objects=metrics_dict)
+        model = tf.keras.models.load_model(my_config.model_path)
         return model
     else:
         print(
@@ -108,4 +110,4 @@ def main(config_name):
 
 
 if __name__ == '__main__':
-    main("stella_config")
+    main("stella_config_rc23_v1")

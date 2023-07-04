@@ -14,4 +14,4 @@ def convert_to_naoth(input_file_path):
 
 
 if __name__ == '__main__':
-    convert_to_naoth("dummy_model2.h5")
+    convert_to_naoth("fy_1500_new2_new_dataset.h5")

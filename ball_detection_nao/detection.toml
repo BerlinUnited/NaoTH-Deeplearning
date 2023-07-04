@@ -49,3 +49,21 @@ output_path = "models"
 compile_debug = false
 # TODO this can be dynamically calculated by the compiler
 model_path = "fy_1500_old_tk03_combined_detection.h5"
+
+# Detection Stuff
+[stella_config_rc23_v1]
+model_name = "fy_1500_new2"
+#metrics = ["ClassificationMetric", "IoU"]
+trainings_data = "new_dataset.pkl"
+batch_size = 256
+epochs = 100
+proceed = false  # proceed=true will be ignored if model_name is set  # TODO think about what behavior is the least surprising
+
+data_root_path = "./"
+output_path = "models"
+
+##### compile only options
+# Switch between debug and production build. The debug build creates code for running the network multiple times and provides timing measurements in the end.
+compile_debug = false
+#
+model_path = "stella_config_rc23_v1.h5"
