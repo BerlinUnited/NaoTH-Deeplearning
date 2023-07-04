@@ -74,11 +74,4 @@ def run_classification_multiple_times():
         break
 
 
-def create_bhuman_style_networks():
-    """
-    This means train a classification network on all data and a detection network on only positive data
-    """
-    pass
-
-
 run_detection_multiple_times()
