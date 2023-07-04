@@ -1,6 +1,7 @@
 # ignore python stuff
 venv/*
 .venv/*
+ball_detection_nao/venv
 /auto_annotation/models/__pycache__/
 /dataset_tools/__pycache__/
 *.cpython-39.pyc
