@@ -36,6 +36,6 @@ def fy_1500_new():
 
     return model
 
-model = fy_1500_new()
-
-model.save('keras__test_model.h5', include_optimizer=False)
+if __name__ == "__main__":
+    model = fy_1500_new()
+    model.save('keras__test_model.h5', include_optimizer=False)

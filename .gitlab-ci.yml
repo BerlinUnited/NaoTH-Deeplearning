@@ -1,0 +1,16 @@
+image: docker:latest
+services:
+  - docker:dind
+
+# TODO adjust it for this repo and make sure we have a valid and functional image in gitlab registry
+variables:
+    # https://about.gitlab.com/blog/2019/07/31/docker-in-docker-with-docker-19-dot-03/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/frugally_image
+
+build_image:
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN scm.cms.hu-berlin.de:4567
+    - docker build -f images/Dockerfile -t $DOCKER_IMAGE:latest ./images
+    - docker push $DOCKER_IMAGE:latest
