@@ -1,0 +1,7 @@
+path: ../datasets/test_dataset
+train: autosplit_train.txt
+val: autosplit_val.txt
+names:
+  0: ball
+  1: nao
+  2: penalty_mark
