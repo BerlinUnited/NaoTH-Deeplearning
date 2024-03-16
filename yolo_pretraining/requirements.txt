@@ -4,3 +4,4 @@ label-studio-sdk
 pyyaml
 opencv-python
 ultralytics
+tqdm
