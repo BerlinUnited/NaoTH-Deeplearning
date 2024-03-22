@@ -1,3 +1,10 @@
-psycopg2-binary
+keras=2.15.*
+tensorflow=2.15.*
+scikit-learn
+h5py
 minio
-tensorflow
+psycopg2-binary
+
+# for GPU training without Docker on gruenau
+# cudatoolkit=11.8
+# cudnn
