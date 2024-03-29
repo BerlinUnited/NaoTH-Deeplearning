@@ -1,7 +1,7 @@
 psycopg2-binary
 minio
-label-studio-sdk
 pyyaml
 opencv-python
 ultralytics
 tqdm
+git+https://github.com/HumanSignal/label-studio-sdk@master

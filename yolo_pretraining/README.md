@@ -16,6 +16,8 @@ cd /usr/src/datasets
 python -m pip install -r requirements.txt (for labelstudio sdk which is used later for annotating live)
 yolo train data=test_dataset.yaml model=yolov8n.pt epochs=1200 lr0=0.01
 
+yolo train data=test_dataset.yaml model=yolov8s.pt epochs=1200 lr0=0.01
+
 tensorboard --logdir /usr/src/ultralytics/runs/ --bind-all &
 
 ## Further ideas
