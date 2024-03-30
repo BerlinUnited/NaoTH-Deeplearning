@@ -90,7 +90,7 @@ def get_annotations(task_output, filename, output_folder):
                 cx = cx / img_width
                 cy = cy / img_height
 
-                print(label_id, cx, cy, width, height)
+                #print(label_id, cx, cy, width, height)
                 # format https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics
                 f.write(f"{label_id} {cx} {cy} {width} {height}\n")
 
@@ -99,11 +99,10 @@ def get_annotations(task_output, filename, output_folder):
 
 def export_dataset(dataset_name=""):
     """
-         TODO: if postgres query return multiple projects this function should account for it somehow -> worry about duplicate filenames
     """
     Path(dataset_name).mkdir(parents=True, exist_ok=True)
 
-    # TODO get a row from postgres
+    # TODO data from postgres that account for broken images
     # get the minio bucket and ls labelstudio project id from the postgres
     def MyFn(project):
         return project.id
