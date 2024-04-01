@@ -139,6 +139,7 @@ def export_dataset(dataset_name=""):
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
         
 if __name__ == "__main__":
+    # FIXME: assumes that I want to download all projects - that is a problem when using sound datasets and semantic segmentation datasets as well
     export_dataset("test_dataset")
     # FIXME importing ultralytics takes a long time
     ultralytics.data.utils.autosplit('test_dataset/images', weights=(0.9, 0.1, 0.0), annotated_only=False)

@@ -1,3 +1,6 @@
 venv
 detect
 test_dataset
+backup
+mlflow
+*.pt

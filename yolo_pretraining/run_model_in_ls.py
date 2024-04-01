@@ -24,9 +24,9 @@ def download_from_minio(project, filename, output_folder):
 
 if __name__ == "__main__":
     # load the current best model
-    model = YOLO('./detect/train25/weights/best.pt')
+    model = YOLO('./detect/train4/weights/best.pt')
     # select the labelstudio projects you wish to annotate with the model
-    project_list = [169, 170, 171, 172, 173, 174]
+    project_list = [112, 119]
 
     for id in project_list:
         project = ls.get_project(id)
