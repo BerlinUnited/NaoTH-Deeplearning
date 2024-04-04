@@ -34,3 +34,4 @@ with mlflow.start_run() as run:
     #mlflow.end_run()
 
 # TODO upload the model (maybe only if its better?)
+# TODO we need to name the model for sure here

@@ -145,4 +145,6 @@ if __name__ == "__main__":
     dataset_name= f"yolo-full-size-detection_dataset_{now}"
     export_dataset(dataset_name)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
-    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
+    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False
+    
+    # TODO zip the dataset here and upload it to datasets.naoth.de
