@@ -94,7 +94,7 @@ def get_annotations(task_output, filename, output_folder):
 
 
 def get_projects():
-    project_id_list = [108, 112, 119, 125]
+    project_id_list = [108, 109, 112, 119, 125]
     projects= []
     for id in project_id_list:
         projects.append(ls.get_project(id))
