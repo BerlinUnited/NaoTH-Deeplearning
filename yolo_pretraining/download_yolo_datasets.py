@@ -141,10 +141,10 @@ def export_dataset(dataset_name=""):
         
 if __name__ == "__main__":
     # FIXME: assumes that I want to download all projects - that is a problem when using sound datasets and semantic segmentation datasets as well
-    now = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
+    now = datetime.datetime.now().strftime('%Y-%m-%d')
     dataset_name= f"yolo-full-size-detection_dataset_{now}"
     export_dataset(dataset_name)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
-    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False
+    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
     
     # TODO zip the dataset here and upload it to datasets.naoth.de
