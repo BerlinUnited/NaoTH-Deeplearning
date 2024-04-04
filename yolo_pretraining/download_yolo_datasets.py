@@ -15,6 +15,7 @@ import yaml
 import cv2
 import ultralytics
 from tqdm import tqdm
+import datetime
 
 # Define the URL where Label Studio is accessible and the API key for your user account
 LABEL_STUDIO_URL = 'https://ls.berlinunited-cloud.de/'
@@ -140,6 +141,8 @@ def export_dataset(dataset_name=""):
         
 if __name__ == "__main__":
     # FIXME: assumes that I want to download all projects - that is a problem when using sound datasets and semantic segmentation datasets as well
-    export_dataset("test_dataset")
-    # FIXME importing ultralytics takes a long time
-    ultralytics.data.utils.autosplit('test_dataset/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
+    now = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
+    dataset_name= f"yolo-full-size-detection_dataset_{now}"
+    export_dataset(dataset_name)
+    # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
+    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
