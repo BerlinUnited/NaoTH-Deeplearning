@@ -35,13 +35,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model")
     args = parser.parse_args()
-
+    print()
+    print(f"will download https://models.naoth.de/{args.model}")
     get_file_from_server(f"https://models.naoth.de/{args.model}", args.model)
 
     # load the current best model
     model = YOLO(args.model)
     # select the labelstudio projects you wish to annotate with the model
-    project_list = [112, 119]
+    project_list = [109, 110]
 
     for id in project_list:
         project = ls.get_project(id)

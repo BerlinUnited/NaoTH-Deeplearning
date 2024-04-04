@@ -4,3 +4,4 @@ test_dataset
 backup
 mlflow
 *.pt
+yolo-full-size-detection_dataset_top_2024-04-04
