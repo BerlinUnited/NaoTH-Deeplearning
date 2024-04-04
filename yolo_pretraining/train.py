@@ -38,7 +38,7 @@ with mlflow.start_run() as run:
     model.add_callback("on_fit_epoch_end", on_fit_epoch_end)
     model.add_callback("on_train_end", on_train_end)
     print()
-    results = model.train(data=args.dataset, epochs=1200, patience=25, workers=10)
+    results = model.train(data=args.dataset, epochs=1200, patience=25, workers=10, verbose=True)
 
     # Log parameters, metrics, and model
     #mlflow.log_params({"epochs": 1200, "model": "yolov8s.pt", "data": "test_dataset.yaml"})
