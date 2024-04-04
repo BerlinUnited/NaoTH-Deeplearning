@@ -1,11 +1,19 @@
 """
     run the best model on new data in labelstudio
 """
+import sys
+import os
+
+helper_path = os.path.join(os.path.dirname(__file__), '../tools')
+sys.path.append(helper_path)
+
 from pathlib import Path
 from label_studio_sdk import Client
 from minio import Minio
 from ultralytics import YOLO
+import argparse
 
+from helper import get_file_from_server
 
 LABEL_STUDIO_URL = "https://ls.berlinunited-cloud.de/"
 API_KEY = "6cb437fb6daf7deb1694670a6f00120112535687"
@@ -23,8 +31,15 @@ def download_from_minio(project, filename, output_folder):
     mclient.fget_object(bucket_name, filename, output)
 
 if __name__ == "__main__":
+    # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model")
+    args = parser.parse_args()
+
+    get_file_from_server(f"https://models.naoth.de/{args.model}", args.model)
+
     # load the current best model
-    model = YOLO('./detect/train4/weights/best.pt')
+    model = YOLO(args.model)
     # select the labelstudio projects you wish to annotate with the model
     project_list = [112, 119]
 
