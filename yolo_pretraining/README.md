@@ -7,9 +7,17 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-## Run a docker container with access to the GPUs
+## Build Custom YOLO Image
+
 ```
-docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-16" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42-python /bin/bash
+docker build -t 
+```
+
+## Run a docker container with access to the GPUs
+
+
+```
+docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-16" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42 /bin/bash
 docker run -it --privileged -u $(id -u):$(id -g) -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42-python /bin/bash
 docker run -it --privileged --cpuset-cpus="4-16" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42 /bin/bash
 docker run -it --privileged -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:latest /bin/bash

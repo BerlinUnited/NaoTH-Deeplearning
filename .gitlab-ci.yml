@@ -7,10 +7,19 @@ variables:
     # https://about.gitlab.com/blog/2019/07/31/docker-in-docker-with-docker-19-dot-03/
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
-    DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/frugally_image
 
 build_image:
+  variables:
+    DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/frugally_image
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN scm.cms.hu-berlin.de:4567
     - docker build -f images/Dockerfile -t $DOCKER_IMAGE:latest ./images
+    - docker push $DOCKER_IMAGE:latest
+
+build_yolo_image:
+  variables:
+    DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN scm.cms.hu-berlin.de:4567
+    - docker build -f yolo_pretraining/Dockerfile -t $DOCKER_IMAGE:latest ./yolo_pretraining
     - docker push $DOCKER_IMAGE:latest
