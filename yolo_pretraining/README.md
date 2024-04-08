@@ -1,18 +1,33 @@
 # YOLO based pre annotations for Nao Images
+We provide a docker image and scripts for training a ultralytics YOLOv8 model on our full images. The images are are downloaded from our minio server and the annotation are downloaded from our Labelstudio instance. You need to configure access for it.
 
+## Set up your environment
+You can either create a python virtual env or use the provided docker image. In either case you need to configure some environment variables. The values are in our [internal wiki](https://scm.cms.hu-berlin.de/berlinunited/orga/-/wikis/team/Accounts). More information about the environment variables can be found in our k8s.
+
+You can run each line or put them in the `.bashrc` file
+```
+export DB_PASS=
+export MINIO_PASS=
+export LS_URL=
+export LS_KEY=
+```
+
+
+## Build Custom YOLO Image
+The pipeline already builds the image. You can pull that with
+```bash
+docker pull scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest
+```
+or you can built it locally with
+```bash
+docker build -t yolo_image:latest .
+```
 ## Download data and create a dataset for training
 ```
 python3 -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
-
-## Build Custom YOLO Image
-
-```
-docker build -t 
-```
-
 ## Run a docker container with access to the GPUs
 
 
