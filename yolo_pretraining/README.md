@@ -12,6 +12,7 @@ python -m pip install -r requirements.txt
 docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-16" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42-python /bin/bash
 docker run -it --privileged -u $(id -u):$(id -g) -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42-python /bin/bash
 docker run -it --privileged --cpuset-cpus="4-16" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:8.1.42 /bin/bash
+docker run -it --privileged -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host ultralytics/ultralytics:latest /bin/bash
 ```
 
 cd /usr/src/datasets

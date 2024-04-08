@@ -6,3 +6,5 @@ ultralytics
 tqdm
 mlflow
 git+https://github.com/HumanSignal/label-studio-sdk@master
+psutil
+pynvml

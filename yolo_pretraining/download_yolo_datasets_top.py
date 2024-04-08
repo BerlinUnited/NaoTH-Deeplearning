@@ -7,7 +7,7 @@
 
     # TODO remove output folder if exists
 """
-
+import zipfile
 from label_studio_sdk import Client
 from minio import Minio
 from pathlib import Path
@@ -94,7 +94,7 @@ def get_annotations(task_output, filename, output_folder):
 
 
 def get_projects():
-    project_id_list = [108, 109, 112, 119, 125]
+    project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123, 124, 125, 138, 139, 140, 144, 145]
     projects= []
     for id in project_id_list:
         projects.append(ls.get_project(id))
@@ -152,3 +152,12 @@ if __name__ == "__main__":
     ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
     
     # TODO zip the dataset here and upload it to datasets.naoth.de
+    filenames = [f"{dataset_name}.yaml"]
+    directory = Path(dataset_name)
+
+    with zipfile.ZipFile(f"{dataset_name}.zip", mode="w") as archive:
+        for filename in filenames:
+            archive.write(filename)
+
+        for file_path in directory.rglob("*"):
+            archive.write(file_path, arcname=file_path.relative_to(directory))
