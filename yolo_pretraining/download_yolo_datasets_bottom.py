@@ -7,7 +7,7 @@
 
     # TODO remove output folder if exists
 """
-
+import zipfile
 from label_studio_sdk import Client
 from minio import Minio
 from pathlib import Path
@@ -98,6 +98,16 @@ def get_annotations(task_output, filename, output_folder):
                 # FIXME -> make me more general
                 #test_visualize(x_px,y_px,width_px,height_px)
 
+def get_projects():
+    # 175 is partially broken TODO: how to account for that?
+    project_id_list = [183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 
+                       168, 167, 166, 165, 164, 159, 160, 161, 162, 163, 157, 156, 155, 154, 149,
+                       150, 151, 152, 153, 148, 147, 146]
+    projects= []
+    for id in project_id_list:
+        projects.append(ls.get_project(id))
+    return projects
+
 def export_dataset(dataset_name=""):
     """
     """
@@ -105,12 +115,12 @@ def export_dataset(dataset_name=""):
 
     # TODO data from postgres that account for broken images
     # get the minio bucket and ls labelstudio project id from the postgres
-    def MyFn(project):
+    def my_sort_function(project):
         return project.id
     
     existing_projects = [a for a in ls.list_projects()]
     print(f"exporting projects")
-    for project in tqdm(sorted(existing_projects, key=MyFn)):
+    for project in tqdm(sorted(existing_projects, key=my_sort_function)):
         task_ids = get_labeled_images(project)
         for task in task_ids:
             task_output = project.get_task(task)
@@ -140,11 +150,19 @@ def export_dataset(dataset_name=""):
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
         
 if __name__ == "__main__":
-    # FIXME: assumes that I want to download all projects - that is a problem when using sound datasets and semantic segmentation datasets as well
     now = datetime.datetime.now().strftime('%Y-%m-%d')
-    dataset_name= f"yolo-full-size-detection_dataset_{now}"
+    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_bottom_{now}"
     export_dataset(dataset_name)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
     ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
     
-    # TODO zip the dataset here and upload it to datasets.naoth.de
+    # TODO upload it to datasets.naoth.de
+    filenames = [f"{dataset_name}.yaml"]
+    directory = Path(dataset_name)
+
+    with zipfile.ZipFile(f"{dataset_name}.zip", mode="w") as archive:
+        for filename in filenames:
+            archive.write(filename)
+
+        for file_path in directory.rglob("*"):
+            archive.write(file_path, arcname=file_path.relative_to(directory))

@@ -108,13 +108,12 @@ def export_dataset(dataset_name=""):
 
     # TODO data from postgres that account for broken images
     # get the minio bucket and ls labelstudio project id from the postgres
-    def MyFn(project):
+    def my_sort_function(project):
         return project.id
     
-    #existing_projects = [a for a in ls.list_projects()]
     existing_projects = get_projects()
     print(f"exporting projects")
-    for project in tqdm(sorted(existing_projects, key=MyFn)):
+    for project in tqdm(sorted(existing_projects, key=my_sort_function)):
         task_ids = get_labeled_images(project)
         for task in task_ids:
             task_output = project.get_task(task)
@@ -144,14 +143,13 @@ def export_dataset(dataset_name=""):
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
         
 if __name__ == "__main__":
-    # FIXME: assumes that I want to download all projects - that is a problem when using sound datasets and semantic segmentation datasets as well
     now = datetime.datetime.now().strftime('%Y-%m-%d')
-    dataset_name= f"yolo-full-size-detection_dataset_top_{now}"
+    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_top_{now}"
     export_dataset(dataset_name)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
     ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
     
-    # TODO zip the dataset here and upload it to datasets.naoth.de
+    # TODO upload it to datasets.naoth.de
     filenames = [f"{dataset_name}.yaml"]
     directory = Path(dataset_name)
 

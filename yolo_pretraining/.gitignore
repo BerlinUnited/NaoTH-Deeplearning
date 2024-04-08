@@ -5,6 +5,4 @@ backup
 mlflow
 mlruns
 *.pt
-yolo-full-size-detection_dataset_top_2024-04-04
-yolo-full-size-detection_dataset_top_2024-04-05
-yolo-full-size-detection_dataset_top_2024-04-06
+datasets/
