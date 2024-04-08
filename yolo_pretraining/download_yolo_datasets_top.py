@@ -35,9 +35,6 @@ label_dict = {
     "penalty_mark": 2
 }
 
-def get_labeled_images(project):
-    return project.get_labeled_tasks_ids()
-
 
 def download_from_minio(project, filename, output_folder):
     bucket_name = project.title
@@ -114,9 +111,8 @@ def export_dataset(dataset_name=""):
     existing_projects = get_projects()
     print(f"exporting projects")
     for project in tqdm(sorted(existing_projects, key=my_sort_function)):
-        task_ids = get_labeled_images(project)
-        for task in task_ids:
-            task_output = project.get_task(task)
+        tasks = project.get_labeled_tasks()
+        for task_output in tasks:
             image_file_name = task_output["storage_filename"]
             #print(task_output['annotations'])
 
