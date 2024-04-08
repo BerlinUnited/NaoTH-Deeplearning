@@ -34,17 +34,17 @@ if __name__ == "__main__":
     # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model")
+    parser.add_argument('-p','--project', nargs='+', help='Labelstudio project ids separated by a space', required=True)
     args = parser.parse_args()
+
     print(f"will download https://models.naoth.de/{args.model}")
     get_file_from_server(f"https://models.naoth.de/{args.model}", args.model)
 
     # load the current best model
     model = YOLO(args.model)
-    # select the labelstudio projects you wish to annotate with the model
-    project_list = [143]
 
-    for id in project_list:
-        project = ls.get_project(id)
+    for id in args.project:
+        project = ls.get_project(int(id))
         task_ids = project.get_unlabeled_tasks_ids()
         print(f"Annotating project {id}")
         for task in task_ids:

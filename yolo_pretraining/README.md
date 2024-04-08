@@ -36,7 +36,7 @@ docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-14" -v ${PWD}:
 
 ## Run inference
 ```
-python run_model_in_ls.py -m <model name>
+python run_model_in_ls.py -m <model name> -p <project id> <project id> <project id>
 ```
 Have a look at [https://models.naoth.de/](https://models.naoth.de/) for a list of available models. For example you can choose `2024-04-06-yolov8s-best-top.pt`
 If the model file is not present in the current working dir it will be downloaded.
@@ -48,7 +48,8 @@ python train.py -ds <dataset name>
 TODO: this part of the code is still in development
 
 ## Create new datasets
-
+If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs.
+TODO: add more information here.
 
 ## Build Custom YOLO Image
 The pipeline already builds the image. You can pull that with
