@@ -43,9 +43,11 @@ If the model file is not present in the current working dir it will be downloade
 
 ## Run training
 ```
-python train.py -ds <dataset name>
+python train.py -ds <dataset name> -m <basemodel> -c Top -u Stella Alice
 ```
-TODO: this part of the code is still in development
+# python train_top.py -ds yolo-full-size-detection_dataset_top_2024-04-08.yaml -m yolov8n -c Top -u "Stella Alice"
+A dataset argument needs to be the path to the yaml file. The model argument should either be yolov8n or yolov8s
+
 
 ## Create new datasets
 If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs.
