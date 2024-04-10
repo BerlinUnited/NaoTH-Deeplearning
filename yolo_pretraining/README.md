@@ -49,9 +49,8 @@ If the model file is not present in the current working dir it will be downloade
 python train.py -ds <dataset name> -m <basemodel> -c {bottom,top} -u <your name>
 ```
 An example python call is `train.py -ds yolo-full-size-detection_dataset_top_2024-04-08.yaml -m yolov8n -c top -u "Stella Alice"`
-# 
-A dataset argument needs to be the path to the yaml file. The model argument should either be yolov8n or yolov8s
 
+A dataset argument needs to be the path to the yaml file. The model argument should either be yolov8n or yolov8
 
 ## Create new datasets
 If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs as mentioned above.
@@ -68,17 +67,3 @@ or you can built it locally with
 ```bash
 docker build -t yolo_image:latest .
 ```
-
-## Run a docker container with access to the GPUs
-
-
-cd /usr/src/datasets
-python -m pip install -r requirements.txt (for labelstudio sdk which is used later for annotating live)
-yolo train data=test_dataset.yaml model=yolov8n.pt epochs=1200 lr0=0.01
-
-yolo train data=test_dataset.yaml model=yolov8s.pt epochs=1200 lr0=0.01
-
-python train.py -m 2024-04-01-yolov8s-best.pt -ds yolo-full-size-detection_dataset_2024-04-04.yaml
-
-tensorboard --logdir /usr/src/ultralytics/runs/ --bind-all &
-
