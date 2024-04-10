@@ -48,10 +48,10 @@ if __name__ == "__main__":
     # Load a model
     #model = YOLO('detect/train4/weights/best.pt')  # load a pretrained model (recommended for training)
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model")
-    parser.add_argument("-ds", "--dataset")
+    parser.add_argument("-m", "--model", required=True)
+    parser.add_argument("-ds", "--dataset", required=True)
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
-    parser.add_argument("-u", "--user")
+    parser.add_argument("-u", "--user", required=True)
     args = parser.parse_args()
 
     os.environ["LOGNAME"] = args.user # needed because for now the docker container runs as root user
