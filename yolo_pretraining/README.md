@@ -10,7 +10,10 @@ export DB_PASS=
 export MINIO_PASS=
 export LS_URL=
 export LS_KEY=
+export REPL_ROOT=
 ```
+
+You need to mount the folder `/vol/repl261-vol4/naoth` from `gruenau10.informatik.hu-berlin.de` via sshfs. Set the REPL_ROOT variable to the mount point. Scripts here will access the subfolders models and datasets for uploads. The folders are also publicly available on the web as [models.naoth.de](models.naoth.de) and [datasets.naoth.de](datasets.naoth.de) in read only mode. A tutorial for setting up sshfs mounts can be found in our internal wiki.
 
 ### Setup python environment
 ```
