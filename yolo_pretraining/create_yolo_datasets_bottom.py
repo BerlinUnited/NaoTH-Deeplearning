@@ -12,7 +12,8 @@ from label_studio_sdk import Client
 from minio import Minio
 from pathlib import Path
 import yaml
-import cv2
+from os import environ
+import shutil
 import ultralytics
 from tqdm import tqdm
 import datetime
@@ -92,6 +93,7 @@ def get_projects():
     project_id_list = [183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 
                        168, 167, 166, 165, 164, 159, 160, 161, 162, 163, 157, 156, 155, 154, 149,
                        150, 151, 152, 153, 148, 147, 146]
+    project_id_list = [147] # debug
     projects= []
     for id in project_id_list:
         projects.append(ls.get_project(id))
@@ -136,15 +138,8 @@ def export_dataset(dataset_name=""):
 
     with open(f'{dataset_name}.yaml', 'w') as outfile:
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
-        
-if __name__ == "__main__":
-    now = datetime.datetime.now().strftime('%Y-%m-%d')
-    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_bottom_{now}"
-    export_dataset(dataset_name)
-    # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
-    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
-    
-    # TODO upload it to datasets.naoth.de
+
+def zip_and_upload_datasets(dataset_name):
     filenames = [f"{dataset_name}.yaml"]
     directory = Path(dataset_name)
 
@@ -154,3 +149,20 @@ if __name__ == "__main__":
 
         for file_path in directory.rglob("*"):
             archive.write(file_path, arcname=file_path.relative_to(directory))
+
+    remote_dataset_path = Path(environ.get("REPL_ROOT")) / "datasets"
+
+    zip_file_name = Path(dataset_name.name).with_suffix(".zip")
+    output_file_path = remote_dataset_path / zip_file_name
+    shutil.copyfile(f"{dataset_name}.zip", output_file_path)
+
+if __name__ == "__main__":
+    # TODO use argparse for differentiating between top and bottom
+    now = datetime.datetime.now().strftime('%Y-%m-%d')
+    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_bottom_{now}"
+    export_dataset(dataset_name)
+    # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
+    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
+    
+    # zip and upload created dataset
+    zip_and_upload_datasets(dataset_name)
