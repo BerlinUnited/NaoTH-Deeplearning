@@ -53,8 +53,10 @@ A dataset argument needs to be the path to the yaml file. The model argument sho
 
 
 ## Create new datasets
-If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs.
-TODO: add more information here.
+If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs as mentioned above.
+```
+python create_yolo_datasets.py -c {bottom,top}
+```
 
 ## Build Custom YOLO Image
 The pipeline already builds the image. You can pull that with

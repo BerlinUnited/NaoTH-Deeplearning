@@ -15,6 +15,7 @@ import yaml
 from os import environ
 import shutil
 import ultralytics
+import argparse
 from tqdm import tqdm
 import datetime
 
@@ -88,18 +89,24 @@ def get_annotations(task_output, filename, output_folder):
                 # FIXME -> make me more general
                 #test_visualize(x_px,y_px,width_px,height_px)
 
-def get_projects():
+def get_projects_bottom():
     # 175 is partially broken TODO: how to account for that?
     project_id_list = [183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 
                        168, 167, 166, 165, 164, 159, 160, 161, 162, 163, 157, 156, 155, 154, 149,
                        150, 151, 152, 153, 148, 147, 146]
-    project_id_list = [147] # debug
     projects= []
     for id in project_id_list:
         projects.append(ls.get_project(id))
     return projects
 
-def export_dataset(dataset_name=""):
+def get_projects_top():
+    project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123, 124, 125, 138, 139, 140, 144, 145]
+    projects= []
+    for id in project_id_list:
+        projects.append(ls.get_project(id))
+    return projects
+
+def export_dataset(dataset_name="", camera=""):
     """
     """
     Path(dataset_name).mkdir(parents=True, exist_ok=True)
@@ -109,7 +116,13 @@ def export_dataset(dataset_name=""):
     def my_sort_function(project):
         return project.id
     
-    existing_projects = get_projects()
+    if camera == "bottom":
+        existing_projects = get_projects_bottom()
+    elif camera == "top":
+        existing_projects = get_projects_top()
+    else:
+        print("ERROR: not a valid camera argument")
+        quit()
     print(f"exporting projects")
     for project in tqdm(sorted(existing_projects, key=my_sort_function)):
         tasks = project.get_labeled_tasks()
@@ -157,10 +170,13 @@ def zip_and_upload_datasets(dataset_name):
     shutil.copyfile(f"{dataset_name}.zip", output_file_path)
 
 if __name__ == "__main__":
-    # TODO use argparse for differentiating between top and bottom
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
+    args = parser.parse_args()
+
     now = datetime.datetime.now().strftime('%Y-%m-%d')
-    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_bottom_{now}"
-    export_dataset(dataset_name)
+    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_{args.camera}_{now}"
+    export_dataset(dataset_name, args.camera)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
     ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
     
