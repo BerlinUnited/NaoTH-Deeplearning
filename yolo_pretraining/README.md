@@ -37,6 +37,8 @@ docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-14" -v ${PWD}:
 ```
 `-u $(id -u):$(id -g)` make sure commands inside the docker container have the same user and group id as you have on the server. This makes it possible to know who started a training with `htop`. `--cpuset-cpus="4-14"` limits the cpu cores you can use. Please adjust this accordingly. As a rule please leave half of the cores for others. Also coordinate with other people training models.
 
+!!! `-u $(id -u):$(id -g)` Does not work with train.py yet. Because some folders from ultralytics are then not readable and some configs cant be accessed. Training would still work as long as you set all the defaults as well.
+
 ## Run inference
 ```
 python run_model_in_ls.py -m <model name> -p <project id> <project id> <project id>
@@ -44,19 +46,26 @@ python run_model_in_ls.py -m <model name> -p <project id> <project id> <project 
 Have a look at [https://models.naoth.de/](https://models.naoth.de/) for a list of available models. For example you can choose `2024-04-06-yolov8s-best-top.pt`
 If the model file is not present in the current working dir it will be downloaded.
 
+## Download or create datasets
+You need to download the datasets before you can use them in training.
+```
+python download_datasets.py -ds <dataset name>
+```
+
+### Create new datasets
+If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs as mentioned above. This is a bit annoying to do inside the docker container because it does not have the systems variables. But you could set them there manually as well. We recommend only to create new datasets after more data was labeled, otherwise downloading the existing ones are recommended.
+```
+python create_yolo_datasets.py -c {bottom,top}
+```
+
 ## Run training
 ```
 python train.py -ds <dataset name> -m <basemodel> -c {bottom,top} -u <your name>
 ```
-An example python call is `train.py -ds yolo-full-size-detection_dataset_top_2024-04-08.yaml -m yolov8n -c top -u "Stella Alice"`
+An example python call is `python train.py -ds yolo-full-size-detection_dataset_top_2024-04-10 -m yolov8n -c top -u "Stella Alice"`
 
-A dataset argument needs to be the path to the yaml file. The model argument should either be yolov8n or yolov8
+The model argument should either be yolov8n or yolov8
 
-## Create new datasets
-If you want to create datasets and upload them then you need to make sure you have mounted the correct repl folder with sshfs as mentioned above.
-```
-python create_yolo_datasets.py -c {bottom,top}
-```
 
 ## Build Custom YOLO Image
 The pipeline already builds the image. You can pull that with

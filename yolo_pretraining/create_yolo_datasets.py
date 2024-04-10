@@ -158,13 +158,14 @@ def zip_and_upload_datasets(dataset_name):
 
     with zipfile.ZipFile(f"{dataset_name}.zip", mode="w") as archive:
         for filename in filenames:
-            archive.write(filename)
+            archive.write(filename, arcname=Path(filename).relative_to(directory.parent))
 
         for file_path in directory.rglob("*"):
-            archive.write(file_path, arcname=file_path.relative_to(directory))
+            archive.write(file_path, arcname=file_path.relative_to(directory.parent))
 
     remote_dataset_path = Path(environ.get("REPL_ROOT")) / "datasets"
 
+    # FIXME: will overwrite - not good for debugging
     zip_file_name = Path(dataset_name.name).with_suffix(".zip")
     output_file_path = remote_dataset_path / zip_file_name
     shutil.copyfile(f"{dataset_name}.zip", output_file_path)

@@ -9,14 +9,17 @@ import mlflow
 import argparse
 import numpy as np
 import torch.nn as nn
+from zipfile import ZipFile
 from pathlib import Path
 from mflow_callbacks import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end
+from helper import get_file_from_server
 
 class Dummymodel(nn.Module):
     def __init__(self):
         super().__init__()
 
 dummy_model = Dummymodel()
+
 
 def start_train(args):
     with mlflow.start_run() as run:
