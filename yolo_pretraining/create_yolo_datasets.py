@@ -101,7 +101,8 @@ def get_projects_bottom():
 
 def get_projects_top():
     project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123,
-                       124, 125, 126, 127, 128, 129, 130, 131, 132, 138, 139, 140, 144, 145]
+                       124, 125, 126, 127, 128, 129, 130, 131, 132, 135, 137, 138, 139, 140, 144, 
+                       145, 187, 188]
     projects= []
     for id in project_id_list:
         projects.append(ls.get_project(id))
