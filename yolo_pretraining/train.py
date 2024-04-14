@@ -35,11 +35,15 @@ def start_train(args):
         model.add_callback("on_fit_epoch_end", on_fit_epoch_end)
         model.add_callback("on_train_end", on_train_end)
 
+        run = mlflow.active_run()
+        print(f"Active run_id: {run.info.run_name}")
+
+        quit()
         # Train the model
         # FIXME: pytorch warning says it will create 20 workers for val - but for training the number specified here - WTF is going on?
-        results = model.train(data=Path("datasets") / args.dataset, epochs=1000, batch=32, patience=100, workers=10, verbose=True, device=0)
+        results = model.train(data=Path("datasets") / args.dataset, epochs=1, batch=32, patience=100, workers=10, verbose=True, device=0)
 
-        mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name="test") #does not work yet: have a look at https://github.com/mlflow/mlflow/issues/7820
+        mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name=f"{args.model}-{args.camera}") #does not work yet: have a look at https://github.com/mlflow/mlflow/issues/7820
         # TODO maybe we can make a hack here and create a dummy model with the correct name and metadata pointing to the correct model
 
         # End the run
@@ -68,3 +72,5 @@ if __name__ == "__main__":
     mlflow.enable_system_metrics_logging()
 
     start_train(args)
+
+    # TODO I could use the run name to name the model and upload it

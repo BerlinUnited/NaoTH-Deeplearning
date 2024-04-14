@@ -13,9 +13,6 @@ from urllib.error import HTTPError, URLError
 mlflow.set_tracking_uri("https://mlflow.berlinunited-cloud.de/")
 # TODO do something here once we have auth on the server
 
-experiment_description = (
-    "Tracking of ball detection progress"
-)
 
 experiment_tags = {
     "user": "stella",
@@ -65,5 +62,5 @@ with open("rc19_classification_16_bw_bottom.pkl", "rb") as f:
 with mlflow.start_run() as run:
     mlflow.set_experiment_tags(experiment_tags)
     mlflow.log_input(dataset, context="training", tags={"name": "rc19_classification_16_bw_bottom"})
-    model.fit(x, y, batch_size=256, epochs=10, verbose=1, validation_split=0.1, callbacks=[mlflow.keras.MLflowCallback()])
+    model.fit(x, y, batch_size=256, epochs=1, verbose=1, validation_split=0.1, callbacks=[mlflow.keras.MLflowCallback()])
     mlflow.tensorflow.log_model(model, artifact_path="fy_1500_new", registered_model_name="fy_1500_new")
