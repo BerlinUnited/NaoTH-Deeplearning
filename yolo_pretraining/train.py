@@ -9,6 +9,8 @@ import mlflow
 import argparse
 import numpy as np
 import torch.nn as nn
+from os import environ
+import shutil
 from zipfile import ZipFile
 from pathlib import Path
 from mflow_callbacks import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end
@@ -38,12 +40,19 @@ def start_train(args):
         run = mlflow.active_run()
 
         # Train the model
-        # FIXME: pytorch warning says it will create 20 workers for val - but for training the number specified here - WTF is going on?
+        # pytorch warning says it will create 20 workers for val this is because the val workers are always twice of the worker argument or if none given twice of what it calculated is the max
         results = model.train(data=Path("datasets") / args.dataset, epochs=1, batch=32, patience=100, workers=10, name=run.info.run_name, verbose=True, device=0)
         
+        # upload the model here
+        model_name = f"{args.model}-{args.camera}-{run.info.run_name}.pt"
+        local_model_path = Path("detect") / Path(run.info.run_name) / "weights" / "best.pt"
+        remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
+        
+        shutil.copyfile(local_model_path, remote_model_path)
 
-        mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name=f"{args.model}-{args.camera}-{run.info.run_name}") #does not work yet: have a look at https://github.com/mlflow/mlflow/issues/7820
-        # TODO maybe we can make a hack here and create a dummy model with the correct name and metadata pointing to the correct model
+        # we make a hack here and create a dummy model with the correct name and metadata pointing to the correct model (TODO: document how to find the correct model)
+        mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name=f"{args.model}-{args.camera}")
+        
 
         # End the run
         #mlflow.end_run()
