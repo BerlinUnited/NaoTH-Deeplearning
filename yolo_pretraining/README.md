@@ -62,7 +62,7 @@ python create_yolo_datasets.py -c {bottom,top}
 ```
 python train.py -ds <dataset name> -m <basemodel> -c {bottom,top} -u <your name>
 ```
-An example python call is `python train.py -ds yolo-full-size-detection_dataset_top_2024-04-10 -m yolov8n -c top -u "Stella Alice"`
+An example python call is `python train.py -ds yolo-full-size-detection_dataset_top_2024-04-10.yaml -m yolov8n -c top -u "Stella Alice"`
 
 The model argument should either be yolov8n or yolov8
 

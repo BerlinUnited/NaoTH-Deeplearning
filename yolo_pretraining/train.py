@@ -36,7 +36,8 @@ def start_train(args):
         model.add_callback("on_train_end", on_train_end)
 
         # Train the model
-        results = model.train(data=Path("datasets") / args.dataset, epochs=1000, batch=32, patience=100, workers=12, verbose=True, device=0)
+        # FIXME: pytorch warning says it will create 20 workers for val - but for training the number specified here - WTF is going on?
+        results = model.train(data=Path("datasets") / args.dataset, epochs=1000, batch=32, patience=100, workers=10, verbose=True, device=0)
 
         mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name="test") #does not work yet: have a look at https://github.com/mlflow/mlflow/issues/7820
         # TODO maybe we can make a hack here and create a dummy model with the correct name and metadata pointing to the correct model
