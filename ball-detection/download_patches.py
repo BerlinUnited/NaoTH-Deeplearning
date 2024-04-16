@@ -30,7 +30,7 @@ ls.check_connection()
 
 def get_logs_with_top_images():
     select_statement = f"""
-    SELECT bucket_top_patches FROM robot_logs WHERE bucket_top_patches IS NOT NULL AND top_validated IS TRUE
+    SELECT bucket_top_patches FROM robot_logs WHERE bucket_top_patches IS NOT NULL AND top_validated IS TRUE AND robot_version = 'v6'
     """
     cur.execute(select_statement)
     rtn_val = cur.fetchall()
@@ -40,7 +40,7 @@ def get_logs_with_top_images():
 
 def get_logs_with_bottom_images():
     select_statement = f"""
-    SELECT bucket_bottom_patches FROM robot_logs WHERE bucket_bottom_patches IS NOT NULL AND bottom_validated IS TRUE
+    SELECT bucket_bottom_patches FROM robot_logs WHERE bucket_bottom_patches IS NOT NULL AND bottom_validated IS TRUE AND robot_version = 'v6'
     """
     cur.execute(select_statement)
     rtn_val = cur.fetchall()
