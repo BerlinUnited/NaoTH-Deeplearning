@@ -23,6 +23,7 @@ python -m pip install -r requirements.txt
 ```
 
 ### Setup docker environment
+TODO: use docker compose and also explain how to mount paths and set envs
 If you run on your own system you can run it like this:
 ```bash
 docker run -it --privileged -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest /bin/bash
@@ -62,7 +63,7 @@ python create_yolo_datasets.py -c {bottom,top}
 ```
 python train.py -ds <dataset name> -m <basemodel> -c {bottom,top} -u <your name>
 ```
-An example python call is `python train.py -ds yolo-full-size-detection_dataset_top_2024-04-10.yaml -m yolov8n -c top -u "Stella Alice"`
+An example python call is `python train.py -ds yolo-full-size-detection_dataset_top_2024-04-10.yaml -m yolov8s -c bottom -u "Stella Alice"`
 
 The model argument should either be yolov8n or yolov8
 
