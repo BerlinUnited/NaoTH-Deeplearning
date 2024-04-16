@@ -58,6 +58,7 @@ if __name__ == "__main__":
             for result in results:  
                 if result.boxes.xywh.nelement() > 0:
                     label_studio_result_list = list()
+                    num_bbox = len(result.boxes.xywh.cpu().numpy())
                     for idx, box in enumerate(result.boxes.xywh.cpu().numpy()):
                         x = box[0] - box[2] / 2 # x and y of the output are the center coordinates
                         y = box[1] - box[3] / 2
@@ -65,11 +66,12 @@ if __name__ == "__main__":
                         h = box[3] / result.orig_img.shape[0] * 100
                         x = x / result.orig_img.shape[1] * 100
                         y = y / result.orig_img.shape[0] * 100
-                        print(f"\tadd bbox: {x} ,{y}, {w}, {h}")
+                        
                         # create one annotation with multiple results
                         single_ls_result = {'type': 'rectanglelabels', 'value': {'x': x, 'y': y, 'width': w, 'height': h, 'rotation': 0, 'rectanglelabels': [result.names[result.boxes.cls.cpu().numpy()[idx]]]}, 'to_name': 'image', 'from_name': 'label', 'original_width': result.orig_img.shape[1], 'original_height': result.orig_img.shape[0]}
                         label_studio_result_list.append(single_ls_result)
 
+                    print(f"\tadd {num_bbox} bounding boxes")
                     ls_result = {"result": label_studio_result_list, 'completed_by': 2}
                     a = project.create_annotation(task, **ls_result)
                 else:
