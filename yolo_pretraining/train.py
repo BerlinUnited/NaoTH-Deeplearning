@@ -41,7 +41,7 @@ def start_train(args):
 
         # Train the model
         # pytorch warning says it will create 20 workers for val this is because the val workers are always twice of the worker argument or if none given twice of what it calculated is the max
-        results = model.train(data=Path("datasets") / args.dataset, epochs=1, batch=32, patience=100, workers=10, name=run.info.run_name, verbose=True, device=0)
+        results = model.train(data=Path("datasets") / args.dataset, epochs=500, batch=32, patience=100, workers=10, name=run.info.run_name, verbose=True, device=0)
         
         # upload the model here
         model_name = f"{args.model}-{args.camera}-{run.info.run_name}.pt"
