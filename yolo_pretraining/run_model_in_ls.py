@@ -51,7 +51,7 @@ if __name__ == "__main__":
             task_output = project.get_task(task)
             # FIXME: this only works with minio as backend for now
             image_file_name = task_output["storage_filename"]
-            download_from_minio(project, image_file_name, "/tmp/")  # FIXME clean this up in the end
+            download_from_minio(project, image_file_name, "/tmp/")
             image_path = Path("/tmp/") / image_file_name
             results = model.predict(image_path, conf=0.8, verbose=False)
             

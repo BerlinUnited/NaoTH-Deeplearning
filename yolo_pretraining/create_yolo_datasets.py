@@ -13,11 +13,30 @@ from minio import Minio
 from pathlib import Path
 import yaml
 from os import environ
+import psycopg2
 import shutil
 import ultralytics
 import argparse
 from tqdm import tqdm
 import datetime
+
+# make this auto detect if its running inside the cluster or not
+if "KUBERNETES_SERVICE_HOST" in environ:
+    postgres_host = "postgres-postgresql.postgres.svc.cluster.local"
+    postgres_port = 5432
+else:
+    postgres_host = "pg.berlinunited-cloud.de"
+    postgres_port = 4000
+
+params = {
+    "host": postgres_host,
+    "port": postgres_port,
+    "dbname": "logs",
+    "user": "naoth",
+    "password": environ.get('DB_PASS')
+}
+conn = psycopg2.connect(**params)
+cur = conn.cursor()
 
 # Define the URL where Label Studio is accessible and the API key for your user account
 LABEL_STUDIO_URL = 'https://ls.berlinunited-cloud.de/'
@@ -100,13 +119,20 @@ def get_projects_bottom():
     return projects
 
 def get_projects_top():
-    project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123,
-                       124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
-                       139, 140, 144, 145, 187, 188]
+    select_statement1 = f"""
+    SELECT ls_project_top FROM robot_logs WHERE top_validated = true;
+    """
+    cur.execute(select_statement1)
+    rtn_val = cur.fetchall()
+
+    #project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123,
+    #                   124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
+    #                   139, 140, 144, 145, 187, 188]
     projects= []
-    for id in project_id_list:
+    for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
     return projects
+
 
 def export_dataset(dataset_name="", camera=""):
     """
@@ -126,6 +152,7 @@ def export_dataset(dataset_name="", camera=""):
         print("ERROR: not a valid camera argument")
         quit()
     print(f"exporting projects")
+    
     for project in tqdm(sorted(existing_projects, key=my_sort_function)):
         tasks = project.get_labeled_tasks()
         for task_output in tasks:
