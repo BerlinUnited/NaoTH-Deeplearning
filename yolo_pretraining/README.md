@@ -23,22 +23,25 @@ python -m pip install -r requirements.txt
 ```
 
 ### Setup docker environment
-TODO: use docker compose and also explain how to mount paths and set envs
+You need to create an .env file first with the environment variables that the scripts expect. Most notably the `REPL_ROOT` variable. This must be set to the folder where you mounted `/vol/repl261-vol4/naoth` from a gruenau server.
+
 If you run on your own system you can run it like this:
 ```bash
-docker run -it --privileged -v /mnt/repl/:/mnt/repl/ -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host --env-file .env scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest /bin/bash
+docker compose up -d
+docker compose exec yolo_image bash
 ```
-The `--privileged`, `--gpus all` and `--ipc host` flags together make sure that the docker container can access the GPU and that the use of the CPU is not limited by the OS.
 
-The `-v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/` flags mount the current path in which the docker command was run is mounted under `/usr/src/datasets` and `/usr/src/ultralytics/runs/`. The makes sure that the output of the training is saved in the current working directory on the host and that the current working directory on the host is the same as in the docker container. The ultralytics image expects training to be started in `/usr/src/datasets` and that the datasets are in that directory.
-
-!!! If you are using this on servers owned by the team please be conscious of others using the servers too. For this use the additional flags `-u $(id -u):$(id -g) --cpuset-cpus="4-14"` so the total command is 
+!!! If you are using this on servers owned by the team please be conscious of others using the servers too. For this specify the cpu cores you are going to use. As a rule please leave half of the cores for others. Also coordinate with other people training models.
 ```bash
-docker run -it --privileged -u $(id -u):$(id -g) --cpuset-cpus="4-14" -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest /bin/bash
+services:
+  yolo_image:
+    cpuset: "4-14"  # equivalent to --cpuset-cpus="4-14"
 ```
-`-u $(id -u):$(id -g)` make sure commands inside the docker container have the same user and group id as you have on the server. This makes it possible to know who started a training with `htop`. `--cpuset-cpus="4-14"` limits the cpu cores you can use. Please adjust this accordingly. As a rule please leave half of the cores for others. Also coordinate with other people training models.
 
-!!! `-u $(id -u):$(id -g)` Does not work with train.py yet. Because some folders from ultralytics are then not readable and some configs cant be accessed. Training would still work as long as you set all the defaults as well.
+After you are done please stop the container
+```bash
+docker compose down
+```
 
 ## Run inference
 ```

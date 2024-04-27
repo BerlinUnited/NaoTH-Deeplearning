@@ -20,7 +20,17 @@ class Dummymodel(nn.Module):
     def __init__(self):
         super().__init__()
 
-dummy_model = Dummymodel()
+
+def check_repl_access():
+    repl_root = environ.get("REPL_ROOT")
+    if repl_root:
+        repl_root = Path(repl_root)
+        if not repl_root.exists():
+            print("ERROR REPL_ROOT does not point to a folder that exists")
+            quit()
+    else:
+        print("ERROR REPL_ROOT is not defined")
+        quit()
 
 
 def start_train(args):
@@ -51,6 +61,7 @@ def start_train(args):
         shutil.copyfile(local_model_path, remote_model_path)
 
         # we make a hack here and create a dummy model with the correct name and metadata pointing to the correct model (TODO: document how to find the correct model)
+        dummy_model = Dummymodel()
         mlflow.pytorch.log_model(dummy_model, "yolov8n.pt", registered_model_name=f"{args.model}-{args.camera}")
         
 
@@ -61,6 +72,7 @@ def start_train(args):
     # TODO we need to name the model for sure here
 
 if __name__ == "__main__":
+    check_repl_access()
     # Load a model
     #model = YOLO('detect/train4/weights/best.pt')  # load a pretrained model (recommended for training)
     parser = argparse.ArgumentParser()
