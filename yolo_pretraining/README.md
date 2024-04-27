@@ -26,7 +26,7 @@ python -m pip install -r requirements.txt
 TODO: use docker compose and also explain how to mount paths and set envs
 If you run on your own system you can run it like this:
 ```bash
-docker run -it --privileged -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest /bin/bash
+docker run -it --privileged -v /mnt/repl/:/mnt/repl/ -v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/ --gpus all --ipc host --env-file .env scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest /bin/bash
 ```
 The `--privileged`, `--gpus all` and `--ipc host` flags together make sure that the docker container can access the GPU and that the use of the CPU is not limited by the OS.
 
