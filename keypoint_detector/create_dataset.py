@@ -30,55 +30,87 @@ def download_from_minio_and_scale(bucket_name, filename, output_folder):
     resized_down = cv2.resize(image, (80, 60), interpolation= cv2.INTER_LINEAR)
     cv2.imwrite(str(output), resized_down)
 
-def get_annotations(task_output, filename, output_folder):
-    output_folder.mkdir(parents=True, exist_ok=True)
-    output = Path(output_folder) / Path(filename).with_suffix(".txt")
-    if output.exists():
-        return
-    with open(str(output), "w") as f:
-        # TODO fix not creating empty files and also allowing for two ball or more
-        # TODO not downloading images when there is no ball annotations
-        # TODO allow for more projects that are also validated -> have a look at the patch extraction
-        # TODO ask chatgpt for a script that can use such a dataset for yolo
-        for anno in task_output['annotations']:
-            results = anno["result"]
-            # print(anno)
-            for result in results:
-                try:
-                    # x,y,width,height are all percentages within [0,100]
-                    x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
-                    img_width = result['original_width']
-                    img_height = result['original_height']
-                    actual_label = result["value"]["rectanglelabels"][0]
-                    # only export ball annotation - we just don't care about other labels right now
-                    if actual_label != "ball":
-                        continue
+def get_annotations(task_output, filename, label_path, img_path):
+    label_path.mkdir(parents=True, exist_ok=True)
+    txt_file = Path(label_path) / Path(filename).with_suffix(".txt")
+    
+    img_path.mkdir(parents=True, exist_ok=True)
+    img_file = Path(img_path) / filename
+    
+    #if txt_file.exists():
+    #    return
+    
+    # TODO not downloading images when there is no ball annotations
+    # TODO ask chatgpt for a script that can use such a dataset for yolo
+    ball_bbox_list = list()
+    for anno in task_output['annotations']:
+        results = anno["result"]
+        # print(anno)
+        for result in results:
+            try:
+                # x,y,width,height are all percentages within [0,100]
+                x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
+                img_width = result['original_width']
+                img_height = result['original_height']
+                actual_label = result["value"]["rectanglelabels"][0]
+                # only export ball annotation - we just don't care about other labels right now
+                if actual_label != "ball":
+                    continue
+                else:
                     label_id = label_dict[actual_label]
-                except Exception as error:
-                    print(f"annotations_list:´\n {task_output}")
-                    print()
-                    print("An exception occurred:", type(error).__name__, "–", error)
-                    quit()
+                    # calculate the pixel coordinates -> visualization need it
+                    x_px = x / 100 * img_width
+                    y_px = y / 100 * img_height
+                    width_px = width / 100 * img_width
+                    height_px = height / 100 * img_height
 
-                # calculate the pixel coordinates -> visualization need it
-                x_px = x / 100 * img_width
-                y_px = y / 100 * img_height
-                width_px = width / 100 * img_width
-                height_px = height / 100 * img_height
+                    #calculate the center of the box
+                    cx = x_px + width_px / 2
+                    cy = y_px + height_px / 2
 
-                #calculate the center of the box
-                cx = x_px + width_px / 2
-                cy = y_px + height_px / 2
+                    # calculate the percentage in range [0,1]
+                    width = width / 100
+                    height = height / 100
+                    cx = cx / img_width
+                    cy = cy / img_height
+                    #print(label_id, cx, cy, width, height)
 
-                # calculate the percentage in range [0,1]
-                width = width / 100
-                height = height / 100
-                cx = cx / img_width
-                cy = cy / img_height
+                    ball_bbox_list.append((label_id,cx, cy, width, height))
 
-                #print(label_id, cx, cy, width, height)
+                    
+            except Exception as error:
+                print(f"annotations_list:´\n {task_output}")
+                print()
+                print("An exception occurred:", type(error).__name__, "–", error)
+                quit()
+        
+    
+    
+    if len(ball_bbox_list) > 0:
+        with open(str(txt_file), "w") as f:
+            for bbox in ball_bbox_list:
                 # format https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics
-                f.write(f"{label_id} {cx} {cy} {width} {height}\n")
+                #(label_id, cx, cy, width, height)
+                print(bbox)
+                f.write(f"{bbox[0]} {bbox[1]} {bbox[2]} {bbox[3]} {bbox[4]}\n")
+
+        # download image
+        bucket_name = label_path.name # HACK we already have the folder structure here and we named the folder according to the bucket/project name
+        print(f"\tbucket_name: {bucket_name}")
+        print(f"\tfilename: {filename}")
+        print(f"\timg_file: {img_file}")
+        mclient.fget_object(bucket_name, filename, img_file)
+        # scale factor 8, but we define the final size here so that it can run multiple times 
+        image = cv2.imread(str(img_file))
+        resized_down = cv2.resize(image, (80, 60), interpolation= cv2.INTER_LINEAR)
+        cv2.imwrite(str(img_file), resized_down)
+
+    # cleanup empty folders
+    if not any(label_path.iterdir()):
+        os.rmdir(str(label_path))
+    if not any(img_path.iterdir()):
+        os.rmdir(str(img_path))
+
 
 def get_datasets_bottom():
     select_statement = f"""        
@@ -120,7 +152,7 @@ if __name__ == "__main__":
             label_path = Path(dataset_name) / "labels" / ls_project.title
 
             #download_from_minio_and_scale(bucketname, image_file_name, img_path)
-            get_annotations(ls_project.get_task(task), image_file_name, label_path)
+            get_annotations(ls_project.get_task(task), image_file_name, label_path, img_path)
 
 
     data = dict(
