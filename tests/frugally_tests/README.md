@@ -1,1 +1,0 @@
-old frugally needs old tensorflow keras, maybe even python in order to work
