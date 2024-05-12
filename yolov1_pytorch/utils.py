@@ -201,8 +201,9 @@ def mean_average_precision(
     return sum(average_precisions) / len(average_precisions)
 
 
-def plot_image(image, boxes):
+def plot_image(image, boxes,idx):
     """Plots predicted bounding boxes on the image"""
+    # FIXME add the label somewhere
     im = np.array(image)
     height, width, _ = im.shape
 
@@ -214,7 +215,7 @@ def plot_image(image, boxes):
     # box[0] is x midpoint, box[2] is width
     # box[1] is y midpoint, box[3] is height
 
-    # Create a Rectangle potch
+    # Create a Rectangle patch
     for box in boxes:
         box = box[2:]
         assert len(box) == 4, "Got more values than in x, y, w, h, in a box!"
@@ -231,7 +232,8 @@ def plot_image(image, boxes):
         # Add the patch to the Axes
         ax.add_patch(rect)
 
-    plt.show()
+    #plt.show()
+    plt.savefig(f'{idx}.png', bbox_inches='tight')
 
 def get_bboxes(
     loader,

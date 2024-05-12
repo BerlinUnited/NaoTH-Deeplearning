@@ -32,7 +32,7 @@ LEARNING_RATE = 2e-5
 DEVICE = "cuda" #"cuda" if torch.cuda.is_available else "cpu"
 BATCH_SIZE = 16 # 64 in original paper but I don't have that much vram, grad accum?
 WEIGHT_DECAY = 0
-EPOCHS = 10
+EPOCHS = 20
 NUM_WORKERS = 2
 PIN_MEMORY = True
 LOAD_MODEL = False
@@ -75,7 +75,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
 
 def main():
-    model = Yolov1(split_size=7, num_boxes=1, num_classes=1).to(DEVICE)
+    model = Yolov1(split_size=S, num_boxes=B, num_classes=C).to(DEVICE)
     optimizer = optim.Adam(
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
     )
@@ -117,15 +117,18 @@ def main():
     """
     
     for epoch in range(EPOCHS):
-        # for x, y in train_loader:
-        #    x = x.to(DEVICE)
-        #    for idx in range(8):
-        #        bboxes = cellboxes_to_boxes(model(x))
-        #        bboxes = non_max_suppression(bboxes[idx], iou_threshold=0.5, threshold=0.4, box_format="midpoint")
-        #        plot_image(x[idx].permute(1,2,0).to("cpu"), bboxes)
+        # # Hack if we load the model we want to visualize some stuff
+        if LOAD_MODEL:
+            for x, y in train_loader:
+               x = x.to(DEVICE)
+               for idx in range(8):
+                   bboxes = cellboxes_to_boxes(model(x))
+                   bboxes = non_max_suppression(bboxes[idx], iou_threshold=0.5, threshold=0.4, box_format="midpoint")
+                   print("plot_image")
+                   plot_image(x[idx].permute(1,2,0).to("cpu"), bboxes, idx)
 
-        #    import sys
-        #    sys.exit()
+               import sys
+               sys.exit()
 
         pred_boxes, target_boxes = get_bboxes(
             train_loader, model, iou_threshold=0.5, threshold=0.4
@@ -136,14 +139,14 @@ def main():
         )
         print(f"Train mAP: {mean_avg_prec}")
 
-        #if mean_avg_prec > 0.9:
-        #    checkpoint = {
-        #        "state_dict": model.state_dict(),
-        #        "optimizer": optimizer.state_dict(),
-        #    }
-        #    save_checkpoint(checkpoint, filename=LOAD_MODEL_FILE)
-        #    import time
-        #    time.sleep(10)
+        if mean_avg_prec > 0.2:
+            checkpoint = {
+                "state_dict": model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+            }
+            save_checkpoint(checkpoint, filename=LOAD_MODEL_FILE)
+            import time
+            time.sleep(10)
 
         train_fn(train_loader, model, optimizer, loss_fn)
 
