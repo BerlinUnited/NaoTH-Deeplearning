@@ -22,6 +22,7 @@ from utils import (
     load_checkpoint,
 )
 from loss import YoloLoss
+from config import *
 
 seed = 123
 torch.manual_seed(seed)

@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from collections import Counter
+from config import *
 
 def intersection_over_union(boxes_preds, boxes_labels, box_format="midpoint"):
     """
@@ -93,7 +94,7 @@ def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
 
 
 def mean_average_precision(
-    pred_boxes, true_boxes, iou_threshold=0.5, box_format="midpoint", num_classes=20
+    pred_boxes, true_boxes, iou_threshold=0.5, box_format="midpoint", num_classes=C
 ):
     """
     Calculates mean average precision 
@@ -287,7 +288,7 @@ def get_bboxes(
 
 
 
-def convert_cellboxes(predictions, S=7, C=1, B=1):
+def convert_cellboxes(predictions):
     """
     Converts bounding boxes output from Yolo with
     an image split size of S into entire image ratios
@@ -301,7 +302,6 @@ def convert_cellboxes(predictions, S=7, C=1, B=1):
     predictions = predictions.to("cpu")
     batch_size = predictions.shape[0]
     predictions = predictions.reshape(batch_size, 7, 7, 5*B + C)
-    # FIXME make this more general
     bboxes1 = predictions[..., 21:25]
     bboxes2 = predictions[..., 26:30]
     scores = torch.cat(
@@ -325,7 +325,7 @@ def convert_cellboxes(predictions, S=7, C=1, B=1):
     return converted_preds
 
 
-def cellboxes_to_boxes(out, S=7):
+def cellboxes_to_boxes(out):
     converted_pred = convert_cellboxes(out).reshape(out.shape[0], S * S, -1)
     converted_pred[..., 0] = converted_pred[..., 0].long()
     all_bboxes = []
