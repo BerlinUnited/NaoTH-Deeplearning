@@ -235,6 +235,7 @@ def plot_image(image, boxes,idx):
     #plt.show()
     plt.savefig(f'{idx}.png', bbox_inches='tight')
 
+
 def get_bboxes(
     loader,
     model,
@@ -287,7 +288,6 @@ def get_bboxes(
 
     model.train()
     return all_pred_boxes, all_true_boxes
-
 
 
 def convert_cellboxes(predictions):

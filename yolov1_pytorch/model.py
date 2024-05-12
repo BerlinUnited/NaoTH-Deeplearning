@@ -5,7 +5,7 @@ with slight modification with added BatchNorm.
 
 import torch
 import torch.nn as nn
-
+from config import *
 """ 
 Information about architecture config:
 Tuple is structured by (kernel_size, filters, stride, padding) 
@@ -47,12 +47,12 @@ class CNNBlock(nn.Module):
 
 
 class Yolov1(nn.Module):
-    def __init__(self, in_channels=3, **kwargs):
+    def __init__(self, in_channels=3):
         super(Yolov1, self).__init__()
         self.architecture = architecture_config
         self.in_channels = in_channels
         self.darknet = self._create_conv_layers(self.architecture)
-        self.fcs = self._create_fcs(**kwargs)
+        self.fcs = self._create_fcs()
 
     def forward(self, x):
         x = self.darknet(x)
@@ -102,14 +102,12 @@ class Yolov1(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _create_fcs(self, split_size, num_boxes, num_classes):
-        S, B, C = split_size, num_boxes, num_classes
-
+    def _create_fcs(self):
         # In original paper this should be
         # nn.Linear(1024*S*S, 4096),
         # nn.LeakyReLU(0.1),
         # nn.Linear(4096, S*S*(B*5+C))
-
+        # TODO when the architeture changes the linear layers are wrong. We could use lazy linear here
         return nn.Sequential(
             nn.Flatten(),
             nn.Linear(1024 * S * S, 496),
