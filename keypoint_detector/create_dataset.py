@@ -124,16 +124,6 @@ def get_datasets_bottom():
     logs = [x for x in rtn_val]
     return logs
 
-def get_project_from_name(project_name):
-    """
-    In our database the project name is the same as the bucket name. For interacting with the labelstudio API we need the project ID
-    """
-    project_list = ls.list_projects() # TODO speed it up by creating the list only once outside the loop
-    for project in project_list:
-        if project.title == project_name:
-            return project
-    
-    print("ERROR: Labelstudio project does not exist")
 
 if __name__ == "__main__":
     data = get_datasets_bottom()
