@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # disable the mlfow integration from ultralytics because you can't override the callbacks and in the end it tries to upload the model with a single post requests without splitting (very weird)
     # this leads to an request entity to large error from the loadbalancer -> should be investigated at some point
     settings.update({'mlflow': False})
-    mlflow.set_tracking_uri("https://mlflow.berlinunited-cloud.de/")
+    mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
     mlflow.set_experiment(f"YOLOv8 Full Size - {args.camera.capitalize()}")
     mlflow.enable_system_metrics_logging()
 

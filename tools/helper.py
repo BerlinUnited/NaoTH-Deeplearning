@@ -14,7 +14,7 @@ label_dict = {
 }
 
 def get_minio_client():
-    mclient = Minio("minio.berlinunited-cloud.de",
+    mclient = Minio("minio.berlin-united.com",
     access_key="naoth",
     secret_key="HAkPYLnAvydQA",
     )
@@ -22,7 +22,7 @@ def get_minio_client():
 
 def get_postgres_cursor():
     params = {
-    "host": "pg.berlinunited-cloud.de",
+    "host": "pg.berlin-united.com",
     "port": 4000,
     "dbname": "logs",
     "user": "naoth",
@@ -33,7 +33,7 @@ def get_postgres_cursor():
     return conn.cursor()
 
 def get_labelstudio_client():
-    LABEL_STUDIO_URL = 'https://ls.berlinunited-cloud.de/'
+    LABEL_STUDIO_URL = 'https://ls.berlin-united.com/'
     API_KEY = '6cb437fb6daf7deb1694670a6f00120112535687'
 
     ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)

@@ -15,12 +15,12 @@ import argparse
 
 from helper import get_file_from_server
 
-LABEL_STUDIO_URL = "https://ls.berlinunited-cloud.de/"
+LABEL_STUDIO_URL = "https://ls.berlin-united.com/"
 API_KEY = "6cb437fb6daf7deb1694670a6f00120112535687"
 ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)
 ls.check_connection()
 
-mclient = Minio("minio.berlinunited-cloud.de",
+mclient = Minio("minio.berlin-united.com",
     access_key="naoth",
     secret_key="HAkPYLnAvydQA",
 )

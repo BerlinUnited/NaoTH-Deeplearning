@@ -16,7 +16,7 @@ if not os.environ.get("LOG_DB_PASSWORD") or not os.environ.get("MINIO_SECRET_KEY
     )
 
 params = {
-    "host": os.environ.get("LOG_DB_HOST") or "pg.berlinunited-cloud.de",
+    "host": os.environ.get("LOG_DB_HOST") or "pg.berlin-united.com",
     "port": os.environ.get("LOG_DB_PORT") or 4000,
     "dbname": os.environ.get("LOG_DB_NAME") or "logs",
     "user": os.environ.get("LOG_DB_USER") or "naoth",
@@ -26,7 +26,7 @@ conn = psycopg2.connect(**params)
 cur = conn.cursor()
 
 mclient = Minio(
-    os.environ.get("MINIO_HOST") or "minio.berlinunited-cloud.de",
+    os.environ.get("MINIO_HOST") or "minio.berlin-united.com",
     access_key=os.environ.get("MINIO_ACCESS_KEY") or "naoth",
     secret_key=os.environ.get("MINIO_SECRET_KEY"),
 )
