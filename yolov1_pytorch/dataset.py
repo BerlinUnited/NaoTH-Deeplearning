@@ -8,11 +8,12 @@ import pandas as pd
 from PIL import Image
 import cv2
 import numpy as np
+from config import *
 
 
 class VOCDataset(torch.utils.data.Dataset):
     def __init__(
-        self, csv_file, img_dir, label_dir, S=7, B=2, C=20, transform=None,
+        self, csv_file, img_dir, label_dir, transform=None,
     ):
         self.annotations = pd.read_csv(csv_file)
         self.img_dir = img_dir
@@ -75,16 +76,19 @@ class VOCDataset(torch.utils.data.Dataset):
             # If no object already found for specific cell i,j
             # Note: This means we restrict to ONE object
             # per cell!
-            if label_matrix[i, j, 20] == 0:
+            # in the loss function the predicted bounding boxes B are compared to the one groundtruth
+            # TODO this probably means the labelmatrix can be shorter and does not have slots for multiple objects
+            # TODO nao devils report that they predict a bounding box per class -> think about what needs to change for that
+            if label_matrix[i, j, self.C] == 0:
                 # Set that there exists an object
-                label_matrix[i, j, 20] = 1
+                label_matrix[i, j, self.C] = 1
 
                 # Box coordinates
                 box_coordinates = torch.tensor(
                     [x_cell, y_cell, width_cell, height_cell]
                 )
 
-                label_matrix[i, j, 21:25] = box_coordinates
+                label_matrix[i, j, (self.C + 1):(self.C + 5)] = box_coordinates
 
                 # Set one hot encoding for class_label
                 label_matrix[i, j, class_label] = 1
