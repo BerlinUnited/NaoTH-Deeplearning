@@ -1,27 +1,5 @@
 # ignore python stuff
-venv/*
-.venv/*
-*/venv
-ball_detection_nao/venv
-/auto_annotation/models/__pycache__/
-/dataset_tools/__pycache__/
-*.cpython-39.pyc
+venv_tf/
+venv_pytorch/
+
 __pycache__/
-
-# ignore pycharm files
-.idea/*
-
-# ignore secret data
-config.toml
-.env
-
-# ignore data
-data_cvat/
-data_balldetection/
-data_logs/
-data_segmentation/
-data_logs/
-ball_detection_nao/models/
-
-patch_detection/data/
-patch_detection/models/
