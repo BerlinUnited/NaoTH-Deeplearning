@@ -21,12 +21,23 @@ def get_minio_client():
     return mclient
 
 def get_postgres_cursor():
+    """
+    connects to logs database
+    returns the cursor
+    """
+    if "KUBERNETES_SERVICE_HOST" in environ:
+        postgres_host = "postgres-postgresql.postgres.svc.cluster.local"
+        postgres_port = 5432
+    else:
+        postgres_host = "pg.berlin-united.com"
+        postgres_port = 4000
+
     params = {
-    "host": "pg.berlin-united.com",
-    "port": 4000,
-    "dbname": "logs",
-    "user": "naoth",
-    "password": environ.get('DB_PASS')
+        "host": postgres_host,
+        "port": postgres_port,
+        "dbname": "logs",
+        "user": "naoth",
+        "password": environ.get("DB_PASS"),
     }
 
     conn = psycopg2.connect(**params)
