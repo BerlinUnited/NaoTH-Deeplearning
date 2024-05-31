@@ -68,7 +68,7 @@ if __name__ == "__main__":
                         y = y / result.orig_img.shape[0] * 100
                         
                         # create one annotation with multiple results
-                        single_ls_result = {'id': uuid.uuid4().hex[:6].upper(), 'type': 'rectanglelabels', 'value': {'x': x, 'y': y, 'width': w, 'height': h, 'rotation': 0, 'rectanglelabels': [result.names[result.boxes.cls.cpu().numpy()[idx]]]}, 'to_name': 'image', 'from_name': 'label','origin': 'manual', 'original_width': result.orig_img.shape[1], 'original_height': result.orig_img.shape[0]}
+                        single_ls_result = {'id': uuid.uuid4().hex[:9].upper(), 'type': 'rectanglelabels', 'value': {'x': x, 'y': y, 'width': w, 'height': h, 'rotation': 0, 'rectanglelabels': [result.names[result.boxes.cls.cpu().numpy()[idx]]]}, 'to_name': 'image', 'from_name': 'label','origin': 'manual', 'original_width': result.orig_img.shape[1], 'original_height': result.orig_img.shape[0]}
                         label_studio_result_list.append(single_ls_result)
 
                     print(f"\tadd {num_bbox} bounding boxes")

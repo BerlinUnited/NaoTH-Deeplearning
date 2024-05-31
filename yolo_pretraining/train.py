@@ -89,7 +89,7 @@ if __name__ == "__main__":
     settings.update({'mlflow': False})
     mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
     mlflow.set_experiment(f"YOLOv8 Full Size - {args.camera.capitalize()}")
-    mlflow.enable_system_metrics_logging()
+    #mlflow.enable_system_metrics_logging()
 
     start_train(args)
 

@@ -203,6 +203,7 @@ def zip_and_upload_datasets(dataset_name):
     shutil.copyfile(f"{dataset_name}.zip", output_file_path)
 
 if __name__ == "__main__":
+    # FIXME add a check for access to naoth.datasets in the beginning - see train.py
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
     args = parser.parse_args()
