@@ -72,6 +72,9 @@ def get_annotations(task_output, filename, output_folder):
             results = anno["result"]
             # print(anno)
             for result in results:
+                # ignore relations here
+                if result["type"] != "rectanglelabels":
+                    continue
                 try:
                     # x,y,width,height are all percentages within [0,100]
                     x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
@@ -110,11 +113,14 @@ def get_annotations(task_output, filename, output_folder):
 
 def get_projects_bottom():
     # 175 is partially broken TODO: how to account for that?
-    project_id_list = [183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 
-                       168, 167, 166, 165, 164, 159, 160, 161, 162, 163, 157, 156, 155, 154, 149,
-                       150, 151, 152, 153, 148, 147, 146]
+    select_statement1 = f"""
+    SELECT ls_project_bottom FROM robot_logs WHERE bottom_validated = true;
+    """
+    cur.execute(select_statement1)
+    rtn_val = cur.fetchall()
+
     projects= []
-    for id in project_id_list:
+    for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
     return projects
 
@@ -125,9 +131,6 @@ def get_projects_top():
     cur.execute(select_statement1)
     rtn_val = cur.fetchall()
 
-    #project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123,
-    #                   124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
-    #                   139, 140, 144, 145, 187, 188]
     projects= []
     for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
