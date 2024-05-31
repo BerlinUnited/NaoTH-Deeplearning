@@ -5,7 +5,7 @@ helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
 from ultralytics import YOLO, settings
-import mlflow
+#import mlflow
 import argparse
 import numpy as np
 import torch.nn as nn
