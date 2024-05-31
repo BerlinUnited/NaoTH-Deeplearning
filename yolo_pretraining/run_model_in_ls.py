@@ -6,7 +6,7 @@ import os
 
 helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
-
+import uuid
 from pathlib import Path
 from label_studio_sdk import Client
 from minio import Minio
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                         y = y / result.orig_img.shape[0] * 100
                         
                         # create one annotation with multiple results
-                        single_ls_result = {'type': 'rectanglelabels', 'value': {'x': x, 'y': y, 'width': w, 'height': h, 'rotation': 0, 'rectanglelabels': [result.names[result.boxes.cls.cpu().numpy()[idx]]]}, 'to_name': 'image', 'from_name': 'label', 'original_width': result.orig_img.shape[1], 'original_height': result.orig_img.shape[0]}
+                        single_ls_result = {'id': uuid.uuid4().hex[:6].upper(), 'type': 'rectanglelabels', 'value': {'x': x, 'y': y, 'width': w, 'height': h, 'rotation': 0, 'rectanglelabels': [result.names[result.boxes.cls.cpu().numpy()[idx]]]}, 'to_name': 'image', 'from_name': 'label','origin': 'manual', 'original_width': result.orig_img.shape[1], 'original_height': result.orig_img.shape[0]}
                         label_studio_result_list.append(single_ls_result)
 
                     print(f"\tadd {num_bbox} bounding boxes")
@@ -78,3 +78,5 @@ if __name__ == "__main__":
                     print(f"\tadd empty annotation here")
                     ls_result = {"result": [], 'completed_by': 2}
                     a = project.create_annotation(task, **ls_result)
+
+#639
