@@ -5,7 +5,8 @@ from pathlib import Path
 from label_studio_sdk import Client
 from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
-
+import numpy as np
+import h5py
 
 label_dict = {
     "ball": 0,
@@ -75,3 +76,54 @@ def get_file_from_server(origin, target):
         if Path(target).exists():
             Path(target).unlink()
         raise
+
+
+def download_from_minio(client, bucket_name, filename, output_folder):
+    output = Path(output_folder) / "image" / str(bucket_name + "_" + filename)
+    if not output.exists():
+        client.fget_object(bucket_name, filename, output)
+    return str(output)
+
+def create_h5_file(file_path, key_list, shape):
+    # FIXME this does not work with append yet but I think we should make it work eventually
+    with h5py.File(file_path, "w") as f:
+        for key in key_list:
+            f.create_dataset(key, data=np.empty([1, shape[0],shape[1],shape[2]]), compression="gzip", chunks=True, maxshape=(None, shape[0],shape[1],shape[2]))
+    
+def append_h5_file(file_path, key, array):
+    with h5py.File(file_path, "a") as f:
+        f[key].resize((f[key].shape[0] + array.shape[0]), axis = 0)
+        np.concatenate((f[key], array), axis=0)
+        
+        #f[key][-array.shape[0]:] = array
+
+
+def load_image_as_yuv422(image_filename):
+    """
+    this functions loads an image from a file to the correct format for the naoth library
+    """
+    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
+    # and we need to make sure loading the dummy simulator shared library happens first
+    import cv2
+    #y = 240
+    #x = 320
+    cv_img = cv2.imread(image_filename)
+    x = cv_img.shape[1]
+    y = cv_img.shape[0]
+    #cv_img = cv2.resize(
+    #    cv_img, (240,320), interpolation=cv2.INTER_NEAREST
+    #)
+    #print(cv_img.shape, x,y)
+    # convert image for bottom to yuv422
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
+    yuv422 = np.ndarray(x * y * 2, np.uint8)
+
+    for i in range(0, x * y, 2):
+        yuv422[i * 2] = cv_img[i * 3]
+        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
+        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
+
+    # TODO is this the correct order?
+    image_yuv = yuv422.reshape(y,x, 2)
+    return image_yuv

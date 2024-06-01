@@ -4,3 +4,5 @@ h5py==3.11.0 # this is the version tensorflow needs - not sure if pytorch can al
 psycopg2-binary==2.9.9
 minio==7.2.7
 label_studio_sdk==0.0.34
+tqdm==4.66.4
+matplotlib==3.9.0
