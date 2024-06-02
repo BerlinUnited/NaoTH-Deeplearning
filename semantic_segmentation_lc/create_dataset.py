@@ -3,27 +3,29 @@
 
     FIXME: eventually move downloading and h5 dataset creation to tools folder
     FIXME: its pretty slow
+    FIXME: use middlepoint and gaussian distribution for ball and penalty mark similar to what bhuman did
+    FIXME: add augmentation 
+    FIXME: make yuv422 work
+    FIXME: better validation split
 """
+import argparse
 import os
 import sys
 import h5py
-from label_studio_sdk import Client
 from tqdm import tqdm
 import tempfile
 import numpy as np
-import time
 import cv2
-import statistics
 from pathlib import Path
-
 
 helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
-from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, create_h5_file, append_h5_file, load_image_as_yuv422
+from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better
 
-def download_datasets(sql_query):
 
+def download_datasets(camera):
+    sql_query = f"""SELECT log_path, ls_project_{camera}, bucket_{camera} FROM robot_logs WHERE {camera}_validated = true"""
     print(sql_query)
     pg_cur = get_postgres_cursor()
     pg_cur.execute(sql_query)
@@ -47,12 +49,14 @@ def download_datasets(sql_query):
         # TODO move the files inside an h5 file in the current folder
         # TODO think about structure inside h5 file
         # TODO first draft I can make mask from bounding boxes like this: https://stackoverflow.com/questions/64195636/converting-bounding-box-regions-into-masks-and-saving-them-as-png-files
-        #tmp_download_folder = tempfile.TemporaryDirectory()
-        tmp_download_folder = "./test"
-        # TODO split this so that it downloads everything first. Only if everything is downloaded put this in h5 file
+
+        download_folder = Path("./datasets") / camera
+        Path(download_folder).mkdir(exist_ok=True, parents=True)
         for task_output in tasks:
             # label part 1
-            bbox_list = list()
+            bbox_list_robot = list()
+            bbox_list_penalty = list()
+            bbox_list_ball = list()
             for anno in task_output['annotations']:
                 results = anno["result"]
                 for result in results:
@@ -60,66 +64,75 @@ def download_datasets(sql_query):
                     if result["type"] != "rectanglelabels":
                         continue
                     actual_label = result["value"]["rectanglelabels"][0]
-                    if actual_label != "nao":
-                        continue
 
                     # x,y,width,height are all percentages within [0,100]
                     x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
                     img_width = result['original_width']
                     img_height = result['original_height']
+                    # FIXME int might not be the best rounding method here - but off by one pixel is also not that bad
                     x_px = int(x / 100 * img_width)
                     y_px = int(y / 100 * img_height)
                     width_px = int(width / 100 * img_width)
                     height_px = int(height / 100 * img_height)
-                    bbox_list.append((y_px,height_px,x_px,width_px))
-                    # FIXME int might not be the best rounding method here - but off by one pixel is also not that bad
 
-            if len(bbox_list) > 0:
+                    if actual_label == "ball":
+                        bbox_list_ball.append((y_px,height_px,x_px,width_px))
+                    if actual_label == "penalty_mark":
+                        bbox_list_penalty.append((y_px,height_px,x_px,width_px))
+                    if actual_label == "nao":
+                        bbox_list_robot.append((y_px,height_px,x_px,width_px))
+                    
+            
+            if len(bbox_list_ball) > 0 or len(bbox_list_penalty) > 0 or len(bbox_list_robot) > 0:
                 # image part
                 image_file_name = task_output["storage_filename"]
-                image_path = download_from_minio(client=mclient, bucket_name=bucket_name, filename=image_file_name, output_folder=tmp_download_folder)
+                image_path = download_from_minio(client=mclient, bucket_name=bucket_name, filename=image_file_name, output_folder=download_folder)
 
                 # label part 2
                 img = cv2.imread(image_path)
-                mask_robot = np.zeros((img.shape[0],img.shape[1]),dtype=np.float32) # initialize mask
-                for box in bbox_list:
+                mask = np.zeros((img.shape[0],img.shape[1], 3),dtype=np.float32) # initialize mask
+
+                for box in bbox_list_ball:
                     y_px, height_px, x_px, width_px = box
-                    mask_robot[y_px:y_px+height_px,x_px:x_px+width_px] = 1.0
+                    mask[y_px:y_px+height_px, x_px:x_px+width_px, 0] = 1.0
 
-                mask_robot = cv2.resize(mask_robot, (20,15), interpolation=cv2.INTER_NEAREST)
+                for box in bbox_list_penalty:
+                    y_px, height_px, x_px, width_px = box
+                    mask[y_px:y_px+height_px,x_px:x_px+width_px, 1] = 1.0
 
-                a = Path(tmp_download_folder) / "label"
+                for box in bbox_list_robot:
+                    y_px, height_px, x_px, width_px = box
+                    mask[y_px:y_px+height_px,x_px:x_px+width_px, 2] = 1.0
+
+                a = Path(download_folder) / "label"
                 Path(a).mkdir(exist_ok=True, parents=True)
-                mask_output_path = Path(tmp_download_folder) / "label" / str(bucket_name + "_" + image_file_name)
-                cv2.imwrite(str(mask_output_path), mask_robot) # lol this fails silently when folder does not exist
-
-    #tmp_download_folder.cleanup()
+                mask_output_path = Path(download_folder) / "label" / str(bucket_name + "_" + image_file_name)
+                cv2.imwrite(str(mask_output_path), mask)
 
 
-def create_ds_yuv():
-    images = list(Path("./test/image").glob('**/*.png'))
+def create_ds_y():
+    images = list(Path("./all_labels/image").glob('**/*.png'))
     trainings_list = images[0:-100]
     validation_list = images[-100:]
-    with h5py.File("training_ds_yuv.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,2), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20), dtype=np.float32)
+    with h5py.File("training_ds_y.h5",'w') as h5f:
+        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,1), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,1), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
-            img = load_image_as_yuv422(str(image_path))
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
+            img = load_image_as_yuv422_y_only_better(str(image_path))  # FIXME
+            print(img.shape)
+            #img = cv2.resize(img, (320,240))
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             label_ds[cnt:cnt+1:,:,:] = mask
-    with h5py.File("training_ds_yuv.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,2), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20), dtype=np.float32)
+    with h5py.File("validation_ds_y.h5",'w') as h5f:
+        img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,1), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,1), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
-            #img = load_image_as_yuv422(str(image_path))
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
+            img = load_image_as_yuv422_y_only_better(str(image_path))
+            #img = cv2.resize(img, (320,240))
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
@@ -127,13 +140,16 @@ def create_ds_yuv():
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             label_ds[cnt:cnt+1:,:,:] = mask
 
-def create_ds_rgb():
-    images = list(Path("./test/image").glob('**/*.png'))
+def create_ds_yuv():
+    pass
+
+def create_ds_rgb_all():
+    images = list(Path("./all_labels/image").glob('**/*.png'))
     trainings_list = images[0:-100]
     validation_list = images[-100:]
     with h5py.File("training_ds_rgb.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,3), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
             img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -148,7 +164,7 @@ def create_ds_rgb():
 
     with h5py.File("validation_ds_rgb.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,3), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
             img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -161,13 +177,14 @@ def create_ds_rgb():
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             label_ds[cnt:cnt+1:,:,:] = mask
 
-def create_ds_gray():
-    images = list(Path("./test/image").glob('**/*.png'))
+
+def create_ds_gray_all():
+    images = list(Path("./all_labels/image").glob('**/*.png'))
     trainings_list = images[0:-100]
     validation_list = images[-100:]
-    with h5py.File("training_ds_gray.h5",'w') as h5f:
+    with h5py.File("training_ds_gray_all.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
             img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             img = img / 255.0
@@ -179,9 +196,9 @@ def create_ds_gray():
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             label_ds[cnt:cnt+1:,:,:] = mask
 
-    with h5py.File("validation_ds_gray.h5",'w') as h5f:
+    with h5py.File("validation_ds_gray_all.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
             img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             img = img / 255.0
@@ -193,9 +210,19 @@ def create_ds_gray():
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             label_ds[cnt:cnt+1:,:,:] = mask
 
-if __name__ == "__main__":  
-    #download_datasets("""SELECT log_path, ls_project_bottom, bucket_bottom FROM robot_logs WHERE bottom_validated = true""")
 
-    #create_ds_yuv()
-    #create_ds_rgb()
-    create_ds_gray()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--type", required=True, choices=['gray', 'yuv', 'rgb', 'y'])
+    parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
+    args = parser.parse_args()
+
+    download_datasets(args.camera)
+    if args.type == "yuv":
+        create_ds_yuv()
+    if args.type == "gray":
+        create_ds_gray_all()
+    if args.type == "rgb":
+        create_ds_rgb_all()
+    if args.type == "y":
+        create_ds_y()

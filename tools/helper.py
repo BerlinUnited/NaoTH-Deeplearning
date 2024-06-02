@@ -7,6 +7,7 @@ from urllib.request import urlretrieve
 from urllib.error import HTTPError, URLError
 import numpy as np
 import h5py
+from PIL import Image as PIL_Image
 
 label_dict = {
     "ball": 0,
@@ -101,6 +102,7 @@ def append_h5_file(file_path, key, array):
 def load_image_as_yuv422(image_filename):
     """
     this functions loads an image from a file to the correct format for the naoth library
+    # FIXME: i don't trust this function
     """
     # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
     # and we need to make sure loading the dummy simulator shared library happens first
@@ -127,3 +129,43 @@ def load_image_as_yuv422(image_filename):
     # TODO is this the correct order?
     image_yuv = yuv422.reshape(y,x, 2)
     return image_yuv
+
+def load_image_as_yuv422_y_only(image_filename):
+    """
+    this functions loads an image from a file to the correct format for the naoth library
+    # FIXME: i don't trust this function
+    """
+    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
+    # and we need to make sure loading the dummy simulator shared library happens first
+    import cv2
+    cv_img = cv2.imread(image_filename)
+    x = cv_img.shape[1]
+    y = cv_img.shape[0]
+
+    # convert image for bottom to yuv422
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
+    yuv422 = np.ndarray(y * x * 2, np.uint8)
+
+    for i in range(0, y * x, 2):
+        yuv422[i * 2] = cv_img[i * 3]
+        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
+        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
+
+    # TODO is this the correct order?
+    image_yuv = yuv422.reshape(y, x, 2)
+    image_y =  image_yuv[..., 0]
+    image_y = image_y.reshape(y,x,1)
+    print(image_y.shape)
+    image_y = image_y[::2, ::2]  # half the resolution because semantic segmentation requires it
+    return image_y
+
+def load_image_as_yuv422_y_only_better(image_filename):
+    im = PIL_Image.open(image_filename)
+    ycbcr = im.convert('YCbCr')
+    reversed_yuv888 = np.ndarray(480 * 640 * 3, 'u1', ycbcr.tobytes())
+    full_image_y = reversed_yuv888[0::3]
+    full_image_y = full_image_y.reshape(480,640,1)
+    half_image_y = full_image_y[::2, ::2]
+    half_image_y = half_image_y / 255.0
+    return half_image_y
