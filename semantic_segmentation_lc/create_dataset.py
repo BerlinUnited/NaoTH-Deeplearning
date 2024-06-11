@@ -21,11 +21,11 @@ from pathlib import Path
 helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
-from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better
+from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better, BoundingBox, Point2D
 
 
-def download_datasets(camera):
-    sql_query = f"""SELECT log_path, ls_project_{camera}, bucket_{camera} FROM robot_logs WHERE {camera}_validated = true"""
+def download_datasets(camera, grid_size):
+    sql_query = f"""SELECT ls_project_{camera}, bucket_{camera} FROM robot_logs WHERE {camera}_validated = true"""
     print(sql_query)
     pg_cur = get_postgres_cursor()
     pg_cur.execute(sql_query)
@@ -35,10 +35,7 @@ def download_datasets(camera):
     mclient = get_minio_client()
     ls = get_labelstudio_client()
 
-    def middle(n):  
-        return n[1] 
-
-    for logpath, ls_prj, bucket_name in sorted(data, key=middle):
+    for ls_prj, bucket_name in sorted(data):
         
         print(f"Working on project {ls_prj}")
 
@@ -82,7 +79,8 @@ def download_datasets(camera):
                     if actual_label == "nao":
                         bbox_list_robot.append((y_px,height_px,x_px,width_px))
                     
-            
+            # TODO creating the masks makes it harder to calculate overlap with grid cells later so do it here and the output will then always be in the grid shape and not the image shape
+            # TODO figure out how a better workflow that also includes the adjustments to the robot masks could work -> after robocup and with new labeltool
             if len(bbox_list_ball) > 0 or len(bbox_list_penalty) > 0 or len(bbox_list_robot) > 0:
                 # image part
                 image_file_name = task_output["storage_filename"]
@@ -90,54 +88,99 @@ def download_datasets(camera):
 
                 # label part 2
                 img = cv2.imread(image_path)
-                mask = np.zeros((img.shape[0],img.shape[1], 3),dtype=np.float32) # initialize mask
+                img_height = img.shape[0]
+                img_width = img.shape[1]
 
+                grid_rows, grid_columns = grid_size  # FIXME better names its not actually height but num cols num rows or something like that
+                grid_cell_height = int(img_height / grid_rows)
+                grid_cell_width = int(img_width / grid_columns)
+
+                # use defined grid shape here
+                mask = np.zeros((grid_rows,grid_columns, 3),dtype=np.float32) # initialize mask
+ 
                 for box in bbox_list_ball:
                     y_px, height_px, x_px, width_px = box
-                    mask[y_px:y_px+height_px, x_px:x_px+width_px, 0] = 1.0
+                    ball_bb = BoundingBox.from_xywh(x_px, y_px,width_px, height_px)
+                    for y in range(grid_rows):
+                        for x in range(grid_columns):
+                                cell_x1 = x * grid_cell_width
+                                cell_y1 = y * grid_cell_height
+                                cell_x2 = x * grid_cell_width + grid_cell_width
+                                cell_y2 = y * grid_cell_height + grid_cell_height
+                                cell_bb = BoundingBox.from_coords(cell_x1, cell_y1,cell_x2, cell_y2)
+                                intersection = cell_bb.intersection(ball_bb)
+                                if not intersection is None:
+                                    value = intersection.area / cell_bb.area
+
+                                    mask[y,x, 0] = value * 255.0 # because png can only handle ints argh
 
                 for box in bbox_list_penalty:
                     y_px, height_px, x_px, width_px = box
-                    mask[y_px:y_px+height_px,x_px:x_px+width_px, 1] = 1.0
+                    # TODO put this in an extra function
+                    penalty_bb = BoundingBox.from_xywh(x_px, y_px,width_px, height_px)
+                    for y in range(grid_rows):
+                        for x in range(grid_columns):
+                                cell_x1 = x * grid_cell_width
+                                cell_y1 = y * grid_cell_height
+                                cell_x2 = x * grid_cell_width + grid_cell_width
+                                cell_y2 = y * grid_cell_height + grid_cell_height
+                                cell_bb = BoundingBox.from_coords(cell_x1, cell_y1,cell_x2, cell_y2)
+                                intersection = cell_bb.intersection(penalty_bb)
+                                if not intersection is None:
+                                    value = intersection.area / cell_bb.area
+                                    mask[y,x, 1] = value * 255.0 # because png can only handle ints argh
 
                 for box in bbox_list_robot:
                     y_px, height_px, x_px, width_px = box
-                    mask[y_px:y_px+height_px,x_px:x_px+width_px, 2] = 1.0
+                    # TODO put this in an extra function
+                    robot_bb = BoundingBox.from_xywh(x_px, y_px,width_px, height_px)
+                    for y in range(grid_rows):
+                        for x in range(grid_columns):
+                                cell_x1 = x * grid_cell_width
+                                cell_y1 = y * grid_cell_height
+                                cell_x2 = x * grid_cell_width + grid_cell_width
+                                cell_y2 = y * grid_cell_height + grid_cell_height
+                                cell_bb = BoundingBox.from_coords(cell_x1, cell_y1,cell_x2, cell_y2)
+                                intersection = cell_bb.intersection(robot_bb)
+                                if not intersection is None:
+                                    value = intersection.area / cell_bb.area
+                                    mask[y,x, 2] = value * 255.0 # because png can only handle ints argh
 
+                # maybe use different output folders for different grid sizes?
                 a = Path(download_folder) / "label"
                 Path(a).mkdir(exist_ok=True, parents=True)
                 mask_output_path = Path(download_folder) / "label" / str(bucket_name + "_" + image_file_name)
                 cv2.imwrite(str(mask_output_path), mask)
 
 
-def create_ds_y():
-    images = list(Path("./all_labels/image").glob('**/*.png'))
+def create_ds_y(camera):
+    # FIXME use new folder structure
+    images = list(Path(f"./datasets/{camera}/image").glob('**/*.png'))
     trainings_list = images[0:-100]
     validation_list = images[-100:]
     with h5py.File("training_ds_y.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,1), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,1), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))  # FIXME
-            print(img.shape)
-            #img = cv2.resize(img, (320,240))
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
+            mask = mask / 255.0
             label_ds[cnt:cnt+1:,:,:] = mask
     with h5py.File("validation_ds_y.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,1), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,1), dtype=np.float32)
+        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))
-            #img = cv2.resize(img, (320,240))
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
+            mask = mask / 255.0
             label_ds[cnt:cnt+1:,:,:] = mask
 
 def create_ds_yuv():
@@ -215,9 +258,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--type", required=True, choices=['gray', 'yuv', 'rgb', 'y'])
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
+    parser.add_argument("-g", "--grid", required=True, nargs=2, type=int, help="Set the grid size like this: -g #rows #cols")
     args = parser.parse_args()
+    # python create_dataset.py -t y -c bottom -g 15 20
+    grid_size = tuple(args.grid)
 
-    download_datasets(args.camera)
+    download_datasets(args.camera, grid_size)
     if args.type == "yuv":
         create_ds_yuv()
     if args.type == "gray":
@@ -225,4 +271,4 @@ if __name__ == "__main__":
     if args.type == "rgb":
         create_ds_rgb_all()
     if args.type == "y":
-        create_ds_y()
+        create_ds_y(args.camera)

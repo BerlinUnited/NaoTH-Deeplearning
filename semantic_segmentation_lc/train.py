@@ -77,11 +77,11 @@ def train_grayscale_y():
     model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
 
     callbacks = [
-    keras.callbacks.EarlyStopping(
-        monitor="val_loss", patience=50, restore_best_weights=True
-    ),
-    keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
-]
+        keras.callbacks.EarlyStopping(
+            monitor="val_loss", patience=50, restore_best_weights=True
+        ),
+        keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
+    ]
 
     model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
     model.save(f"semantic_segmentation_y-2.keras")
