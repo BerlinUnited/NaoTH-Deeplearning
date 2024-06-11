@@ -255,6 +255,7 @@ def create_ds_gray_all():
 
 
 if __name__ == "__main__":
+    # FIXME add upload to datasets.naoth.de
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--type", required=True, choices=['gray', 'yuv', 'rgb', 'y'])
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])

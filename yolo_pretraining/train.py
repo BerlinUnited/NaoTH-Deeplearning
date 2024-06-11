@@ -5,7 +5,7 @@ helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
 from ultralytics import YOLO, settings
-import requests
+
 import mlflow
 import argparse
 import numpy as np
@@ -14,8 +14,7 @@ from os import environ
 import shutil
 from zipfile import ZipFile
 from pathlib import Path
-from mflow_callbacks import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end
-from helper import get_file_from_server
+from mflow_helper import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end, set_tracking_url
 
 class Dummymodel(nn.Module):
     def __init__(self):
@@ -92,16 +91,8 @@ if __name__ == "__main__":
     settings.update({"runs_dir": Path("./mlruns").resolve()})
     settings.update({"datasets_dir": Path("./").resolve()})
     
-    # check if mlflow is actually reachable here
-    try:
-        # we can either get an error or an undesireable status code. Check for both
-        page = requests.get("https://mlflow.berlin-united.com/")
-        if page.status_code == 200:
-            mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
-        else:
-            print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
-        print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+    # set up remote tracking if the mlflow tracking server is available
+    set_tracking_url()
 
     mlflow.set_experiment(f"YOLOv8 Full Size - {args.camera.capitalize()}")
     mlflow.enable_system_metrics_logging()
