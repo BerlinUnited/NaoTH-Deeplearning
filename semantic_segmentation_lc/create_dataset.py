@@ -2,8 +2,6 @@
     Creates a dataset based on data from labelstudio. The created dataset will be uploaded to datasets.naoth.de
 
     FIXME: eventually move downloading and h5 dataset creation to tools folder
-    FIXME: its pretty slow
-    FIXME: use middlepoint and gaussian distribution for ball and penalty mark similar to what bhuman did
     FIXME: add augmentation 
     FIXME: make yuv422 work
     FIXME: better validation split
@@ -153,13 +151,21 @@ def download_datasets(camera, grid_size):
                 cv2.imwrite(str(mask_output_path), mask)
 
 
-def create_ds_y(camera):
+def create_ds_y(camera, scale_factor):
     # FIXME use new folder structure
+    # FIXME put validation and trainings set together
+    # TODO use scale factor
+
+    new_img_width = 640 / scale_factor
+    new_img_height = 640 / scale_factor
+
+
     images = list(Path(f"./datasets/{camera}/image").glob('**/*.png'))
+
     trainings_list = images[0:-100]
     validation_list = images[-100:]
     with h5py.File("training_ds_y.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,1), dtype=np.float32)
+        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), new_img_height, new_img_width,1), dtype=np.float32)
         label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))  # FIXME
@@ -170,8 +176,9 @@ def create_ds_y(camera):
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             mask = mask / 255.0
             label_ds[cnt:cnt+1:,:,:] = mask
+
     with h5py.File("validation_ds_y.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,1), dtype=np.float32)
+        img_ds = h5f.create_dataset('X',shape=(len(validation_list), new_img_height,new_img_width,1), dtype=np.float32)
         label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))
@@ -186,80 +193,15 @@ def create_ds_y(camera):
 def create_ds_yuv():
     pass
 
-def create_ds_rgb_all():
-    images = list(Path("./all_labels/image").glob('**/*.png'))
-    trainings_list = images[0:-100]
-    validation_list = images[-100:]
-    with h5py.File("training_ds_rgb.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320,3), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
-        for cnt, image_path in enumerate(tqdm(trainings_list)):
-            img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
-            # TODO try batching here for speedup
-            img_ds[cnt:cnt+1:,:,:] = img
-
-            label_path = image_path.parent.parent / "label" / image_path.name
-            mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
-            label_ds[cnt:cnt+1:,:,:] = mask
-
-    with h5py.File("validation_ds_rgb.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320,3), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
-        for cnt, image_path in enumerate(tqdm(validation_list)):
-            img = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
-            # TODO try batching here for speedup
-            img_ds[cnt:cnt+1:,:,:] = img
-
-            label_path = image_path.parent.parent / "label" / image_path.name
-            mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
-            label_ds[cnt:cnt+1:,:,:] = mask
-
-
-def create_ds_gray_all():
-    images = list(Path("./all_labels/image").glob('**/*.png'))
-    trainings_list = images[0:-100]
-    validation_list = images[-100:]
-    with h5py.File("training_ds_gray_all.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(trainings_list), 240,320), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
-        for cnt, image_path in enumerate(tqdm(trainings_list)):
-            img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
-            # TODO try batching here for speedup
-            img_ds[cnt:cnt+1:,:,:] = img
-
-            label_path = image_path.parent.parent / "label" / image_path.name
-            mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
-            label_ds[cnt:cnt+1:,:,:] = mask
-
-    with h5py.File("validation_ds_gray_all.h5",'w') as h5f:
-        img_ds = h5f.create_dataset('X',shape=(len(validation_list), 240,320), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
-        for cnt, image_path in enumerate(tqdm(validation_list)):
-            img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-            img = img / 255.0
-            img = cv2.resize(img, (320,240))
-            # TODO try batching here for speedup
-            img_ds[cnt:cnt+1:,:,:] = img
-
-            label_path = image_path.parent.parent / "label" / image_path.name
-            mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
-            label_ds[cnt:cnt+1:,:,:] = mask
-
 
 if __name__ == "__main__":
     # FIXME add upload to datasets.naoth.de
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type", required=True, choices=['gray', 'yuv', 'rgb', 'y'])
+    parser.add_argument("-t", "--type", required=True, choices=['yuv', 'y'])
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
     parser.add_argument("-g", "--grid", required=True, nargs=2, type=int, help="Set the grid size like this: -g #rows #cols")
+    parser.add_argument("-s", "--scale_factor", required=False, type=int, default=2, help="The factor by which the image will be downscaled")
+
     args = parser.parse_args()
     # python create_dataset.py -t y -c bottom -g 15 20
     grid_size = tuple(args.grid)
@@ -267,9 +209,5 @@ if __name__ == "__main__":
     download_datasets(args.camera, grid_size)
     if args.type == "yuv":
         create_ds_yuv()
-    if args.type == "gray":
-        create_ds_gray_all()
-    if args.type == "rgb":
-        create_ds_rgb_all()
     if args.type == "y":
-        create_ds_y(args.camera)
+        create_ds_y(args.camera, args.scale_factor)

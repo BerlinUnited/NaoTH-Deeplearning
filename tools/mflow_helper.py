@@ -1,13 +1,13 @@
 import mlflow
 from pathlib import Path
-from ultralytics.utils import LOGGER, RUNS_DIR, SETTINGS, TESTS_RUNNING, colorstr
 import os
+import requests
 
-PREFIX = colorstr("MLflow: ")
-SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
 
 def on_pretrain_routine_end(trainer):
-
+    from ultralytics.utils import LOGGER, colorstr
+    PREFIX = colorstr("MLflow: ")
+    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     uri = mlflow.get_tracking_uri()
     LOGGER.debug(f"{PREFIX} tracking uri: {uri}")
     mlflow.set_tracking_uri(uri)
@@ -30,6 +30,8 @@ def on_pretrain_routine_end(trainer):
 
 
 def on_train_epoch_end(trainer):
+    from ultralytics.utils import colorstr
+    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     """Log training metrics at the end of each train epoch to MLflow."""
     if mlflow:
         mlflow.log_metrics(
@@ -41,6 +43,8 @@ def on_train_epoch_end(trainer):
         )
 
 def on_fit_epoch_end(trainer):
+    from ultralytics.utils import colorstr
+    SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
         mlflow.log_metrics(metrics=SANITIZE(trainer.metrics), step=trainer.epoch)
@@ -65,3 +69,14 @@ def on_train_end(trainer):
   #          f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
    #         f"{PREFIX}disable with 'yolo settings mlflow=False'"
     #    )
+
+def set_tracking_url():
+    try:
+        # we can either get an error or an undesireable status code. Check for both
+        page = requests.get("https://mlflow.berlin-united.com/")
+        if page.status_code == 200:
+            mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
+        else:
+            print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
+        print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")

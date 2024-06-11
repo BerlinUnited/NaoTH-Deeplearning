@@ -2,3 +2,5 @@
 tensorflow==2.15.1
 scipy
 mlflow==2.13.2
+psutil
+pynvml

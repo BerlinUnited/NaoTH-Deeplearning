@@ -16,7 +16,7 @@ import mlflow
 from tensorflow import keras
 from keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from model import bhuman_segmentation_lower_gray, bhuman_segmentation_lower_rgb, bhuman_segmentation_lower_yuv, bhuman_segmentation_lower_y
+from model import bhuman_segmentation_lower_yuv, bhuman_segmentation_y_channel_v1, bhuman_segmentation_y_channel_v2
 from mflow_helper import set_tracking_url
 
 class DataGenerator(Sequence):
@@ -70,31 +70,7 @@ class DataGeneratorAugmentation(Sequence):
         return images, masks
 
 
-def train_rgb():
-    train_generator = DataGenerator('training_ds_rgb.h5', batch_size=32)
-    validation_generator = DataGenerator('validation_ds_rgb.h5', batch_size=32)
-
-    model = bhuman_segmentation_lower_rgb()
-    #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
-    model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
-
-    model.fit(x=train_generator, validation_data=validation_generator, epochs=200)
-    model.save(f"semantic_segmentation_rgb.keras")
-
-
-def train_grayscale_stupid():
-    train_generator = DataGenerator('training_ds_gray.h5', batch_size=32)
-    validation_generator = DataGenerator('validation_ds_gray.h5', batch_size=32)
-
-    model = bhuman_segmentation_lower_gray()
-    #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
-    model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
-
-    model.fit(x=train_generator, validation_data=validation_generator, epochs=200)
-    model.save(f"semantic_segmentation_gray.keras")
-
-
-def train_grayscale_y(args):
+def train_y_channel_v1(args):
     with mlflow.start_run() as run:
         run = mlflow.active_run()
         # FIXME put validation data in the same h5 file for easier processing
@@ -105,14 +81,12 @@ def train_grayscale_y(args):
         mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
 
         
-        model = bhuman_segmentation_lower_y()
+        model = bhuman_segmentation_y_channel_v1()
         #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
         model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
 
         callbacks = [
-            keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=50, restore_best_weights=True
-            ),
+            keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
             keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
             keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto')
         ]
@@ -135,7 +109,7 @@ def train_yuv422():
 if __name__ == "__main__":
     # FIXME add mlflow integration and upload to models.naoth.de
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type", required=True, choices=['gray', 'yuv', 'rgb', 'y'])
+    parser.add_argument("-t", "--type", required=True, choices=['yuv', 'y'])
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
     parser.add_argument("-ds", "--dataset", required=True)
     parser.add_argument("-u", "--user", required=True)
@@ -148,11 +122,7 @@ if __name__ == "__main__":
 
     if args.type == "yuv":
         train_yuv422()
-    if args.type == "gray":
-        train_grayscale_stupid()
-    if args.type == "rgb":
-        train_rgb()
     if args.type == "y":
         mlflow.set_experiment(f"Segmentation 240x320 Y-Channel - {args.camera.capitalize()}")
         
-        train_grayscale_y(args)
+        train_y_channel_v1(args)
