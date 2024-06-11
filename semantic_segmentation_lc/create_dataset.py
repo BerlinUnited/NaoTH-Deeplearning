@@ -151,7 +151,7 @@ def download_datasets(camera, grid_size):
                 cv2.imwrite(str(mask_output_path), mask)
 
 
-def create_ds_y(camera, scale_factor):
+def create_ds_y(camera, scale_factor, ball_only=False):
     # FIXME use new folder structure
     # FIXME put validation and trainings set together
     # TODO use scale factor
@@ -166,7 +166,10 @@ def create_ds_y(camera, scale_factor):
     validation_list = images[-100:]
     with h5py.File("training_ds_y.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), new_img_height, new_img_width,1), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
+        if ball_only:
+            label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,1), dtype=np.float32)
+        else:
+            label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))  # FIXME
             # TODO try batching here for speedup
@@ -179,7 +182,10 @@ def create_ds_y(camera, scale_factor):
 
     with h5py.File("validation_ds_y.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(validation_list), new_img_height,new_img_width,1), dtype=np.float32)
-        label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
+        if ball_only:
+            label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,1), dtype=np.float32)
+        else:
+            label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
             img = load_image_as_yuv422_y_only_better(str(image_path))
             # TODO try batching here for speedup
@@ -188,6 +194,8 @@ def create_ds_y(camera, scale_factor):
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             mask = mask / 255.0
+            if ball_only:
+                mask = mask[:,:,0]
             label_ds[cnt:cnt+1:,:,:] = mask
 
 def create_ds_yuv():

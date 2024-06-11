@@ -16,8 +16,9 @@ import mlflow
 from tensorflow import keras
 from keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from model import bhuman_segmentation_lower_yuv, bhuman_segmentation_y_channel_v1, bhuman_segmentation_y_channel_v2
+from model import bhuman_segmentation_lower_yuv, bhuman_segmentation_y_channel_v0, bhuman_segmentation_y_channel_v1, bhuman_segmentation_y_channel_v2
 from mflow_helper import set_tracking_url
+from losses import binary_weighted_cross_entropy, binary_focal_loss, binary_weighted_dice_crossentropy_loss
 
 class DataGenerator(Sequence):
     def __init__(self, file_path, batch_size):
@@ -69,6 +70,30 @@ class DataGeneratorAugmentation(Sequence):
         images, masks = augmented[0], augmented[1]
         return images, masks
 
+def train_y_channel_v0(args):
+    with mlflow.start_run() as run:
+        run = mlflow.active_run()
+        # FIXME put validation data in the same h5 file for easier processing
+        train_generator = DataGenerator('training_ds_y.h5', batch_size=32)
+        validation_generator = DataGenerator('validation_ds_y.h5', batch_size=32)
+
+        dummy_dataset = mlflow.data.from_numpy(np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset)
+        mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
+
+        
+        model = bhuman_segmentation_y_channel_v0()
+        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+        #model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
+        #model.compile(loss=binary_weighted_dice_crossentropy_loss(), optimizer='adam', metrics=['accuracy'])
+        
+
+        callbacks = [
+            keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
+            keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
+            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto')
+        ]
+
+        model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
 
 def train_y_channel_v1(args):
     with mlflow.start_run() as run:
@@ -80,6 +105,7 @@ def train_y_channel_v1(args):
         dummy_dataset = mlflow.data.from_numpy(np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset)
         mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
 
+        # TODO implement metrics logging: https://mlflow.org/docs/latest/python_api/mlflow.tensorflow.html
         
         model = bhuman_segmentation_y_channel_v1()
         #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
@@ -92,7 +118,6 @@ def train_y_channel_v1(args):
         ]
 
         model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
-        model.save(f"semantic_segmentation_y-2.keras")
 
 def train_yuv422():
     train_generator = DataGenerator('training_ds_yuv.h5', batch_size=32)
@@ -124,5 +149,4 @@ if __name__ == "__main__":
         train_yuv422()
     if args.type == "y":
         mlflow.set_experiment(f"Segmentation 240x320 Y-Channel - {args.camera.capitalize()}")
-        
-        train_y_channel_v1(args)
+        train_y_channel_v0(args)

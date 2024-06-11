@@ -58,6 +58,7 @@ def get_labelstudio_client():
 
 
 def get_file_from_server(origin, target):
+    # FIXME move to naoth python package
     def dl_progress(count, block_size, total_size):
         print('\r', 'Progress: {0:.2%}'.format(min((count * block_size) / total_size, 1.0)), sep='', end='', flush=True)
 

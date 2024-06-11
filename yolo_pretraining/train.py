@@ -70,7 +70,6 @@ def start_train(args):
         mlflow.end_run()
 
     # TODO upload the model (maybe only if its better?)
-    # TODO we need to name the model for sure here
 
 if __name__ == "__main__":
     check_repl_access()
