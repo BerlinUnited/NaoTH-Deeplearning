@@ -8,7 +8,7 @@ from pathlib import Path
 import argparse
 from helper import get_file_from_server
 from zipfile import ZipFile
-import shutil
+
 
 def get_dataset(dataset_name):
     full_path = Path("datasets") / dataset_name
@@ -20,9 +20,6 @@ def get_dataset(dataset_name):
         print("unpack")                      
         with ZipFile(str(full_path.with_suffix(".zip")), 'r') as f:
             f.extractall("datasets")
-        
-        #shutil.unpack_archive(str(full_path.with_suffix(".zip")))
-        # TODO download it as zip and unzip it
     else:
         print("dataset already exists")
 

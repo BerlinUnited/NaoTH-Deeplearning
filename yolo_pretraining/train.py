@@ -5,7 +5,8 @@ helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
 from ultralytics import YOLO, settings
-#import mlflow
+import requests
+import mlflow
 import argparse
 import numpy as np
 import torch.nn as nn
@@ -54,6 +55,7 @@ def start_train(args):
         results = model.train(data=Path("datasets") / args.dataset, epochs=500, batch=32, patience=100, workers=10, name=run.info.run_name, verbose=True, device=0)
         
         # upload the model here
+        # FIXME this prevents using this on deepl hardware
         model_name = f"{args.model}-{args.camera}-{run.info.run_name}.pt"
         local_model_path = Path("detect") / Path(run.info.run_name) / "weights" / "best.pt"
         remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
@@ -66,7 +68,7 @@ def start_train(args):
         
 
         # End the run
-        #mlflow.end_run()
+        mlflow.end_run()
 
     # TODO upload the model (maybe only if its better?)
     # TODO we need to name the model for sure here
@@ -87,9 +89,22 @@ if __name__ == "__main__":
     # disable the mlfow integration from ultralytics because you can't override the callbacks and in the end it tries to upload the model with a single post requests without splitting (very weird)
     # this leads to an request entity to large error from the loadbalancer -> should be investigated at some point
     settings.update({'mlflow': False})
-    mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
+    settings.update({"runs_dir": Path("./mlruns").resolve()})
+    settings.update({"datasets_dir": Path("./").resolve()})
+    
+    # check if mlflow is actually reachable here
+    try:
+        # we can either get an error or an undesireable status code. Check for both
+        page = requests.get("https://mlflow.berlin-united.com/")
+        if page.status_code == 200:
+            mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
+        else:
+            print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
+        print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+
     mlflow.set_experiment(f"YOLOv8 Full Size - {args.camera.capitalize()}")
-    #mlflow.enable_system_metrics_logging()
+    mlflow.enable_system_metrics_logging()
 
     start_train(args)
 

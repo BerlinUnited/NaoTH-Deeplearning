@@ -6,3 +6,4 @@ mlflow
 mlruns
 *.pt
 datasets/
+.env

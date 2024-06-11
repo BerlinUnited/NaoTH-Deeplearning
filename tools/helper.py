@@ -12,7 +12,8 @@ from PIL import Image as PIL_Image
 label_dict = {
     "ball": 0,
     "nao": 1,
-    "penalty_mark": 2
+    "penalty_mark": 2,
+    "referee": 3
 }
 
 def get_minio_client():
