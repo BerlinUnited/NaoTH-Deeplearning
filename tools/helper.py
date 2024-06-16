@@ -84,10 +84,11 @@ def get_file_from_server(origin, target):
 
 
 def download_from_minio(client, bucket_name, filename, output_folder):
-    output = Path(output_folder) / "image" / str(bucket_name + "_" + filename)
+    output = Path(output_folder) / str(bucket_name + "_" + filename)
     if not output.exists():
         client.fget_object(bucket_name, filename, output)
     return str(output)
+
 
 def create_h5_file(file_path, key_list, shape):
     # FIXME this does not work with append yet but I think we should make it work eventually
@@ -101,6 +102,31 @@ def append_h5_file(file_path, key, array):
         np.concatenate((f[key], array), axis=0)
         
         #f[key][-array.shape[0]:] = array
+
+def load_image_as_yuv422_original(image_filename, patch_size=16):
+    """
+    this functions loads an image from a file to the correct format for the naoth library
+    """
+    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
+    # and we need to make sure loading the dummy simulator shared library happens first
+    import cv2
+
+    cv_img = cv2.imread(image_filename)
+    cv_img = cv2.resize(
+        cv_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST
+    )
+
+    # convert image for bottom to yuv422
+    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
+    yuv422 = np.ndarray(patch_size * patch_size * 2, np.uint8)
+
+    for i in range(0, patch_size * patch_size, 2):
+        yuv422[i * 2] = cv_img[i * 3]
+        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
+        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
+
+    return yuv422
 
 
 def load_image_as_yuv422(image_filename):
