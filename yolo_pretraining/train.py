@@ -27,10 +27,12 @@ def check_repl_access():
         repl_root = Path(repl_root)
         if not repl_root.exists():
             print("ERROR REPL_ROOT does not point to a folder that exists")
-            quit()
+            return False
     else:
         print("ERROR REPL_ROOT is not defined")
-        quit()
+        return False
+
+    return True
 
 
 def start_train(args):
@@ -57,9 +59,12 @@ def start_train(args):
         # FIXME this prevents using this on deepl hardware
         model_name = f"{args.model}-{args.camera}-{run.info.run_name}.pt"
         local_model_path = Path("detect") / Path(run.info.run_name) / "weights" / "best.pt"
-        remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
-        
-        shutil.copyfile(local_model_path, remote_model_path)
+
+
+
+        if check_repl_access():
+            remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
+            shutil.copyfile(local_model_path, remote_model_path)
 
         # we make a hack here and create a dummy model with the correct name and metadata pointing to the correct model (TODO: document how to find the correct model)
         dummy_model = Dummymodel()
@@ -72,7 +77,6 @@ def start_train(args):
     # TODO upload the model (maybe only if its better?)
 
 if __name__ == "__main__":
-    check_repl_access()
     # Load a model
     #model = YOLO('detect/train4/weights/best.pt')  # load a pretrained model (recommended for training)
     parser = argparse.ArgumentParser()
