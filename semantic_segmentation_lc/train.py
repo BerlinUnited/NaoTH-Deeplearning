@@ -25,7 +25,7 @@ class DataGenerator(Sequence):
         self.file_path = file_path
         self.batch_size = batch_size
         with h5py.File(file_path, 'r') as f:
-            self.num_samples = len(f['X'])  # Assuming 'data' is the dataset name
+            self.num_samples = len(f['X'])
 
     def __len__(self):
         return int(np.ceil(self.num_samples / self.batch_size))
@@ -34,8 +34,8 @@ class DataGenerator(Sequence):
         with h5py.File(self.file_path, 'r') as f:
             start_index = index * self.batch_size
             end_index = min((index + 1) * self.batch_size, self.num_samples)
-            X_batch = f['X'][start_index:end_index]  # Assuming 'data' is the dataset name
-            y_batch = f['Y'][start_index:end_index]  # Assuming 'labels' is the target dataset name
+            X_batch = f['X'][start_index:end_index] 
+            y_batch = f['Y'][start_index:end_index]
         return X_batch, y_batch
 
 
