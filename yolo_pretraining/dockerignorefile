@@ -1,0 +1,6 @@
+__pycache__/
+datasets/
+mlruns/
+venv/
+.env
+*.pt
