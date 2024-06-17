@@ -90,7 +90,8 @@ def train_y_channel_v0(args):
         callbacks = [
             keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
             keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
-            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto')
+            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto'),
+            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.h5", monitor='loss', verbose=1, save_best_only=True, mode='auto')  # need to use this with compilednn
         ]
 
         model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
@@ -114,7 +115,8 @@ def train_y_channel_v1(args):
         callbacks = [
             keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
             keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
-            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto')
+            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto'),
+            keras.callbacks.ModelCheckpoint(filepath=f"models/{run.info.run_name}/best.h5", monitor='loss', verbose=1, save_best_only=True, mode='auto')  # need to use this with compilednn
         ]
 
         model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
