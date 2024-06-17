@@ -73,7 +73,7 @@ def on_train_end(trainer):
 def set_tracking_url():
     try:
         # we can either get an error or an undesireable status code. Check for both
-        page = requests.get("https://mlflow.berlin-united.com/")
+        page = requests.get("https://mlflow.berlin-united.com/", timeout=10)
         if page.status_code == 200:
             mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
         else:
