@@ -1,0 +1,5 @@
+datasets_old/
+datasets_segmentation/
+downloads/
+*.keras
+*.h5
