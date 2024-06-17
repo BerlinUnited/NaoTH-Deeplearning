@@ -19,6 +19,7 @@ def X_y_from_h5(file_path):
 
 
 def get_or_load_data():
+    # TODO use a function from tools/helper.py
     """
     Try to load the data from the local file. If the file does not exist,
     download it from the remote URL.
