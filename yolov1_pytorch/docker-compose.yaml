@@ -1,0 +1,23 @@
+# The `--privileged`, `--gpus all` and `--ipc host` flags together make sure that the docker container can access the GPU and that the use of the CPU is not limited by the OS.
+# The `-v ${PWD}:/usr/src/datasets -v ${PWD}:/usr/src/ultralytics/runs/` flags mount the current path in which the docker command was run is mounted under `/usr/src/datasets` 
+# and `/usr/src/ultralytics/runs/`. The makes sure that the output of the training is saved in the current working directory on the host and that the current working directory 
+# on the host is the same as in the docker container. The ultralytics image expects training to be started in `/usr/src/datasets` and that the datasets are in that directory.
+
+# /mnt/repl/:/mnt/repl/ mounts the sshfs folder to the same path inside the container. If you have mounted repl in a different folder adjust this.
+# you also need to set the REPL_ROOT var in the env file to that path otherwise training wont work
+
+services:
+  yolo:
+    image: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image:latest
+    command: /bin/bash
+    stdin_open: true  # equivalent to -i (interactive)
+    tty: true  # equivalent to -t (pseudo-TTY)
+    privileged: true # equivalent to --privileged
+    volumes:
+      - .:/test  # equivalent to -v ${PWD}:/usr/src/datasets
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]  # equivalent to --gpus all
+    ipc: host  # equivalent to --ipc host

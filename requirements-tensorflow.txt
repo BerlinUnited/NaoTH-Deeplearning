@@ -1,0 +1,6 @@
+-r requirements-base.txt
+tensorflow==2.15.1
+scipy
+mlflow==2.13.2
+psutil
+pynvml==11.5.0

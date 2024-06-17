@@ -5,6 +5,7 @@ helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
 from ultralytics import YOLO, settings
+
 import mlflow
 import argparse
 import numpy as np
@@ -13,8 +14,7 @@ from os import environ
 import shutil
 from zipfile import ZipFile
 from pathlib import Path
-from mflow_callbacks import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end
-from helper import get_file_from_server
+from mflow_helper import on_pretrain_routine_end, on_train_epoch_end, on_fit_epoch_end, on_train_end, set_tracking_url
 
 class Dummymodel(nn.Module):
     def __init__(self):
@@ -27,10 +27,12 @@ def check_repl_access():
         repl_root = Path(repl_root)
         if not repl_root.exists():
             print("ERROR REPL_ROOT does not point to a folder that exists")
-            quit()
+            return False
     else:
         print("ERROR REPL_ROOT is not defined")
-        quit()
+        return False
+
+    return True
 
 
 def start_train(args):
@@ -54,11 +56,15 @@ def start_train(args):
         results = model.train(data=Path("datasets") / args.dataset, epochs=500, batch=32, patience=100, workers=10, name=run.info.run_name, verbose=True, device=0)
         
         # upload the model here
+        # FIXME this prevents using this on deepl hardware
         model_name = f"{args.model}-{args.camera}-{run.info.run_name}.pt"
         local_model_path = Path("detect") / Path(run.info.run_name) / "weights" / "best.pt"
-        remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
-        
-        shutil.copyfile(local_model_path, remote_model_path)
+
+
+
+        if check_repl_access():
+            remote_model_path = Path(environ.get("REPL_ROOT")) / "models" / model_name
+            shutil.copyfile(local_model_path, remote_model_path)
 
         # we make a hack here and create a dummy model with the correct name and metadata pointing to the correct model (TODO: document how to find the correct model)
         dummy_model = Dummymodel()
@@ -66,13 +72,11 @@ def start_train(args):
         
 
         # End the run
-        #mlflow.end_run()
+        mlflow.end_run()
 
     # TODO upload the model (maybe only if its better?)
-    # TODO we need to name the model for sure here
 
 if __name__ == "__main__":
-    check_repl_access()
     # Load a model
     #model = YOLO('detect/train4/weights/best.pt')  # load a pretrained model (recommended for training)
     parser = argparse.ArgumentParser()
@@ -87,7 +91,12 @@ if __name__ == "__main__":
     # disable the mlfow integration from ultralytics because you can't override the callbacks and in the end it tries to upload the model with a single post requests without splitting (very weird)
     # this leads to an request entity to large error from the loadbalancer -> should be investigated at some point
     settings.update({'mlflow': False})
-    mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
+    settings.update({"runs_dir": Path("./mlruns").resolve()})
+    settings.update({"datasets_dir": Path("./").resolve()})
+    
+    # set up remote tracking if the mlflow tracking server is available
+    set_tracking_url()
+
     mlflow.set_experiment(f"YOLOv8 Full Size - {args.camera.capitalize()}")
     mlflow.enable_system_metrics_logging()
 

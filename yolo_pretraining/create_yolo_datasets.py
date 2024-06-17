@@ -6,61 +6,36 @@
     this repo then uses the generated yaml files to train (how should the yaml files go to the train code?)
 
     # TODO remove output folder if exists
+    # TODO use helper here
 """
+import sys
+import os
+
+helper_path = os.path.join(os.path.dirname(__file__), '../tools')
+sys.path.append(helper_path)
+
 import zipfile
-from label_studio_sdk import Client
-from minio import Minio
 from pathlib import Path
 import yaml
-from os import environ
-import psycopg2
 import shutil
 import ultralytics
 import argparse
 from tqdm import tqdm
 import datetime
 
-# make this auto detect if its running inside the cluster or not
-if "KUBERNETES_SERVICE_HOST" in environ:
-    postgres_host = "postgres-postgresql.postgres.svc.cluster.local"
-    postgres_port = 5432
-else:
-    postgres_host = "pg.berlin-united.com"
-    postgres_port = 4000
+from helper import get_postgres_cursor, get_labelstudio_client, get_minio_client, label_dict
 
-params = {
-    "host": postgres_host,
-    "port": postgres_port,
-    "dbname": "logs",
-    "user": "naoth",
-    "password": environ.get('DB_PASS')
-}
-conn = psycopg2.connect(**params)
-cur = conn.cursor()
+pg_cur = get_postgres_cursor()
+ls = get_labelstudio_client()
+mclient = get_minio_client()
 
-# Define the URL where Label Studio is accessible and the API key for your user account
-LABEL_STUDIO_URL = 'https://ls.berlin-united.com/'
-API_KEY = '6cb437fb6daf7deb1694670a6f00120112535687'
-
-ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)
-ls.check_connection()
-
-mclient = Minio("minio.berlin-united.com",
-    access_key="naoth",
-    secret_key="HAkPYLnAvydQA",
-)
-
-label_dict = {
-    "ball": 0,
-    "nao": 1,
-    "penalty_mark": 2
-}
 
 def download_from_minio(project, filename, output_folder):
     bucket_name = project.title
     output = Path(output_folder) / filename
     if not output.exists():
         mclient.fget_object(bucket_name, filename, output)
+
 
 def get_annotations(task_output, filename, output_folder):
     output_folder.mkdir(parents=True, exist_ok=True)
@@ -72,6 +47,9 @@ def get_annotations(task_output, filename, output_folder):
             results = anno["result"]
             # print(anno)
             for result in results:
+                # ignore relations here
+                if result["type"] != "rectanglelabels":
+                    continue
                 try:
                     # x,y,width,height are all percentages within [0,100]
                     x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
@@ -108,26 +86,28 @@ def get_annotations(task_output, filename, output_folder):
                 # FIXME -> make me more general
                 #test_visualize(x_px,y_px,width_px,height_px)
 
+
 def get_projects_bottom():
     # 175 is partially broken TODO: how to account for that?
-    project_id_list = [183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 
-                       168, 167, 166, 165, 164, 159, 160, 161, 162, 163, 157, 156, 155, 154, 149,
-                       150, 151, 152, 153, 148, 147, 146]
+    select_statement1 = f"""
+    SELECT ls_project_bottom FROM robot_logs WHERE bottom_validated = true;
+    """
+    pg_cur.execute(select_statement1)
+    rtn_val = pg_cur.fetchall()
+
     projects= []
-    for id in project_id_list:
+    for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
     return projects
+
 
 def get_projects_top():
     select_statement1 = f"""
     SELECT ls_project_top FROM robot_logs WHERE top_validated = true;
     """
-    cur.execute(select_statement1)
-    rtn_val = cur.fetchall()
+    pg_cur.execute(select_statement1)
+    rtn_val = pg_cur.fetchall()
 
-    #project_id_list = [108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 121, 122, 123,
-    #                   124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138,
-    #                   139, 140, 144, 145, 187, 188]
     projects= []
     for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
@@ -168,7 +148,7 @@ def export_dataset(dataset_name="", camera=""):
     # create yaml file
     # TODO can we do this automatically? -> like also with excluding segmentations and so on
     data = dict(
-        path = f'../datasets/{dataset_name}',
+        path = f'{dataset_name}',
         train = 'autosplit_train.txt', 
         val = 'autosplit_val.txt',
         names = {
@@ -181,6 +161,7 @@ def export_dataset(dataset_name="", camera=""):
     with open(f'{dataset_name}.yaml', 'w') as outfile:
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
 
+
 def zip_and_upload_datasets(dataset_name):
     filenames = [f"{dataset_name}.yaml"]
     directory = Path(dataset_name)
@@ -192,14 +173,16 @@ def zip_and_upload_datasets(dataset_name):
         for file_path in directory.rglob("*"):
             archive.write(file_path, arcname=file_path.relative_to(directory.parent))
 
-    remote_dataset_path = Path(environ.get("REPL_ROOT")) / "datasets"
+    remote_dataset_path = Path(os.environ.get("REPL_ROOT")) / "datasets"
 
     # FIXME: will overwrite - not good for debugging
     zip_file_name = Path(dataset_name.name).with_suffix(".zip")
     output_file_path = remote_dataset_path / zip_file_name
     shutil.copyfile(f"{dataset_name}.zip", output_file_path)
 
+
 if __name__ == "__main__":
+    # FIXME add a check for access to naoth.datasets in the beginning - see train.py
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
     args = parser.parse_args()
