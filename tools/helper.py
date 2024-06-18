@@ -130,7 +130,7 @@ def load_image_as_yuv422_original(image_filename, patch_size=16):
     return yuv422
 
 
-def load_image_as_yuv422(image_filename):
+def load_image_as_yuv422(image_filename, rescale=False):
     """
     this functions loads an image from a file to the correct format for the naoth library
     # FIXME: i don't trust this function
@@ -138,15 +138,16 @@ def load_image_as_yuv422(image_filename):
     # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
     # and we need to make sure loading the dummy simulator shared library happens first
     import cv2
-    #y = 240
-    #x = 320
+
+    # y = 240
+    # x = 320
     cv_img = cv2.imread(image_filename)
     x = cv_img.shape[1]
     y = cv_img.shape[0]
-    #cv_img = cv2.resize(
+    # cv_img = cv2.resize(
     #    cv_img, (240,320), interpolation=cv2.INTER_NEAREST
-    #)
-    #print(cv_img.shape, x,y)
+    # )
+    # print(cv_img.shape, x,y)
     # convert image for bottom to yuv422
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
     yuv422 = np.ndarray(x * y * 2, np.uint8)
@@ -158,10 +159,15 @@ def load_image_as_yuv422(image_filename):
         yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
 
     # TODO is this the correct order?
-    image_yuv = yuv422.reshape(y,x, 2)
+    image_yuv = yuv422.reshape(y, x, 2)
+
+    if rescale:
+        image_yuv = image_yuv / 255.0
+
     return image_yuv
 
-def load_image_as_yuv422_y_only(image_filename):
+
+def load_image_as_yuv422_y_only(image_filename, rescale=False):
     """
     this functions loads an image from a file to the correct format for the naoth library
     # FIXME: i don't trust this function
@@ -169,6 +175,7 @@ def load_image_as_yuv422_y_only(image_filename):
     # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
     # and we need to make sure loading the dummy simulator shared library happens first
     import cv2
+
     cv_img = cv2.imread(image_filename)
     x = cv_img.shape[1]
     y = cv_img.shape[0]
@@ -185,30 +192,67 @@ def load_image_as_yuv422_y_only(image_filename):
 
     # TODO is this the correct order?
     image_yuv = yuv422.reshape(y, x, 2)
-    image_y =  image_yuv[..., 0]
-    image_y = image_y.reshape(y,x,1)
+    image_y = image_yuv[..., 0]
+    image_y = image_y.reshape(y, x, 1)
     print(image_y.shape)
-    image_y = image_y[::2, ::2]  # half the resolution because semantic segmentation requires it
+    image_y = image_y[
+        ::2, ::2
+    ]  # half the resolution because semantic segmentation requires it
+
+    if rescale:
+        image_y = image_y / 255.0
+
     return image_y
 
-def load_image_as_yuv422_y_only_better(image_filename):
+
+def load_image_as_yuv422_better(image_filename, rescale=False):
     im = PIL_Image.open(image_filename)
-    ycbcr = im.convert('YCbCr')
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, 'u1', ycbcr.tobytes())
+    ycbcr = im.convert("YCbCr")
+    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
+
+    if rescale:
+        reversed_yuv888 = reversed_yuv888 / 255.0
+
+    return reversed_yuv888.reshape(480, 640, 3)
+
+
+def load_image_as_yuv422_y_only_better(image_filename, rescale=False):
+    im = PIL_Image.open(image_filename)
+    ycbcr = im.convert("YCbCr")
+    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
     full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480,640,1)
+    full_image_y = full_image_y.reshape(480, 640, 1)
     half_image_y = full_image_y[::2, ::2]
-    half_image_y = half_image_y / 255.0
+
+    if rescale:
+        half_image_y = half_image_y / 255.0
+
     return half_image_y
 
-def load_image_as_yuv422_y_only_better_generic(image_filename):
+
+def load_image_as_yuv422_better_generic(image_filename, rescale=False):
     # FIXME make subsampling configurable
     im = PIL_Image.open(image_filename)
-    ycbcr = im.convert('YCbCr')
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, 'u1', ycbcr.tobytes())
+    ycbcr = im.convert("YCbCr")
+    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
+
+    if rescale:
+        reversed_yuv888 = reversed_yuv888 / 255.0
+
+    return reversed_yuv888.reshape(480, 640, 3)
+
+
+def load_image_as_yuv422_y_only_better_generic(image_filename, rescale=False):
+    # FIXME make subsampling configurable
+    im = PIL_Image.open(image_filename)
+    ycbcr = im.convert("YCbCr")
+    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
     full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480,640,1)
-    full_image_y = full_image_y / 255.0
-    #half_image_y = full_image_y[::2, ::2]
-    #half_image_y = half_image_y / 255.0
+    full_image_y = full_image_y.reshape(480, 640, 1)
+
+    if rescale:
+        full_image_y = full_image_y / 255.0
+
+    # half_image_y = full_image_y[::2, ::2]
+    # half_image_y = half_image_y / 255.0
     return full_image_y

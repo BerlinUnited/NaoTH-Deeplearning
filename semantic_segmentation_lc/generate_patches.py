@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 mclient.fget_object(bucketname, image_file_name, str(output_file))
 
             image_orig = cv2.imread(str(output_file))
-            image = load_image_as_yuv422_y_only_better(str(output_file))
+            image = load_image_as_yuv422_y_only_better(str(output_file), rescale=True)
             image_input = np.expand_dims(image, axis=0)
             result = new_model.predict(image_input)
             result = result[0]
