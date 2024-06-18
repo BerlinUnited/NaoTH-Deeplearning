@@ -15,11 +15,12 @@ import tempfile
 import numpy as np
 import cv2
 from pathlib import Path
+from naoth.log import BoundingBox, Point2D
 
 helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
-from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better, BoundingBox, Point2D
+from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better
 
 
 def download_datasets(camera, grid_size):
