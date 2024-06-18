@@ -16,15 +16,13 @@ from pathlib import Path
 import cv2
 import h5py
 import numpy as np
-from naoth.log import BoundingBox, Point2D
+from naoth.log import BoundingBox
 from tqdm import tqdm
 
 helper_path = os.path.join(os.path.dirname(__file__), "../tools")
 sys.path.append(helper_path)
 
 from helper import (
-    BoundingBox,
-    Point2D,
     download_from_minio,
     get_labelstudio_client,
     get_minio_client,
