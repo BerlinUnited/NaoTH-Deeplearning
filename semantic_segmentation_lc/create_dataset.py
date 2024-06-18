@@ -166,6 +166,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
 
     trainings_list = images[0:-100]
     validation_list = images[-100:]
+    # TODO add image dimensions and grid dimensions in dataset name
     with h5py.File("bottom_y_only_training.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), new_img_height, new_img_width,1), dtype=np.float32)
         if ball_only:
