@@ -19,10 +19,10 @@ import numpy as np
 from naoth.log import BoundingBox
 from tqdm import tqdm
 
-helper_path = os.path.join(os.path.dirname(__file__), "../tools")
-sys.path.append(helper_path)
+tools_path = os.path.join(os.path.dirname(__file__), "../tools")
+sys.path.append(tools_path)
 
-from helper import (
+from tools import (
     download_from_minio,
     get_labelstudio_client,
     get_minio_client,
