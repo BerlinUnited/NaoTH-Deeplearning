@@ -46,7 +46,8 @@ def download_datasets(camera, grid_size):
         # TODO think about structure inside h5 file
         # TODO first draft I can make mask from bounding boxes like this: https://stackoverflow.com/questions/64195636/converting-bounding-box-regions-into-masks-and-saving-them-as-png-files
 
-        download_folder = Path("./datasets") / camera
+        download_folder = Path("./datasets") / camera 
+        download_folder_images = download_folder / "images"
         Path(download_folder).mkdir(exist_ok=True, parents=True)
         for task_output in tasks:
             # label part 1
@@ -83,7 +84,7 @@ def download_datasets(camera, grid_size):
             if len(bbox_list_ball) > 0 or len(bbox_list_penalty) > 0 or len(bbox_list_robot) > 0:
                 # image part
                 image_file_name = task_output["storage_filename"]
-                image_path = download_from_minio(client=mclient, bucket_name=bucket_name, filename=image_file_name, output_folder=download_folder)
+                image_path = download_from_minio(client=mclient, bucket_name=bucket_name, filename=image_file_name, output_folder=download_folder_images)
 
                 # label part 2
                 img = cv2.imread(image_path)
@@ -165,7 +166,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
 
     trainings_list = images[0:-100]
     validation_list = images[-100:]
-    with h5py.File("training_ds_y.h5",'w') as h5f:
+    with h5py.File("bottom_y_only_training.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(trainings_list), new_img_height, new_img_width,1), dtype=np.float32)
         if ball_only:
             label_ds = h5f.create_dataset('Y',shape=(len(trainings_list), 15,20,1), dtype=np.float32)
@@ -181,7 +182,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
             mask = mask / 255.0
             label_ds[cnt:cnt+1:,:,:] = mask
 
-    with h5py.File("validation_ds_y.h5",'w') as h5f:
+    with h5py.File("bottom_y_only_validation.h5",'w') as h5f:
         img_ds = h5f.create_dataset('X',shape=(len(validation_list), new_img_height,new_img_width,1), dtype=np.float32)
         if ball_only:
             label_ds = h5f.create_dataset('Y',shape=(len(validation_list), 15,20,1), dtype=np.float32)
