@@ -43,6 +43,7 @@ def get_postgres_cursor():
         "dbname": "logs",
         "user": "naoth",
         "password": environ.get("DB_PASS"),
+        "connect_timeout":10
     }
 
     conn = psycopg2.connect(**params)
