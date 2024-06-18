@@ -13,7 +13,7 @@ from label_studio_sdk import Client
 from minio import Minio
 from PIL import Image as PIL_Image
 from sklearn.model_selection import train_test_split
-from image_loader import load_image_as_yuv888, load_image_as_yuv888_y_only
+from image_loader import load_image_as_yuv888, load_image_as_yuv888_y_only, get_meta_from_png, get_multiclass_from_meta
 label_dict = {"ball": 0, "nao": 1, "penalty_mark": 2, "referee": 3}
 
 
