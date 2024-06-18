@@ -546,20 +546,7 @@ def get_classification_data_naoth_top(
     y = np.array([get_multiclass_from_meta(m) for m in meta])
 
     if filter_ambiguous_balls:
-        # only keep ball patches that do not contain robot class as well
-        X_new = []
-        y_new = []
-
-        for img, target in zip(X, y):
-            # target is [ball, penalty, robot]
-            if target[0] == 1 and target[2] == 1:
-                continue
-            else:
-                X_new.append(img)
-                y_new.append(target)
-
-        X = np.array(X_new)
-        y = np.array(y_new)
+        X, y = filter_ambiguous_ball_patches(X, y)
 
     # only use ball / no ball labels
     y = np.array([1 if target[0] == 1 else 0 for target in y])
@@ -584,22 +571,28 @@ def get_classification_data_naoth_bottom(
     y = np.array([get_multiclass_from_meta(m) for m in meta])
 
     if filter_ambiguous_balls:
-        # only keep ball patches that do not contain robot class as well
-        X_new = []
-        y_new = []
-
-        for img, target in zip(X, y):
-            # target is [ball, penalty, robot]
-            if target[0] == 1 and target[2] == 1:
-                continue
-            else:
-                X_new.append(img)
-                y_new.append(target)
-
-        X = np.array(X_new)
-        y = np.array(y_new)
+        X, y = filter_ambiguous_ball_patches(X, y)
 
     y = np.array([1 if target[0] == 1 else 0 for target in y])
+
+    return X, y
+
+
+def filter_ambiguous_ball_patches(X, y):
+    # only keep ball patches that do not contain robot class as well
+    X_new = []
+    y_new = []
+
+    for img, target in zip(X, y):
+        # target is [ball, penalty, robot]
+        if target[0] == 1 and target[2] == 1:
+            continue
+        else:
+            X_new.append(img)
+            y_new.append(target)
+
+    X = np.array(X_new)
+    y = np.array(y_new)
 
     return X, y
 
