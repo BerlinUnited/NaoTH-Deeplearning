@@ -4,4 +4,7 @@ venv_pytorch/
 
 __pycache__/
 
+# ignore local data
+data/
 patch_detection/data/
+patch_detection/models/
