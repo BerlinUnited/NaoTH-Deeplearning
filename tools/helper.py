@@ -1,29 +1,28 @@
-from minio import Minio
-from os import environ
-import psycopg2
-from pathlib import Path
-from label_studio_sdk import Client
-from urllib.request import urlretrieve
-from urllib.error import HTTPError, URLError
-import numpy as np
-import h5py
 from dataclasses import dataclass
+from os import environ
+from pathlib import Path
 from typing import List, Optional, Tuple
+from urllib.error import HTTPError, URLError
+from urllib.request import urlretrieve
+
+import h5py
+import numpy as np
+import psycopg2
+from label_studio_sdk import Client
+from minio import Minio
 from PIL import Image as PIL_Image
 
-label_dict = {
-    "ball": 0,
-    "nao": 1,
-    "penalty_mark": 2,
-    "referee": 3
-}
+label_dict = {"ball": 0, "nao": 1, "penalty_mark": 2, "referee": 3}
+
 
 def get_minio_client():
-    mclient = Minio("minio.berlin-united.com",
-    access_key="naoth",
-    secret_key="HAkPYLnAvydQA",
+    mclient = Minio(
+        "minio.berlin-united.com",
+        access_key="naoth",
+        secret_key="HAkPYLnAvydQA",
     )
     return mclient
+
 
 def get_postgres_cursor():
     """
@@ -43,15 +42,16 @@ def get_postgres_cursor():
         "dbname": "logs",
         "user": "naoth",
         "password": environ.get("DB_PASS"),
-        "connect_timeout":10
+        "connect_timeout": 10,
     }
 
     conn = psycopg2.connect(**params)
     return conn.cursor()
 
+
 def get_labelstudio_client():
-    LABEL_STUDIO_URL = 'https://ls.berlin-united.com/'
-    API_KEY = '6cb437fb6daf7deb1694670a6f00120112535687'
+    LABEL_STUDIO_URL = "https://ls.berlin-united.com/"
+    API_KEY = "6cb437fb6daf7deb1694670a6f00120112535687"
 
     ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)
     ls.check_connection()
@@ -61,7 +61,13 @@ def get_labelstudio_client():
 def get_file_from_server(origin, target):
     # FIXME move to naoth python package
     def dl_progress(count, block_size, total_size):
-        print('\r', 'Progress: {0:.2%}'.format(min((count * block_size) / total_size, 1.0)), sep='', end='', flush=True)
+        print(
+            "\r",
+            "Progress: {0:.2%}".format(min((count * block_size) / total_size, 1.0)),
+            sep="",
+            end="",
+            flush=True,
+        )
 
     if not Path(target).exists():
         target_folder = Path(target).parent
@@ -69,11 +75,11 @@ def get_file_from_server(origin, target):
     else:
         return
 
-    error_msg = 'URL fetch failure on {} : {} -- {}'
+    error_msg = "URL fetch failure on {} : {} -- {}"
     try:
         try:
             urlretrieve(origin, target, dl_progress)
-            print('\nFinished')
+            print("\nFinished")
         except HTTPError as e:
             raise Exception(error_msg.format(origin, e.code, e.reason))
         except URLError as e:
@@ -95,14 +101,22 @@ def create_h5_file(file_path, key_list, shape):
     # FIXME this does not work with append yet but I think we should make it work eventually
     with h5py.File(file_path, "w") as f:
         for key in key_list:
-            f.create_dataset(key, data=np.empty([1, shape[0],shape[1],shape[2]]), compression="gzip", chunks=True, maxshape=(None, shape[0],shape[1],shape[2]))
-    
+            f.create_dataset(
+                key,
+                data=np.empty([1, shape[0], shape[1], shape[2]]),
+                compression="gzip",
+                chunks=True,
+                maxshape=(None, shape[0], shape[1], shape[2]),
+            )
+
+
 def append_h5_file(file_path, key, array):
     with h5py.File(file_path, "a") as f:
-        f[key].resize((f[key].shape[0] + array.shape[0]), axis = 0)
+        f[key].resize((f[key].shape[0] + array.shape[0]), axis=0)
         np.concatenate((f[key], array), axis=0)
-        
-        #f[key][-array.shape[0]:] = array
+
+        # f[key][-array.shape[0]:] = array
+
 
 def load_image_as_yuv422_original(image_filename, patch_size=16):
     """
@@ -167,7 +181,7 @@ def load_image_as_yuv422(image_filename, rescale=False):
     return image_yuv
 
 
-def load_image_as_yuv422_y_only(image_filename, rescale=False):
+def load_image_as_yuv422_y_only(image_filename, rescale=False, subsample=False):
     """
     this functions loads an image from a file to the correct format for the naoth library
     # FIXME: i don't trust this function
@@ -195,9 +209,10 @@ def load_image_as_yuv422_y_only(image_filename, rescale=False):
     image_y = image_yuv[..., 0]
     image_y = image_y.reshape(y, x, 1)
     print(image_y.shape)
-    image_y = image_y[
-        ::2, ::2
-    ]  # half the resolution because semantic segmentation requires it
+
+    if subsample:
+        # half the resolution because semantic segmentation requires it
+        image_y = image_y[::2, ::2]
 
     if rescale:
         image_y = image_y / 255.0
@@ -205,54 +220,48 @@ def load_image_as_yuv422_y_only(image_filename, rescale=False):
     return image_y
 
 
-def load_image_as_yuv422_better(image_filename, rescale=False):
+def load_image_as_yuv888(
+    image_filename,
+    rescale=False,
+    subsample=False,
+    resize_to=None,
+    resize_mode=PIL_Image.Resampling.NEAREST,
+) -> np.ndarray:
+    assert not (subsample and resize_to), "Cannot subsample and resize at the same time"
+
     im = PIL_Image.open(image_filename)
     ycbcr = im.convert("YCbCr")
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
+
+    # either subsample or resize
+    if subsample:
+        yuv888 = np.ndarray(ycbcr.size[0] * ycbcr.size[1] * 3, "u1", ycbcr.tobytes())
+        yuv888 = yuv888[::2, ::2]
+        yuv888 = yuv888.reshape(ycbcr.size[0] // 2, ycbcr.size[1] // 2, 3)
+    elif resize_to is not None:
+        ycbcr = ycbcr.resize(resize_to, resample=resize_mode)
+        yuv888 = np.ndarray(ycbcr.size[0] * ycbcr.size[1] * 3, "u1", ycbcr.tobytes())
+        yuv888 = yuv888.reshape(ycbcr.size[0], ycbcr.size[1], 3)
 
     if rescale:
-        reversed_yuv888 = reversed_yuv888 / 255.0
+        yuv888 = yuv888 / 255.0
 
-    return reversed_yuv888.reshape(480, 640, 3)
-
-
-def load_image_as_yuv422_y_only_better(image_filename, rescale=False):
-    im = PIL_Image.open(image_filename)
-    ycbcr = im.convert("YCbCr")
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
-    full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480, 640, 1)
-    half_image_y = full_image_y[::2, ::2]
-
-    if rescale:
-        half_image_y = half_image_y / 255.0
-
-    return half_image_y
+    return yuv888
 
 
-def load_image_as_yuv422_better_generic(image_filename, rescale=False):
-    # FIXME make subsampling configurable
-    im = PIL_Image.open(image_filename)
-    ycbcr = im.convert("YCbCr")
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
+def load_image_as_yuv888_y_only(
+    image_filename,
+    rescale=False,
+    subsample=False,
+    resize_to=None,
+    resize_mode=PIL_Image.Resampling.NEAREST,
+):
+    yuv888 = load_image_as_yuv888(
+        image_filename,
+        rescale=rescale,
+        subsample=subsample,
+        resize_to=resize_to,
+        resize_mode=resize_mode,
+    )
+    yuv888_y_only = yuv888[..., 0]
 
-    if rescale:
-        reversed_yuv888 = reversed_yuv888 / 255.0
-
-    return reversed_yuv888.reshape(480, 640, 3)
-
-
-def load_image_as_yuv422_y_only_better_generic(image_filename, rescale=False):
-    # FIXME make subsampling configurable
-    im = PIL_Image.open(image_filename)
-    ycbcr = im.convert("YCbCr")
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, "u1", ycbcr.tobytes())
-    full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480, 640, 1)
-
-    if rescale:
-        full_image_y = full_image_y / 255.0
-
-    # half_image_y = full_image_y[::2, ::2]
-    # half_image_y = half_image_y / 255.0
-    return full_image_y
+    return yuv888_y_only

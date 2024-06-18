@@ -18,7 +18,7 @@ import cv2
 helper_path = os.path.join(os.path.dirname(__file__), '../tools')
 sys.path.append(helper_path)
 
-from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, load_image_as_yuv422_y_only_better
+from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, load_image_as_yuv888_y_only
 
 def get_buckets_with_bottom_images():
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 mclient.fget_object(bucketname, image_file_name, str(output_file))
 
             image_orig = cv2.imread(str(output_file))
-            image = load_image_as_yuv422_y_only_better(str(output_file), rescale=True)
+            image = load_image_as_yuv888_y_only(str(output_file), rescale=True, subsampling=True)
             image_input = np.expand_dims(image, axis=0)
             result = new_model.predict(image_input)
             result = result[0]
