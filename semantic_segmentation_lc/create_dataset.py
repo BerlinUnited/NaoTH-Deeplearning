@@ -252,7 +252,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
                 "Y", shape=(len(validation_list), 15, 20, 3), dtype=np.float32
             )
         for cnt, image_path in enumerate(tqdm(validation_list)):
-            img = load_image_as_yuv488_y_only(
+            img = load_image_as_yuv888_y_only(
                 str(image_path), rescale=True, subsample=True
             )
             # TODO try batching here for speedup
