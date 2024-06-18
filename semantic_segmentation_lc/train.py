@@ -16,7 +16,7 @@ import mlflow
 from tensorflow import keras
 from keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from model import bhuman_segmentation_lower_yuv, bhuman_segmentation_y_channel_v0, bhuman_segmentation_y_channel_v1, bhuman_segmentation_y_channel_v2
+from model import bhuman_segmentation_lower_yuv_original, bhuman_segmentation_y_channel_240x320x1, bhuman_segmentation_y_channel_240x320x1_sigmoid, bhuman_segmentation_y_channel_120x160x1_sigmoid
 from mflow_helper import set_tracking_url
 from losses import binary_weighted_cross_entropy, binary_focal_loss, binary_weighted_dice_crossentropy_loss
 
@@ -70,7 +70,7 @@ class DataGeneratorAugmentation(Sequence):
         images, masks = augmented[0], augmented[1]
         return images, masks
 
-def train_y_channel_v0(args):
+def bhuman_segmentation_y_channel_240x320x1(args):
     with mlflow.start_run() as run:
         run = mlflow.active_run()
         # FIXME put validation data in the same h5 file for easier processing
@@ -81,7 +81,7 @@ def train_y_channel_v0(args):
         mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
 
         
-        model = bhuman_segmentation_y_channel_v0()
+        model = bhuman_segmentation_y_channel_240x320x1()
         model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
         #model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
         #model.compile(loss=binary_weighted_dice_crossentropy_loss(), optimizer='adam', metrics=['accuracy'])
@@ -108,7 +108,7 @@ def train_y_channel_v1(args):
 
         # TODO implement metrics logging: https://mlflow.org/docs/latest/python_api/mlflow.tensorflow.html
         
-        model = bhuman_segmentation_y_channel_v1()
+        model = bhuman_segmentation_y_channel_240x320x1_sigmoid()
         #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
         model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
 
@@ -125,7 +125,7 @@ def train_yuv422():
     train_generator = DataGenerator('training_ds_yuv.h5', batch_size=32)
     validation_generator = DataGenerator('validation_ds_yuv.h5', batch_size=32)
 
-    model = bhuman_segmentation_lower_yuv()
+    model = bhuman_segmentation_lower_yuv_original()
     #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
     model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
 

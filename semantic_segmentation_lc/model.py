@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def bhuman_segmentation_lower_yuv():
+def bhuman_segmentation_lower_yuv_original():
     inputs = tf.keras.Input(shape=(240, 320, 2))
 
     x = tf.keras.layers.Convolution2D(16, (7, 7), strides=(2, 2), padding="same", name="Conv2D_1")(inputs)
@@ -64,7 +64,7 @@ def bhuman_segmentation_lower_yuv():
     classifier = tf.keras.Model(inputs=inputs, outputs=x7, name="bhuman-bop")
     return classifier
 
-def bhuman_segmentation_y_channel_v0():
+def bhuman_segmentation_y_channel_240x320x1():
     inputs = tf.keras.Input(shape=(240, 320, 1))
 
     x = tf.keras.layers.Convolution2D(16, (7, 7), strides=(2, 2), padding="same", name="Conv2D_1")(inputs)
@@ -122,13 +122,12 @@ def bhuman_segmentation_y_channel_v0():
     x6r = tf.keras.layers.ReLU(name="activation_13")(x6r)
 
     x7 = tf.keras.layers.Add()([x6, x6r])
-    #x7 = tf.keras.layers.Convolution2D(4, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4")(x7)
     x7 = tf.keras.layers.Convolution2D(3, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4")(x7)
 
     classifier = tf.keras.Model(inputs=inputs, outputs=x7, name="bhuman-bop")
     return classifier
 
-def bhuman_segmentation_y_channel_v1():
+def bhuman_segmentation_y_channel_240x320x1_sigmoid():
     inputs = tf.keras.Input(shape=(240, 320, 1))
 
     x = tf.keras.layers.Convolution2D(16, (7, 7), strides=(2, 2), padding="same", name="Conv2D_1")(inputs)
@@ -186,13 +185,12 @@ def bhuman_segmentation_y_channel_v1():
     x6r = tf.keras.layers.ReLU(name="activation_13")(x6r)
 
     x7 = tf.keras.layers.Add()([x6, x6r])
-    #x7 = tf.keras.layers.Convolution2D(4, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4")(x7)
     x7 = tf.keras.layers.Convolution2D(3, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4", activation='sigmoid')(x7)
 
     classifier = tf.keras.Model(inputs=inputs, outputs=x7, name="bhuman-bop")
     return classifier
 
-def bhuman_segmentation_y_channel_v2():
+def bhuman_segmentation_y_channel_120x160x1_sigmoid():
     inputs = tf.keras.Input(shape=(120, 160, 1))
 
     x = tf.keras.layers.Convolution2D(16, (5, 5), padding="same", name="Conv2D_1")(inputs)
@@ -256,7 +254,7 @@ def bhuman_segmentation_y_channel_v2():
     return classifier
 
 
-def bhuman_segmentation_y_channel_v3():
+def bhuman_segmentation_y_channel_60x80x1_sigmoid_modified_v1():
     inputs = tf.keras.Input(shape=(60, 80, 1))
 
     x = tf.keras.layers.SeparableConv2D(filters=16, kernel_size=(3,3), padding='same', strides=(1, 1), activation='linear')(inputs)
@@ -265,7 +263,7 @@ def bhuman_segmentation_y_channel_v3():
     x = tf.keras.layers.SeparableConv2D(filters=16, kernel_size=(3,3), padding='same', strides=(1, 1), activation='linear')(x)
     x = tf.keras.layers.BatchNormalization(axis=3)(x)
     x = tf.keras.layers.ReLU(name="activation_3")(x)
-    x2 = tf.keras.layers.Add()([x1, x])
+    x2 = tf.keras.layers.Add()([inputs, x])
     x = tf.keras.layers.SeparableConv2D(filters=16, kernel_size=(3,3), padding='same', strides=(1, 1), activation='linear')(x2)
     x = tf.keras.layers.BatchNormalization(axis=3)(x)
     x = tf.keras.layers.ReLU(name="activation_4")(x)
@@ -310,7 +308,6 @@ def bhuman_segmentation_y_channel_v3():
     x6r = tf.keras.layers.ReLU(name="activation_13")(x6r)
 
     x7 = tf.keras.layers.Add()([x6, x6r])
-    #x7 = tf.keras.layers.Convolution2D(4, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4")(x7)
     x7 = tf.keras.layers.Convolution2D(3, (3, 3), strides=(1, 1), padding="same", name="Conv2D_4", activation='sigmoid')(x7)
 
     classifier = tf.keras.Model(inputs=inputs, outputs=x7, name="bhuman-bop")
