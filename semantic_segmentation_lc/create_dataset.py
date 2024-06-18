@@ -23,7 +23,7 @@ sys.path.append(helper_path)
 from helper import get_postgres_cursor, get_minio_client, get_labelstudio_client, download_from_minio, load_image_as_yuv422, load_image_as_yuv422_y_only_better
 
 
-def download_datasets(camera, grid_size):
+def download_images_and_masks(camera, grid_size):
     sql_query = f"""SELECT ls_project_{camera}, bucket_{camera} FROM robot_logs WHERE {camera}_validated = true"""
     print(sql_query)
     pg_cur = get_postgres_cursor()
@@ -159,10 +159,10 @@ def create_ds_y(camera, scale_factor, ball_only=False):
     # TODO use scale factor
 
     new_img_width = 640 / scale_factor
-    new_img_height = 640 / scale_factor
+    new_img_height = 480 / scale_factor
 
 
-    images = list(Path(f"./datasets/{camera}/image").glob('**/*.png'))
+    images = list(Path(f"./datasets/{camera}/images").glob('**/*.png'))
 
     trainings_list = images[0:-100]
     validation_list = images[-100:]
@@ -177,6 +177,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
+            # FIXME use different folders for different grid sizes
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             mask = mask / 255.0
@@ -193,6 +194,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
             # TODO try batching here for speedup
             img_ds[cnt:cnt+1:,:,:] = img
 
+            # FIXME use different folders for different grid sizes
             label_path = image_path.parent.parent / "label" / image_path.name
             mask = cv2.imread(str(label_path), cv2.IMREAD_UNCHANGED)
             mask = mask / 255.0
@@ -216,7 +218,7 @@ if __name__ == "__main__":
     # python create_dataset.py -t y -c bottom -g 15 20
     grid_size = tuple(args.grid)
 
-    download_datasets(args.camera, grid_size)
+    download_images_and_masks(args.camera, grid_size)
     if args.type == "yuv":
         create_ds_yuv()
     if args.type == "y":
