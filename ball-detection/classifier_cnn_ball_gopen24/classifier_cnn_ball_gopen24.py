@@ -1,11 +1,8 @@
 import pickle
-import shutil
-from pathlib import Path
 
 import h5py
-import keras
+from tensorflow import keras
 import numpy as np
-import requests
 import tensorflow as tf
 from losses import WeightedBinaryCrossentropy
 from models import build_classifier_cnn_ball_gopen24_functional

@@ -201,14 +201,13 @@ if __name__ == "__main__":
     # set up mlflow tracking
     set_tracking_url()
 
-    experiment_name = args.mlflow_experiment
     experiment_tags = {
         "user": "max",
         "run_name": MODEL_NAME,
         "date": time.strftime("%Y-%m-%d"),
     }
 
-    mlflow_experiment = mlflow.set_experiment(experiment_name)
+    mlflow_experiment = mlflow.set_experiment(args.mlflow_experiment)
 
     with mlflow.start_run() as run:
         mlflow.set_experiment_tags(experiment_tags)

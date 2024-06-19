@@ -1,9 +1,9 @@
 from math import cos, pi, sin
 from random import choice as random_choice
 
-import keras
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 from h5py import File
 from mlflow import log_metrics, log_params, log_text
 from mlflow.utils.annotations import experimental
