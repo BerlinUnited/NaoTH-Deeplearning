@@ -1,29 +1,43 @@
-from minio import Minio
+import zipfile
+from enum import Enum
 from os import environ
-import psycopg2
 from pathlib import Path
-from label_studio_sdk import Client
-from urllib.request import urlretrieve
+from typing import Tuple
 from urllib.error import HTTPError, URLError
-import numpy as np
-import h5py
-from dataclasses import dataclass
-from typing import List, Optional, Tuple
-from PIL import Image as PIL_Image
+from urllib.request import urlretrieve
 
-label_dict = {
-    "ball": 0,
-    "nao": 1,
-    "penalty_mark": 2,
-    "referee": 3
-}
+import h5py
+import numpy as np
+import psycopg2
+from label_studio_sdk import Client
+from minio import Minio
+from PIL import Image as PIL_Image
+from sklearn.model_selection import train_test_split
+from image_loader import load_image_as_yuv888, load_image_as_yuv888_y_only, get_meta_from_png, get_multiclass_from_meta
+label_dict = {"ball": 0, "nao": 1, "penalty_mark": 2, "referee": 3}
+
+
+class PatchType(Enum):
+    LEGACY = "patches"
+    SEGMENTATION = "patches_segmentation"
+
+
+class ColorMode(Enum):
+    RGB = "RGB"
+    YUV422 = "YUV422"
+    YUV422_Y_ONLY = "YUV422_Y_ONLY"
+    YUV888 = "YUV888"
+    YUV888_Y_ONLY = "YUV888_Y_ONLY"
+
 
 def get_minio_client():
-    mclient = Minio("minio.berlin-united.com",
-    access_key="naoth",
-    secret_key="HAkPYLnAvydQA",
+    mclient = Minio(
+        "minio.berlin-united.com",
+        access_key="naoth",
+        secret_key="HAkPYLnAvydQA",
     )
     return mclient
+
 
 def get_postgres_cursor():
     """
@@ -43,15 +57,16 @@ def get_postgres_cursor():
         "dbname": "logs",
         "user": "naoth",
         "password": environ.get("DB_PASS"),
-        "connect_timeout":10
+        "connect_timeout": 10,
     }
 
     conn = psycopg2.connect(**params)
     return conn.cursor()
 
+
 def get_labelstudio_client():
-    LABEL_STUDIO_URL = 'https://ls.berlin-united.com/'
-    API_KEY = '6cb437fb6daf7deb1694670a6f00120112535687'
+    LABEL_STUDIO_URL = "https://ls.berlin-united.com/"
+    API_KEY = "6cb437fb6daf7deb1694670a6f00120112535687"
 
     ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)
     ls.check_connection()
@@ -61,7 +76,13 @@ def get_labelstudio_client():
 def get_file_from_server(origin, target):
     # FIXME move to naoth python package
     def dl_progress(count, block_size, total_size):
-        print('\r', 'Progress: {0:.2%}'.format(min((count * block_size) / total_size, 1.0)), sep='', end='', flush=True)
+        print(
+            "\r",
+            "Progress: {0:.2%}".format(min((count * block_size) / total_size, 1.0)),
+            sep="",
+            end="",
+            flush=True,
+        )
 
     if not Path(target).exists():
         target_folder = Path(target).parent
@@ -69,11 +90,11 @@ def get_file_from_server(origin, target):
     else:
         return
 
-    error_msg = 'URL fetch failure on {} : {} -- {}'
+    error_msg = "URL fetch failure on {} : {} -- {}"
     try:
         try:
             urlretrieve(origin, target, dl_progress)
-            print('\nFinished')
+            print("\nFinished")
         except HTTPError as e:
             raise Exception(error_msg.format(origin, e.code, e.reason))
         except URLError as e:
@@ -95,120 +116,351 @@ def create_h5_file(file_path, key_list, shape):
     # FIXME this does not work with append yet but I think we should make it work eventually
     with h5py.File(file_path, "w") as f:
         for key in key_list:
-            f.create_dataset(key, data=np.empty([1, shape[0],shape[1],shape[2]]), compression="gzip", chunks=True, maxshape=(None, shape[0],shape[1],shape[2]))
-    
+            f.create_dataset(
+                key,
+                data=np.empty([1, shape[0], shape[1], shape[2]]),
+                compression="gzip",
+                chunks=True,
+                maxshape=(None, shape[0], shape[1], shape[2]),
+            )
+
+
 def append_h5_file(file_path, key, array):
     with h5py.File(file_path, "a") as f:
-        f[key].resize((f[key].shape[0] + array.shape[0]), axis = 0)
+        f[key].resize((f[key].shape[0] + array.shape[0]), axis=0)
         np.concatenate((f[key], array), axis=0)
-        
-        #f[key][-array.shape[0]:] = array
 
-def load_image_as_yuv422_original(image_filename, patch_size=16):
-    """
-    this functions loads an image from a file to the correct format for the naoth library
-    """
-    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
-    # and we need to make sure loading the dummy simulator shared library happens first
+        # f[key][-array.shape[0]:] = array
+
+
+def compute_blurrines_laplacian(image):
     import cv2
 
-    cv_img = cv2.imread(image_filename)
-    cv_img = cv2.resize(
-        cv_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST
+    return cv2.Laplacian(image, cv2.CV_64F).var()
+
+
+def combine_datasets_split_train_val_stratify(Xs, ys, test_size=0.15):
+    # Combine multiple datasets and split them into train and validation sets
+    # with stratification before merging them into a single dataset.
+    # This ensures that the class distribution is preserved in the train and
+    # validation sets.
+
+    Xs_train = []
+    Xs_val = []
+    ys_train = []
+    ys_val = []
+
+    for X, y in zip(Xs, ys):
+        X_train, X_val, y_train, y_val = train_test_split(
+            X,
+            y,
+            test_size=test_size,
+            random_state=42,
+            stratify=y,
+        )
+
+        Xs_train.append(X_train)
+        Xs_val.append(X_val)
+        ys_train.append(y_train)
+        ys_val.append(y_val)
+
+    X_train = np.concatenate(Xs_train)
+    y_train = np.concatenate(ys_train)
+
+    X_val = np.concatenate(Xs_val)
+    y_val = np.concatenate(ys_val)
+
+    return X_train, y_train, X_val, y_val
+
+
+def download_devils_labeled_patches(
+    save_dir,
+    url="https://datasets.naoth.de/NaoDevils_Patches_GO24_32x32x3_nsamples_%20215820/patches_classification_naodevils_32x32x3_GO24.zip",
+):
+    save_dir = Path(save_dir)
+    filename = "devils_dataset.zip"
+    filepath = save_dir / filename
+
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    if not filepath.exists():
+        print(f"Downloading dataset from {url}...")
+        get_file_from_server(url, filepath)
+
+    print(f"Extracting dataset to {save_dir}...")
+    with zipfile.ZipFile(filepath, "r") as f_zip:
+        f_zip.extractall(save_dir)
+
+
+def get_patch_buckets(camera: str, validated=True, filter_: str = ""):
+    select_statement = f"""
+    SELECT bucket_{camera}_patches FROM robot_logs WHERE bucket_{camera}_patches IS NOT NULL
+    """
+
+    if validated:
+        select_statement += f" AND {camera}_validated=True"
+
+    if filter_:
+        select_statement += f" AND {filter_}"
+
+    select_statement += ";"
+
+    # print(select_statement)
+
+    cur = get_postgres_cursor()
+    cur.execute(select_statement)
+    rtn_val = cur.fetchall()
+    result = [x for x in rtn_val]
+    return result
+
+
+def download_and_extract_patches_from_bucket(data, save_dir, filename):
+    mclient = get_minio_client()
+
+    for bucket_name in sorted(data):
+        bucket_name = bucket_name[0]
+        try:
+            file_path = download_from_minio(
+                client=mclient,
+                bucket_name=bucket_name,
+                filename=filename,
+                output_folder=save_dir,
+            )
+
+            print(f"Working on {file_path}")
+
+            with zipfile.ZipFile(file_path, "r") as f:
+                f.extractall(save_dir / bucket_name)
+
+        except Exception as e:
+            print(f"Error downloading from bucket {bucket_name}: {e}")
+
+        finally:
+            # check if zip file_path is defined and if the file exists, delete it
+            if "file_path" in locals() and Path(file_path).exists():
+                Path(file_path).unlink()
+
+
+def download_naoth_labeled_patches(
+    save_dir,
+    patch_type: PatchType = PatchType.LEGACY,
+    validated=True,
+    filter_top=None,
+    filter_bottom=None,
+    border=0,
+):
+    # prevent mutable default arguments
+    filter_top = filter_top or ""
+    filter_bottom = filter_bottom or ""
+
+    filename = f"{patch_type.value}_border{border}.zip"
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    data_top = get_patch_buckets("top", validated, filter_top)
+    data_bottom = get_patch_buckets("bottom", validated, filter_bottom)
+
+    download_and_extract_patches_from_bucket(data_top, save_dir / "top", filename)
+    download_and_extract_patches_from_bucket(data_bottom, save_dir / "bottom", filename)
+
+
+def get_classification_data_devils_combined(
+    file_path,
+    patch_size: Tuple[int, int],
+    color_mode: ColorMode,
+):
+    X_top, y_top = get_classification_data_devils_top(
+        file_path=file_path,
+        patch_size=patch_size,
+        color_mode=color_mode,
+    )
+    X_bottom, y_bottom = get_classification_data_devils_bottom(
+        file_path=file_path,
+        patch_size=patch_size,
+        color_mode=color_mode,
     )
 
-    # convert image for bottom to yuv422
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(patch_size * patch_size * 2, np.uint8)
+    X = np.concatenate([X_top, X_bottom])
+    y = np.concatenate([y_top, y_bottom])
 
-    for i in range(0, patch_size * patch_size, 2):
-        yuv422[i * 2] = cv_img[i * 3]
-        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
-        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
-        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
-
-    return yuv422
+    return X, y
 
 
-def load_image_as_yuv422(image_filename):
-    """
-    this functions loads an image from a file to the correct format for the naoth library
-    # FIXME: i don't trust this function
-    """
-    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
-    # and we need to make sure loading the dummy simulator shared library happens first
-    import cv2
-    #y = 240
-    #x = 320
-    cv_img = cv2.imread(image_filename)
-    x = cv_img.shape[1]
-    y = cv_img.shape[0]
-    #cv_img = cv2.resize(
-    #    cv_img, (240,320), interpolation=cv2.INTER_NEAREST
-    #)
-    #print(cv_img.shape, x,y)
-    # convert image for bottom to yuv422
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(x * y * 2, np.uint8)
+def get_classification_data_devils_top(
+    file_path,
+    patch_size: Tuple[int, int],
+    color_mode: ColorMode,
+):
+    devils_patches = Path(file_path)
 
-    for i in range(0, x * y, 2):
-        yuv422[i * 2] = cv_img[i * 3]
-        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
-        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
-        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
+    devils_balls_top = list(devils_patches.rglob("*/1.00/*upper*.png"))
+    devils_other_top = list(devils_patches.rglob("*/0.00/*upper*.png"))
 
-    # TODO is this the correct order?
-    image_yuv = yuv422.reshape(y,x, 2)
-    return image_yuv
+    image_paths = devils_balls_top + devils_other_top
 
-def load_image_as_yuv422_y_only(image_filename):
-    """
-    this functions loads an image from a file to the correct format for the naoth library
-    # FIXME: i don't trust this function
-    """
-    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
-    # and we need to make sure loading the dummy simulator shared library happens first
-    import cv2
-    cv_img = cv2.imread(image_filename)
-    x = cv_img.shape[1]
-    y = cv_img.shape[0]
+    X = load_images_from_paths(
+        image_paths=image_paths, patch_size=patch_size, color_mode=color_mode
+    )
+    y = np.concatenate(
+        [np.ones(len(devils_balls_top)), np.zeros(len(devils_other_top))]
+    )
 
-    # convert image for bottom to yuv422
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(y * x * 2, np.uint8)
+    return X, y
 
-    for i in range(0, y * x, 2):
-        yuv422[i * 2] = cv_img[i * 3]
-        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
-        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
-        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
 
-    # TODO is this the correct order?
-    image_yuv = yuv422.reshape(y, x, 2)
-    image_y =  image_yuv[..., 0]
-    image_y = image_y.reshape(y,x,1)
-    print(image_y.shape)
-    image_y = image_y[::2, ::2]  # half the resolution because semantic segmentation requires it
-    return image_y
+def get_classification_data_devils_bottom(
+    file_path,
+    patch_size: Tuple[int, int],
+    color_mode: ColorMode,
+):
+    devils_patches = Path(file_path)
 
-def load_image_as_yuv422_y_only_better(image_filename):
-    im = PIL_Image.open(image_filename)
-    ycbcr = im.convert('YCbCr')
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, 'u1', ycbcr.tobytes())
-    full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480,640,1)
-    half_image_y = full_image_y[::2, ::2]
-    half_image_y = half_image_y / 255.0
-    return half_image_y
+    devils_balls_bottom = list(devils_patches.rglob("*/1.00/*lower*.png"))
+    devils_other_bottom = list(devils_patches.rglob("*/0.00/*lower*.png"))
 
-def load_image_as_yuv422_y_only_better_generic(image_filename):
-    # FIXME make subsampling configurable
-    im = PIL_Image.open(image_filename)
-    ycbcr = im.convert('YCbCr')
-    reversed_yuv888 = np.ndarray(480 * 640 * 3, 'u1', ycbcr.tobytes())
-    full_image_y = reversed_yuv888[0::3]
-    full_image_y = full_image_y.reshape(480,640,1)
-    full_image_y = full_image_y / 255.0
-    #half_image_y = full_image_y[::2, ::2]
-    #half_image_y = half_image_y / 255.0
-    return full_image_y
+    image_paths = devils_balls_bottom + devils_other_bottom
+
+    X = load_images_from_paths(
+        image_paths=image_paths, patch_size=patch_size, color_mode=color_mode
+    )
+    y = np.concatenate(
+        [np.ones(len(devils_balls_bottom)), np.zeros(len(devils_other_bottom))]
+    )
+
+    return X, y
+
+
+def get_classification_data_naoth_combined(
+    file_path,
+    color_mode: ColorMode,
+    patch_size: Tuple[int, int],
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    X_top, y_top = get_classification_data_naoth_top(
+        file_path=file_path,
+        color_mode=color_mode,
+        patch_size=patch_size,
+        filter_ambiguous_balls=filter_ambiguous_balls,
+    )
+    X_bottom, y_bottom = get_classification_data_naoth_bottom(
+        file_path=file_path,
+        color_mode=color_mode,
+        patch_size=patch_size,
+        filter_ambiguous_balls=filter_ambiguous_balls,
+    )
+
+    X = np.concatenate([X_top, X_bottom])
+    y = np.concatenate([y_top, y_bottom])
+
+    return X, y
+
+
+def get_classification_data_naoth_top(
+    file_path,
+    color_mode: ColorMode,
+    patch_size: Tuple[int, int],
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    naoth_patches = Path(file_path)
+    image_paths = list(naoth_patches.rglob("top/*/*/*.png"))
+    X = load_images_from_paths(
+        image_paths=image_paths, patch_size=patch_size, color_mode=color_mode
+    )
+    meta = [get_meta_from_png(img_path) for img_path in image_paths]
+    y = np.array([get_multiclass_from_meta(m) for m in meta])
+
+    if filter_ambiguous_balls:
+        X, y = filter_ambiguous_ball_patches(X, y)
+
+    # only use ball / no ball labels
+    y = np.array([1 if target[0] == 1 else 0 for target in y])
+
+    return X, y
+
+
+def get_classification_data_naoth_bottom(
+    file_path,
+    color_mode: ColorMode,
+    patch_size: Tuple[int, int],
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    naoth_patches = Path(file_path)
+
+    image_paths = list(naoth_patches.rglob("bottom/*/*/*.png"))
+    X = load_images_from_paths(
+        image_paths=image_paths, patch_size=patch_size, color_mode=color_mode
+    )
+    meta = [get_meta_from_png(img_path) for img_path in image_paths]
+    y = np.array([get_multiclass_from_meta(m) for m in meta])
+
+    if filter_ambiguous_balls:
+        X, y = filter_ambiguous_ball_patches(X, y)
+
+    y = np.array([1 if target[0] == 1 else 0 for target in y])
+
+    return X, y
+
+
+def filter_ambiguous_ball_patches(X, y):
+    # only keep ball patches that do not contain robot class as well
+    X_new = []
+    y_new = []
+
+    for img, target in zip(X, y):
+        # target is [ball, penalty, robot]
+        if target[0] == 1 and target[2] == 1:
+            continue
+        else:
+            X_new.append(img)
+            y_new.append(target)
+
+    X = np.array(X_new)
+    y = np.array(y_new)
+
+    return X, y
+
+
+def load_images_from_paths(image_paths, patch_size, color_mode):
+    if color_mode == ColorMode.RGB:
+        return np.array(
+            [
+                np.array(
+                    PIL_Image.open(str(img_path)).resize(
+                        patch_size, resample=PIL_Image.Resampling.NEAREST
+                    )
+                )
+                for img_path in image_paths
+            ]
+        ).reshape(-1, *patch_size, 3)
+
+    elif color_mode == ColorMode.YUV888:
+        return np.array(
+            [
+                load_image_as_yuv888(
+                    str(img_path),
+                    resize_to=patch_size,
+                    resize_mode=PIL_Image.Resampling.NEAREST,
+                )
+                for img_path in image_paths
+            ]
+        ).reshape(-1, *patch_size, 3)
+
+    elif color_mode == ColorMode.YUV888_Y_ONLY:
+        return np.array(
+            [
+                load_image_as_yuv888_y_only(
+                    str(img_path),
+                    resize_to=patch_size,
+                    resize_mode=PIL_Image.Resampling.NEAREST,
+                )
+                for img_path in image_paths
+            ]
+        ).reshape(-1, *patch_size, 1)
+
+    else:
+        raise NotImplementedError(f"Color mode {color_mode} not implemented")
+
