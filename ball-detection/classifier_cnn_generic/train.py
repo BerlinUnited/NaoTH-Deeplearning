@@ -245,8 +245,7 @@ if __name__ == "__main__":
 
         with tf.device("/device:GPU:0"):
             history = classifier.fit(
-                x=X_train if X_train is not None else train_ds,
-                y=y_train,
+                train_ds,
                 epochs=args.epochs,
                 batch_size=args.batch_size,
                 validation_data=val_ds,
