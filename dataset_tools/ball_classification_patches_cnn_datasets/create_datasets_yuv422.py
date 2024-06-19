@@ -285,7 +285,7 @@ def create_yuv_422_bottom_datasets():
 
 if __name__ == "__main__":
     PATCH_SIZE = 16
-    DS_ROOT = "../data/classification_patches_yuv422"
+    DS_ROOT = "../../data/classification_patches_yuv422"
     DEVILS_SAVE_DIR = "/tmp/devils_dataset"
     DEVILS_SAVE_DIR_EXTRACTED = f"{DEVILS_SAVE_DIR}/patches_classification_naodevils_32x32x3_GO24"
     NAOTH_TRAIN_SAVE_DIR = "/tmp/naoth_labeled_patches_train"
