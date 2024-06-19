@@ -116,16 +116,12 @@ def load_data_train_test_val(
     if rescale:
         X_train = X_train / 255.0
         X_val = X_val / 255.0
-
-        if X_test is not None:
-            X_test = X_test / 255.0
+        X_test = X_test / 255.0 if X_test is not None else None
 
     if to_categorical:
         y_train = keras.utils.to_categorical(y_train, num_classes=2)
         y_val = keras.utils.to_categorical(y_val, num_classes=2)
-
-        if y_test is not None:
-            y_test = keras.utils.to_categorical(y_test, num_classes=2)
+        y_test = keras.utils.to_categorical(y_test, num_classes=2) if y_test is not None else None
 
     X_train = X_train.reshape(-1, *input_shape)
     X_val = X_val.reshape(-1, *input_shape)
@@ -248,7 +244,7 @@ if __name__ == "__main__":
 
         callbacks = make_callbacks(model_name=MODEL_NAME, mlflow=True)
 
-        with tf.device("/device:CPU:0"):
+        with tf.device("/device:GPU:0"):
             history = classifier.fit(
                 x=X_train if X_train is not None else train_ds,
                 y=y_train,

@@ -22,7 +22,6 @@ def load_h5_dataset_X_y(file_path, rescale=None):
     return X, y
 
 
-@tf.function
 def rescale_func(X, factor=255.0):
     return X / factor
 
