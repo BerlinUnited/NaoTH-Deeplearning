@@ -1,5 +1,18 @@
+import cv2
 import numpy as np
 from PIL import Image as PIL_Image
+
+
+def yuv888_bytes_to_yuv422_array(yuv888_bytes, width, height):
+    yuv422 = np.ndarray(width * height * 2, np.uint8)
+
+    for i in range(0, width * height, 2):
+        yuv422[i * 2] = yuv888_bytes[i * 3]
+        yuv422[i * 2 + 1] = (yuv888_bytes[i * 3 + 1] + yuv888_bytes[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = yuv888_bytes[i * 3 + 3]
+        yuv422[i * 2 + 3] = (yuv888_bytes[i * 3 + 2] + yuv888_bytes[i * 3 + 5]) / 2.0
+
+    return yuv422
 
 
 def load_image_as_yuv422_original(image_filename, patch_size=16):
@@ -30,127 +43,58 @@ def load_image_as_yuv422_original(image_filename, patch_size=16):
     return yuv422
 
 
-def load_image_as_yuv422(image_filename, rescale=False):
-    """
-    this functions loads an image from a file to the correct format for the naoth library
-    # FIXME: i don't trust this function
-    """
-    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
-    # and we need to make sure loading the dummy simulator shared library happens first
-    import cv2
+def load_image_as_yuv422_cv2(image_filename) -> np.ndarray:
 
-    # y = 240
-    # x = 320
+    # standard resolution: 640x480
     cv_img = cv2.imread(image_filename)
-    x = cv_img.shape[1]
-    y = cv_img.shape[0]
-    # cv_img = cv2.resize(
-    #    cv_img, (240,320), interpolation=cv2.INTER_NEAREST
-    # )
-    # print(cv_img.shape, x,y)
-    # convert image for bottom to yuv422
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(x * y * 2, np.uint8)
 
-    for i in range(0, x * y, 2):
-        yuv422[i * 2] = cv_img[i * 3]
-        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
-        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
-        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
+    # cv2 shape is (height, width, channels)
+    width, height = cv_img.shape[1], cv_img.shape[0]
 
-    # TODO is this the correct order?
-    image_yuv = yuv422.reshape(y, x, 2)
+    yuv888_bytes = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
+    yuv422 = yuv888_bytes_to_yuv422_array(yuv888_bytes, width=width, height=height)
 
-    if rescale:
-        image_yuv = image_yuv / 255.0
+    # cv2 size is (height, width)
+    # Pillow size is (width, height)
+    # we need to ensure consistent output shapes for all image loading functions
+    yuv422 = yuv422.reshape(height, width, 2)
 
-    return image_yuv
+    return yuv422
 
 
-def load_image_as_yuv422_y_only(image_filename, rescale=False, subsample=False):
-    """
-    this functions loads an image from a file to the correct format for the naoth library
-    # FIXME: i don't trust this function
-    """
-    # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
-    # and we need to make sure loading the dummy simulator shared library happens first
-    import cv2
+def load_image_as_yuv422_y_only_cv2(image_filename) -> np.ndarray:
+    yuv422 = load_image_as_yuv422_cv2(image_filename)
+    height, width = yuv422.shape[:2]
 
-    cv_img = cv2.imread(image_filename)
-    x = cv_img.shape[1]
-    y = cv_img.shape[0]
+    yuv422_y_only = yuv422[..., 0]
+    yuv422_y_only = yuv422_y_only.reshape(height, width, 1)
 
-    # convert image for bottom to yuv422
-    cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()
-    yuv422 = np.ndarray(y * x * 2, np.uint8)
-
-    for i in range(0, y * x, 2):
-        yuv422[i * 2] = cv_img[i * 3]
-        yuv422[i * 2 + 1] = (cv_img[i * 3 + 1] + cv_img[i * 3 + 4]) / 2.0
-        yuv422[i * 2 + 2] = cv_img[i * 3 + 3]
-        yuv422[i * 2 + 3] = (cv_img[i * 3 + 2] + cv_img[i * 3 + 5]) / 2.0
-
-    # TODO is this the correct order?
-    image_yuv = yuv422.reshape(y, x, 2)
-    image_y = image_yuv[..., 0]
-    image_y = image_y.reshape(y, x, 1)
-    print(image_y.shape)
-
-    if subsample:
-        # half the resolution because semantic segmentation requires it
-        image_y = image_y[::2, ::2]
-
-    if rescale:
-        image_y = image_y / 255.0
-
-    return image_y
+    return yuv422_y_only
 
 
-def load_image_as_yuv888(
-    image_filename,
-    rescale=False,
-    subsample=False,
-    resize_to=None,
-    resize_mode=PIL_Image.Resampling.NEAREST,
-) -> np.ndarray:
-    assert not (subsample and resize_to), "Cannot subsample and resize at the same time"
-
+def load_image_as_yuv422_pil(image_filename) -> np.ndarray:
     im = PIL_Image.open(image_filename)
     ycbcr = im.convert("YCbCr")
+    width, height = ycbcr.size
 
-    # either subsample or resize
-    if subsample:
-        yuv888 = np.ndarray(ycbcr.size[0] * ycbcr.size[1] * 3, "u1", ycbcr.tobytes())
-        yuv888 = yuv888[::2, ::2]
-        yuv888 = yuv888.reshape(ycbcr.size[0] // 2, ycbcr.size[1] // 2, 3)
-    elif resize_to is not None:
-        ycbcr = ycbcr.resize(resize_to, resample=resize_mode)
-        yuv888 = np.ndarray(ycbcr.size[0] * ycbcr.size[1] * 3, "u1", ycbcr.tobytes())
-        yuv888 = yuv888.reshape(ycbcr.size[0], ycbcr.size[1], 3)
+    yuv422 = yuv888_bytes_to_yuv422_array(ycbcr.tobytes(), width=width, height=height)
 
-    if rescale:
-        yuv888 = yuv888 / 255.0
+    # cv2 size is (height, width)
+    # Pillow size is (width, height)
+    # we need to ensure consistent output shapes for all image loading functions
+    yuv422 = yuv422.reshape(height, width, 2)
 
-    return yuv888
+    return yuv422
 
 
-def load_image_as_yuv888_y_only(
-    image_filename,
-    rescale=False,
-    subsample=False,
-    resize_to=None,
-    resize_mode=PIL_Image.Resampling.NEAREST,
-):
-    yuv888 = load_image_as_yuv888(
-        image_filename,
-        rescale=rescale,
-        subsample=subsample,
-        resize_to=resize_to,
-        resize_mode=resize_mode,
-    )
-    yuv888_y_only = yuv888[..., 0]
+def load_image_as_yuv422_y_only_pil(image_filename) -> np.ndarray:
+    yuv422 = load_image_as_yuv422_pil(image_filename)
+    height, width = yuv422.shape[:2]
 
-    return yuv888_y_only
+    yuv422_y_only = yuv422[..., 0]
+    yuv422_y_only = yuv422_y_only.reshape(height, width, 1)
+
+    return yuv422_y_only
 
 
 def get_meta_from_png(img_path):

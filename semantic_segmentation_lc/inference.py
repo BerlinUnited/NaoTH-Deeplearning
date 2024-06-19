@@ -9,7 +9,7 @@ import sys
 new_model = tf.keras.models.load_model("segment_test.keras")
 helper_path = os.path.join(os.path.dirname(__file__), "../tools")
 sys.path.append(helper_path)
-from helper import load_image_as_yuv422
+from tools.image_loader import load_image_as_yuv422_pil
 
 
 dataset_dir = "test/image"
@@ -19,7 +19,7 @@ for image_file in os.listdir(dataset_dir):
     if os.path.isfile(image_file_path):
         # Load the image
         # image = Image.open(image_file_path)
-        image_yuv = load_image_as_yuv422(
+        image_yuv = load_image_as_yuv422_pil(
             str(
                 "/home/stella/robocup/naoth-deeplearning/semantic_segmentation_lc/test/image/wzkgvqiattfiqhbwyptmtm_0031451.png"
             )
@@ -37,6 +37,6 @@ for image_file in os.listdir(dataset_dir):
         print(np.max(a[0, :, :, :]))
         print(np.min(a[0, :, :, :]))
 
-        print
+        print()
         np.save("test", a)
         quit()

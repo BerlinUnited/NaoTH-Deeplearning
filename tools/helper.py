@@ -6,10 +6,10 @@ from typing import Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
 
+import cv2
 import h5py
 import numpy as np
 import psycopg2
-from image_loader import get_meta_from_png, get_multiclass_from_meta, load_image_as_yuv888, load_image_as_yuv888_y_only
 from label_studio_sdk import Client
 from minio import Minio
 from PIL import Image as PIL_Image
@@ -24,11 +24,11 @@ class PatchType(Enum):
 
 
 class ColorMode(Enum):
-    RGB = "RGB"
-    YUV422 = "YUV422"
-    YUV422_Y_ONLY = "YUV422_Y_ONLY"
-    YUV888 = "YUV888"
-    YUV888_Y_ONLY = "YUV888_Y_ONLY"
+    RGB = "RGB"  # debug
+    YUV422_CV2 = "YUV422_CV2"
+    YUV422_PIL = "YUV422_PIL"
+    YUV422_Y_ONLY_CV2 = "YUV422_Y_ONLY_CV2"
+    YUV422_Y_ONLY_PIL = "YUV422_Y_ONLY_PIL"
 
 
 def get_minio_client():
@@ -135,9 +135,11 @@ def append_h5_file(file_path, key, array):
 
 
 def compute_blurrines_laplacian(image):
-    import cv2
-
     return cv2.Laplacian(image, cv2.CV_64F).var()
+
+
+def resize_image_cv2_inter_nearest(image, size):
+    return cv2.resize(image, size, interpolation=cv2.INTER_NEAREST)
 
 
 def combine_datasets_split_train_val_stratify(Xs, ys, test_size=0.15):
@@ -268,29 +270,25 @@ def download_naoth_labeled_patches(
 
 def get_classification_data_devils_combined(
     file_path,
-    patch_size: Tuple[int, int],
     color_mode: ColorMode,
 ):
     X_top, y_top = get_classification_data_devils_top(
         file_path=file_path,
-        patch_size=patch_size,
         color_mode=color_mode,
     )
     X_bottom, y_bottom = get_classification_data_devils_bottom(
         file_path=file_path,
-        patch_size=patch_size,
         color_mode=color_mode,
     )
 
-    X = np.concatenate([X_top, X_bottom])
-    y = np.concatenate([y_top, y_bottom])
+    X = X_top + X_bottom  # patches may be inconsistent in shape at this point
+    y = y_top + y_bottom
 
     return X, y
 
 
 def get_classification_data_devils_top(
     file_path,
-    patch_size: Tuple[int, int],
     color_mode: ColorMode,
 ):
     devils_patches = Path(file_path)
@@ -300,15 +298,14 @@ def get_classification_data_devils_top(
 
     image_paths = devils_balls_top + devils_other_top
 
-    X = load_images_from_paths(image_paths=image_paths, patch_size=patch_size, color_mode=color_mode)
-    y = np.concatenate([np.ones(len(devils_balls_top)), np.zeros(len(devils_other_top))])
+    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
+    y = [1] * len(devils_balls_top) + [0] * len(devils_other_top)
 
     return X, y
 
 
 def get_classification_data_devils_bottom(
     file_path,
-    patch_size: Tuple[int, int],
     color_mode: ColorMode,
 ):
     devils_patches = Path(file_path)
@@ -318,8 +315,8 @@ def get_classification_data_devils_bottom(
 
     image_paths = devils_balls_bottom + devils_other_bottom
 
-    X = load_images_from_paths(image_paths=image_paths, patch_size=patch_size, color_mode=color_mode)
-    y = np.concatenate([np.ones(len(devils_balls_bottom)), np.zeros(len(devils_other_bottom))])
+    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
+    y = [1] * len(devils_balls_bottom) + [0] * len(devils_other_bottom)
 
     return X, y
 
@@ -327,25 +324,22 @@ def get_classification_data_devils_bottom(
 def get_classification_data_naoth_combined(
     file_path,
     color_mode: ColorMode,
-    patch_size: Tuple[int, int],
     filter_ambiguous_balls=True,
     # TODO: Add parameter to filter out blurry balls
 ):
     X_top, y_top = get_classification_data_naoth_top(
         file_path=file_path,
         color_mode=color_mode,
-        patch_size=patch_size,
         filter_ambiguous_balls=filter_ambiguous_balls,
     )
     X_bottom, y_bottom = get_classification_data_naoth_bottom(
         file_path=file_path,
         color_mode=color_mode,
-        patch_size=patch_size,
         filter_ambiguous_balls=filter_ambiguous_balls,
     )
 
-    X = np.concatenate([X_top, X_bottom])
-    y = np.concatenate([y_top, y_bottom])
+    X = X_top + X_bottom  # patches may be inconsistent in shape at this point
+    y = y_top + y_bottom
 
     return X, y
 
@@ -353,21 +347,22 @@ def get_classification_data_naoth_combined(
 def get_classification_data_naoth_top(
     file_path,
     color_mode: ColorMode,
-    patch_size: Tuple[int, int],
     filter_ambiguous_balls=True,
     # TODO: Add parameter to filter out blurry balls
 ):
+    from tools.image_loader import get_meta_from_png, get_multiclass_from_meta
+
     naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("top/*/*/*.png"))
-    X = load_images_from_paths(image_paths=image_paths, patch_size=patch_size, color_mode=color_mode)
+
+    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
     meta = [get_meta_from_png(img_path) for img_path in image_paths]
-    y = np.array([get_multiclass_from_meta(m) for m in meta])
+    y = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
         X, y = filter_ambiguous_ball_patches(X, y)
 
-    # only use ball / no ball labels
-    y = np.array([1 if target[0] == 1 else 0 for target in y])
+    y = [1 if target[0] == 1 else 0 for target in y]
 
     return X, y
 
@@ -375,21 +370,23 @@ def get_classification_data_naoth_top(
 def get_classification_data_naoth_bottom(
     file_path,
     color_mode: ColorMode,
-    patch_size: Tuple[int, int],
     filter_ambiguous_balls=True,
     # TODO: Add parameter to filter out blurry balls
 ):
-    naoth_patches = Path(file_path)
+    from tools.helper import filter_ambiguous_ball_patches
+    from tools.image_loader import get_meta_from_png, get_multiclass_from_meta
 
+    naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("bottom/*/*/*.png"))
-    X = load_images_from_paths(image_paths=image_paths, patch_size=patch_size, color_mode=color_mode)
+
+    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
     meta = [get_meta_from_png(img_path) for img_path in image_paths]
     y = np.array([get_multiclass_from_meta(m) for m in meta])
 
     if filter_ambiguous_balls:
         X, y = filter_ambiguous_ball_patches(X, y)
 
-    y = np.array([1 if target[0] == 1 else 0 for target in y])
+    y = [1 if target[0] == 1 else 0 for target in y]
 
     return X, y
 
@@ -407,38 +404,30 @@ def filter_ambiguous_ball_patches(X, y):
             X_new.append(img)
             y_new.append(target)
 
-    X = np.array(X_new)
-    y = np.array(y_new)
-
-    return X, y
+    return X_new, y_new
 
 
-def load_images_from_paths(image_paths, patch_size, color_mode):
-    if color_mode == ColorMode.RGB:
-        return np.array(
-            [
-                np.array(PIL_Image.open(str(img_path)).resize(patch_size, resample=PIL_Image.Resampling.NEAREST))
-                for img_path in image_paths
-            ]
-        ).reshape(-1, *patch_size, 3)
+def load_images_from_paths(image_paths, color_mode) -> list:
+    from tools.image_loader import (
+        load_image_as_yuv422_cv2,
+        load_image_as_yuv422_pil,
+        load_image_as_yuv422_y_only_cv2,
+        load_image_as_yuv422_y_only_pil,
+    )
 
-    elif color_mode == ColorMode.YUV888:
-        return np.array(
-            [
-                load_image_as_yuv888(str(img_path), resize_to=patch_size, resize_mode=PIL_Image.Resampling.NEAREST)
-                for img_path in image_paths
-            ]
-        ).reshape(-1, *patch_size, 3)
+    color_mode_func_map = {
+        ColorMode.RGB: PIL_Image.open,
+        ColorMode.YUV422_CV2: load_image_as_yuv422_cv2,
+        ColorMode.YUV422_Y_ONLY_CV2: load_image_as_yuv422_y_only_cv2,
+        ColorMode.YUV422_PIL: load_image_as_yuv422_pil,
+        ColorMode.YUV422_Y_ONLY_PIL: load_image_as_yuv422_y_only_pil,
+    }
 
-    elif color_mode == ColorMode.YUV888_Y_ONLY:
-        return np.array(
-            [
-                load_image_as_yuv888_y_only(
-                    str(img_path), resize_to=patch_size, resize_mode=PIL_Image.Resampling.NEAREST
-                )
-                for img_path in image_paths
-            ]
-        ).reshape(-1, *patch_size, 1)
+    load_image_func = color_mode_func_map.get(color_mode)
 
-    else:
+    if load_image_func is None:
         raise NotImplementedError(f"Color mode {color_mode} not implemented")
+
+    # patches may not have a consistent shape at this point,
+    # so we can not use np.array here
+    return [load_image_func(str(img_path)) for img_path in image_paths]
