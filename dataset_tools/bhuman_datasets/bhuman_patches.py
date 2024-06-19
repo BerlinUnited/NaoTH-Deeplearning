@@ -117,22 +117,22 @@ def generate_bhuman_ball_datasets_2019():
     bhuman_root_path = Path(get_data_root()) / "data_balldetection/bhuman"
 
     # original server is https://sibylle.informatik.uni-bremen.de/public/datasets/b-alls-2019/
-    download_function("https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5",
-                        f"{bhuman_root_path}/b-alls-2019.hdf5")
-    download_function("https://logs.naoth.de/Experiments/bhuman/readme.txt",
-                        f"{bhuman_root_path}/readme.txt")
+    download_function(
+        "https://logs.naoth.de/Experiments/bhuman/b-alls-2019.hdf5", f"{bhuman_root_path}/b-alls-2019.hdf5"
+    )
+    download_function("https://logs.naoth.de/Experiments/bhuman/readme.txt", f"{bhuman_root_path}/readme.txt")
 
     # get data
-    f = h5py.File(f'{bhuman_root_path}/b-alls-2019.hdf5', 'r')
+    f = h5py.File(f"{bhuman_root_path}/b-alls-2019.hdf5", "r")
 
-    negative_data = np.array(f.get('negatives/data'))
-    positive_data = np.array(f.get('positives/data'))
-    negative_labels = np.array(f.get('negatives/labels'))
-    positive_labels = np.array(f.get('positives/labels'))
+    negative_data = np.array(f.get("negatives/data"))
+    positive_data = np.array(f.get("positives/data"))
+    negative_labels = np.array(f.get("negatives/labels"))
+    positive_labels = np.array(f.get("positives/labels"))
 
     create_classification_dataset(bhuman_root_path, negative_data, positive_data)
     create_detection_dataset(bhuman_root_path, negative_data, positive_data, negative_labels, positive_labels)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     generate_bhuman_ball_datasets_2019()

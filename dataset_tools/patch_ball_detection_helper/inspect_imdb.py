@@ -3,11 +3,15 @@ import pickle
 
 import numpy as np
 
-parser = argparse.ArgumentParser(description='Train the network given ')
+parser = argparse.ArgumentParser(description="Train the network given ")
 
-parser.add_argument('-b', '--database-path', dest='imgdb_path', default="imgdb.pkl",
-                    help='Path to the image database to use for training. '
-                         'Default is imgdb.pkl in current folder.')
+parser.add_argument(
+    "-b",
+    "--database-path",
+    dest="imgdb_path",
+    default="imgdb.pkl",
+    help="Path to the image database to use for training. " "Default is imgdb.pkl in current folder.",
+)
 
 args = parser.parse_args()
 

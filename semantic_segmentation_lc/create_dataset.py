@@ -94,11 +94,7 @@ def download_images_and_masks(camera, grid_size):
 
             # TODO creating the masks makes it harder to calculate overlap with grid cells later so do it here and the output will then always be in the grid shape and not the image shape
             # TODO figure out how a better workflow that also includes the adjustments to the robot masks could work -> after robocup and with new labeltool
-            if (
-                len(bbox_list_ball) > 0
-                or len(bbox_list_penalty) > 0
-                or len(bbox_list_robot) > 0
-            ):
+            if len(bbox_list_ball) > 0 or len(bbox_list_penalty) > 0 or len(bbox_list_robot) > 0:
                 # image part
                 image_file_name = task_output["storage_filename"]
                 image_path = download_from_minio(
@@ -120,9 +116,7 @@ def download_images_and_masks(camera, grid_size):
                 grid_cell_width = int(img_width / grid_columns)
 
                 # use defined grid shape here
-                mask = np.zeros(
-                    (grid_rows, grid_columns, 3), dtype=np.float32
-                )  # initialize mask
+                mask = np.zeros((grid_rows, grid_columns, 3), dtype=np.float32)  # initialize mask
 
                 for box in bbox_list_ball:
                     y_px, height_px, x_px, width_px = box
@@ -133,16 +127,12 @@ def download_images_and_masks(camera, grid_size):
                             cell_y1 = y * grid_cell_height
                             cell_x2 = x * grid_cell_width + grid_cell_width
                             cell_y2 = y * grid_cell_height + grid_cell_height
-                            cell_bb = BoundingBox.from_coords(
-                                cell_x1, cell_y1, cell_x2, cell_y2
-                            )
+                            cell_bb = BoundingBox.from_coords(cell_x1, cell_y1, cell_x2, cell_y2)
                             intersection = cell_bb.intersection(ball_bb)
                             if not intersection is None:
                                 value = intersection.area / cell_bb.area
 
-                                mask[y, x, 0] = (
-                                    value * 255.0
-                                )  # because png can only handle ints argh
+                                mask[y, x, 0] = value * 255.0  # because png can only handle ints argh
 
                 for box in bbox_list_penalty:
                     y_px, height_px, x_px, width_px = box
@@ -154,15 +144,11 @@ def download_images_and_masks(camera, grid_size):
                             cell_y1 = y * grid_cell_height
                             cell_x2 = x * grid_cell_width + grid_cell_width
                             cell_y2 = y * grid_cell_height + grid_cell_height
-                            cell_bb = BoundingBox.from_coords(
-                                cell_x1, cell_y1, cell_x2, cell_y2
-                            )
+                            cell_bb = BoundingBox.from_coords(cell_x1, cell_y1, cell_x2, cell_y2)
                             intersection = cell_bb.intersection(penalty_bb)
                             if not intersection is None:
                                 value = intersection.area / cell_bb.area
-                                mask[y, x, 1] = (
-                                    value * 255.0
-                                )  # because png can only handle ints argh
+                                mask[y, x, 1] = value * 255.0  # because png can only handle ints argh
 
                 for box in bbox_list_robot:
                     y_px, height_px, x_px, width_px = box
@@ -174,24 +160,16 @@ def download_images_and_masks(camera, grid_size):
                             cell_y1 = y * grid_cell_height
                             cell_x2 = x * grid_cell_width + grid_cell_width
                             cell_y2 = y * grid_cell_height + grid_cell_height
-                            cell_bb = BoundingBox.from_coords(
-                                cell_x1, cell_y1, cell_x2, cell_y2
-                            )
+                            cell_bb = BoundingBox.from_coords(cell_x1, cell_y1, cell_x2, cell_y2)
                             intersection = cell_bb.intersection(robot_bb)
                             if not intersection is None:
                                 value = intersection.area / cell_bb.area
-                                mask[y, x, 2] = (
-                                    value * 255.0
-                                )  # because png can only handle ints argh
+                                mask[y, x, 2] = value * 255.0  # because png can only handle ints argh
 
                 # maybe use different output folders for different grid sizes?
                 a = Path(download_folder) / "label"
                 Path(a).mkdir(exist_ok=True, parents=True)
-                mask_output_path = (
-                    Path(download_folder)
-                    / "label"
-                    / str(bucket_name + "_" + image_file_name)
-                )
+                mask_output_path = Path(download_folder) / "label" / str(bucket_name + "_" + image_file_name)
                 cv2.imwrite(str(mask_output_path), mask)
 
 
@@ -203,8 +181,7 @@ def create_ds_y(camera, scale_factor, ball_only=False):
     new_img_width = 640 / scale_factor
     new_img_height = 480 / scale_factor
 
-
-    images = list(Path(f"./datasets/{camera}/images").glob('**/*.png'))
+    images = list(Path(f"./datasets/{camera}/images").glob("**/*.png"))
 
     trainings_list = images[0:-100]
     validation_list = images[-100:]
@@ -215,17 +192,11 @@ def create_ds_y(camera, scale_factor, ball_only=False):
             dtype=np.float32,
         )
         if ball_only:
-            label_ds = h5f.create_dataset(
-                "Y", shape=(len(trainings_list), 15, 20, 1), dtype=np.float32
-            )
+            label_ds = h5f.create_dataset("Y", shape=(len(trainings_list), 15, 20, 1), dtype=np.float32)
         else:
-            label_ds = h5f.create_dataset(
-                "Y", shape=(len(trainings_list), 15, 20, 3), dtype=np.float32
-            )
+            label_ds = h5f.create_dataset("Y", shape=(len(trainings_list), 15, 20, 3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
-            img = load_image_as_yuv888_y_only(
-                str(image_path), rescale=True, subsample=True
-            )  # FIXME
+            img = load_image_as_yuv888_y_only(str(image_path), rescale=True, subsample=True)  # FIXME
             # TODO try batching here for speedup
             img_ds[cnt : cnt + 1 :, :, :] = img
 
@@ -242,17 +213,11 @@ def create_ds_y(camera, scale_factor, ball_only=False):
             dtype=np.float32,
         )
         if ball_only:
-            label_ds = h5f.create_dataset(
-                "Y", shape=(len(validation_list), 15, 20, 1), dtype=np.float32
-            )
+            label_ds = h5f.create_dataset("Y", shape=(len(validation_list), 15, 20, 1), dtype=np.float32)
         else:
-            label_ds = h5f.create_dataset(
-                "Y", shape=(len(validation_list), 15, 20, 3), dtype=np.float32
-            )
+            label_ds = h5f.create_dataset("Y", shape=(len(validation_list), 15, 20, 3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
-            img = load_image_as_yuv888_y_only(
-                str(image_path), rescale=True, subsample=True
-            )
+            img = load_image_as_yuv888_y_only(str(image_path), rescale=True, subsample=True)
             # TODO try batching here for speedup
             img_ds[cnt : cnt + 1 :, :, :] = img
 
@@ -272,26 +237,16 @@ def create_ds_yuv():
 if __name__ == "__main__":
     # FIXME add upload to datasets.naoth.de
     parser = argparse.ArgumentParser()
+
+    # fmt: off
     parser.add_argument("-t", "--type", required=True, choices=["yuv", "y"])
     parser.add_argument("-c", "--camera", required=True, choices=["bottom", "top"])
-    parser.add_argument(
-        "-g",
-        "--grid",
-        required=True,
-        nargs=2,
-        type=int,
-        help="Set the grid size like this: -g #rows #cols",
-    )
-    parser.add_argument(
-        "-s",
-        "--scale_factor",
-        required=False,
-        type=int,
-        default=2,
-        help="The factor by which the image will be downscaled",
-    )
+    parser.add_argument("-g", "--grid", required=True, nargs=2, type=int, help="Set the grid size like this: -g #rows #cols")
+    parser.add_argument("-s", "--scale_factor", required=False, type=int, default=2, help="The factor by which the image will be downscaled")
+    # fmt: on
 
     args = parser.parse_args()
+
     # python create_dataset.py -t y -c bottom -g 15 20
     grid_size = tuple(args.grid)
 

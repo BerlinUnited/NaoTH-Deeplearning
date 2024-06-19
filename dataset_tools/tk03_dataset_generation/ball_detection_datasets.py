@@ -3,13 +3,20 @@
 
     TODO: I could put all annotations inside the png files. Then i could remove all the csv nonsense
 """
+
 import numpy as np
 from pathlib import Path
 import pickle
-from dataset_tools.tk03_dataset_generation.naoth_patch_helper import create_natural_dataset, create_blender_detection_dataset, \
-    create_blender_segmentation_dataset, create_blender_classification_dataset, \
-    create_blender_detection_dataset_without_classification, download_tk03_dataset
+from dataset_tools.tk03_dataset_generation.naoth_patch_helper import (
+    create_natural_dataset,
+    create_blender_detection_dataset,
+    create_blender_segmentation_dataset,
+    create_blender_classification_dataset,
+    create_blender_detection_dataset_without_classification,
+    download_tk03_dataset,
+)
 from common_tools.main import get_data_root
+
 
 # TODO maybe move those 3 functions to common tools
 def calculate_mean(images):
@@ -51,7 +58,7 @@ def create_tk03_classification_datasets():
     x_mean = subtract_mean(x, mean)
 
     print("save classification dataset with natural images")
-    output_name = str(naoth_root_path / 'tk03_natural_classification.pkl')
+    output_name = str(naoth_root_path / "tk03_natural_classification.pkl")
     store_output(output_name, mean, x_mean, y, p)
 
     path = Path(tk03_path) / "blender"
@@ -61,7 +68,7 @@ def create_tk03_classification_datasets():
     x_syn_mean = subtract_mean(x_syn, mean_b)
 
     print("save classification dataset with synthetic images")
-    output_name = str(naoth_root_path / 'tk03_synthetic_classification.pkl')
+    output_name = str(naoth_root_path / "tk03_synthetic_classification.pkl")
     store_output(output_name, mean_b, x_syn_mean, y_syn)  # FIXME paths are missing here
 
     # merge the two datasets
@@ -71,14 +78,14 @@ def create_tk03_classification_datasets():
     X_mean = X - combined_mean
 
     print("save classification dataset with combined images")
-    output_name = str(naoth_root_path / 'tk03_combined_classification.pkl')
+    output_name = str(naoth_root_path / "tk03_combined_classification.pkl")
     store_output(output_name, combined_mean, X_mean, Y)  # FIXME paths are missing here
-    #----------------------------------------------
+    # ----------------------------------------------
     # Do simple balancing here
     print("len x", len(x))
     print("len x_syn", len(x_syn))
-    x_new_syn = x_syn[:len(x)]
-    y_new_syn = y_syn[:len(x)]
+    x_new_syn = x_syn[: len(x)]
+    y_new_syn = y_syn[: len(x)]
     print(len(x_new_syn))
 
     # merge the original and balanced synthetic datasets
@@ -88,9 +95,9 @@ def create_tk03_classification_datasets():
     X_NEW_mean = X_NEW - combined_mean
 
     print("save classification dataset with balanced combined images")
-    output_name = str(naoth_root_path / 'tk03_combined_balanced_classification.pkl')
+    output_name = str(naoth_root_path / "tk03_combined_balanced_classification.pkl")
     store_output(output_name, combined_mean_new, X_NEW_mean, Y_NEW)  # FIXME paths are missing here
-    #----------------------------------------------
+    # ----------------------------------------------
 
 
 def create_tk03_detection_datasets():
@@ -122,7 +129,7 @@ def create_tk03_detection_datasets():
     x_mean = subtract_mean(x, mean)
 
     print("save detection dataset with natural images")
-    output_name = str(naoth_root_path / 'tk03_natural_detection.pkl')
+    output_name = str(naoth_root_path / "tk03_natural_detection.pkl")
     store_output(output_name, mean, x_mean, y, p)
 
     path = Path(tk03_path) / "blender"
@@ -131,7 +138,7 @@ def create_tk03_detection_datasets():
     x_syn_mean = subtract_mean(x_syn, mean_b)
 
     print("save detection dataset with synthetic images")
-    output_name = str(naoth_root_path / 'tk03_synthetic_detection.pkl')
+    output_name = str(naoth_root_path / "tk03_synthetic_detection.pkl")
     store_output(output_name, mean_b, x_syn_mean, y_syn, p_syn)
 
     # merge the two datasets
@@ -142,7 +149,7 @@ def create_tk03_detection_datasets():
     X_mean = X - combined_mean
 
     print("save detection dataset with combined images")
-    output_name = str(naoth_root_path / 'tk03_combined_detection.pkl')
+    output_name = str(naoth_root_path / "tk03_combined_detection.pkl")
     store_output(output_name, combined_mean, X_mean, Y, P)
 
 
@@ -176,7 +183,7 @@ def create_tk03_detection2_datasets():
     x_mean = subtract_mean(x, mean)
 
     print("save detection dataset with natural images")
-    output_name = str(naoth_root_path / 'tk03_natural_detection2.pkl')
+    output_name = str(naoth_root_path / "tk03_natural_detection2.pkl")
     store_output(output_name, mean, x_mean, y, p)
 
     path = Path(tk03_path) / "blender"
@@ -185,7 +192,7 @@ def create_tk03_detection2_datasets():
     x_syn_mean = subtract_mean(x_syn, mean_b)
 
     print("save detection dataset with synthetic images")
-    output_name = str(naoth_root_path / 'tk03_synthetic_detection2.pkl')
+    output_name = str(naoth_root_path / "tk03_synthetic_detection2.pkl")
     store_output(output_name, mean_b, x_syn_mean, y_syn, p_syn)
 
     # merge the two datasets
@@ -196,7 +203,7 @@ def create_tk03_detection2_datasets():
     X_mean = X - combined_mean
 
     print("save detection dataset with combined images")
-    output_name = str(naoth_root_path / 'tk03_combined_detection2.pkl')
+    output_name = str(naoth_root_path / "tk03_combined_detection2.pkl")
     store_output(output_name, combined_mean, X_mean, Y, P)
 
 
@@ -225,7 +232,7 @@ def create_tk03_segmentation_datasets():
     x_mean = subtract_mean(x, mean)
 
     print("save segmentation dataset with natural images")
-    output_name = str(naoth_root_path / 'tk03_natural_segmentation.pkl')
+    output_name = str(naoth_root_path / "tk03_natural_segmentation.pkl")
     store_output(output_name, mean, x_mean, y, p)
 
     path = Path(tk03_path) / "blender"
@@ -233,7 +240,7 @@ def create_tk03_segmentation_datasets():
     mean_b = calculate_mean(x_syn)
     x_syn_mean = subtract_mean(x_syn, mean_b)
 
-    output_name = str(naoth_root_path / 'tk03_synthetic_segmentation.pkl')
+    output_name = str(naoth_root_path / "tk03_synthetic_segmentation.pkl")
     store_output(output_name, mean_b, x_syn_mean, y_syn)
 
     # merge the two datasets
@@ -243,11 +250,12 @@ def create_tk03_segmentation_datasets():
     X_mean = X - combined_mean
 
     print("save detection dataset with combined images")
-    output_name = str(naoth_root_path / 'tk03_combined_segmentation.pkl')
+    output_name = str(naoth_root_path / "tk03_combined_segmentation.pkl")
     store_output(output_name, combined_mean, X_mean, Y)
+
 
 create_tk03_classification_datasets()
 
-#create_tk03_segmentation_datasets()
-#create_tk03_detection2_datasets()
-#create_tk03_detection_datasets()
+# create_tk03_segmentation_datasets()
+# create_tk03_detection2_datasets()
+# create_tk03_detection_datasets()

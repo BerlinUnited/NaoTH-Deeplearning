@@ -42,9 +42,7 @@ class VAEGAN(keras.Model):
     def from_config(cls, config):
         encoder = keras.saving.deserialize_keras_object(config.pop("encoder"))
         decoder = keras.saving.deserialize_keras_object(config.pop("decoder"))
-        discriminator = keras.saving.deserialize_keras_object(
-            config.pop("discriminator")
-        )
+        discriminator = keras.saving.deserialize_keras_object(config.pop("discriminator"))
 
         return cls(
             encoder=encoder,
@@ -109,9 +107,7 @@ class VAEGAN(keras.Model):
         with tf.GradientTape() as tape:
             z_mean, z_log_var, z = self.encoder(x)
             reconstruction = self.decoder(z)
-            combined_images = tf.concat(
-                [reconstruction, tf.cast(x, dtype="float32")], axis=0
-            )
+            combined_images = tf.concat([reconstruction, tf.cast(x, dtype="float32")], axis=0)
 
             # Assemble labels discriminating real from fake images, 0 = fake, 1 = real
             labels = tf.concat(
@@ -124,12 +120,8 @@ class VAEGAN(keras.Model):
             predictions = self.discriminator(combined_images)
             disc_loss = self.disc_loss(labels, predictions)
 
-            disc_gradients = tape.gradient(
-                disc_loss, self.discriminator_trainable_weights
-            )
-            self.disc_optimizer.apply_gradients(
-                zip(disc_gradients, self.discriminator_trainable_weights)
-            )
+            disc_gradients = tape.gradient(disc_loss, self.discriminator_trainable_weights)
+            self.disc_optimizer.apply_gradients(zip(disc_gradients, self.discriminator_trainable_weights))
 
         #############
         # Train VAE #
@@ -149,18 +141,14 @@ class VAEGAN(keras.Model):
 
             # Assemble labels that say "all real images"
             misleading_labels = tf.ones((batch_size, 1))
-            disc_loss_vae = self.disc_loss(
-                misleading_labels, self.discriminator(reconstruction)
-            )
+            disc_loss_vae = self.disc_loss(misleading_labels, self.discriminator(reconstruction))
 
             # total_loss = reconstruction_loss + 2 * disc_loss_vae + 0.2 * kl_loss
             total_loss = reconstruction_loss + disc_loss_vae + kl_loss
 
             vae_gradients = tape.gradient(total_loss, self.vae_trainable_weights)
 
-            self.vae_optimizer.apply_gradients(
-                zip(vae_gradients, self.vae_trainable_weights)
-            )
+            self.vae_optimizer.apply_gradients(zip(vae_gradients, self.vae_trainable_weights))
 
         # Update metrics
         self.vae_loss_metric.update_state(total_loss)
@@ -193,9 +181,7 @@ def build_discriminator(
     output_shape,
     n_filters=(16, 16, 32),
 ):
-    discriminator_input = keras.layers.Input(
-        shape=output_shape, name="discriminator_input"
-    )
+    discriminator_input = keras.layers.Input(shape=output_shape, name="discriminator_input")
     disc_layer = discriminator_input
 
     for i, filter_num in enumerate(n_filters):
@@ -206,39 +192,23 @@ def build_discriminator(
             strides=2,
             name=f"discriminator_conv_{i}",
         )(disc_layer)
-        disc_layer = keras.layers.BatchNormalization(name=f"discriminator_norm_{i}")(
-            disc_layer
-        )
-        disc_layer = keras.layers.LeakyReLU(
-            alpha=0.2, name=f"discriminator_activation_{i}"
-        )(disc_layer)
+        disc_layer = keras.layers.BatchNormalization(name=f"discriminator_norm_{i}")(disc_layer)
+        disc_layer = keras.layers.LeakyReLU(alpha=0.2, name=f"discriminator_activation_{i}")(disc_layer)
 
     disc_layer = keras.layers.Flatten()(disc_layer)
     disc_layer = keras.layers.Dense(256)(disc_layer)
     disc_layer = keras.layers.LeakyReLU(alpha=0.2)(disc_layer)
     disc_layer = keras.layers.Dropout(0.2)(disc_layer)
-    discriminator_output = keras.layers.Dense(
-        1, activation="sigmoid", name="discriminator_output"
-    )(disc_layer)
+    discriminator_output = keras.layers.Dense(1, activation="sigmoid", name="discriminator_output")(disc_layer)
 
-    return keras.models.Model(
-        discriminator_input, discriminator_output, name="discriminator_model"
-    )
+    return keras.models.Model(discriminator_input, discriminator_output, name="discriminator_model")
 
 
 def build_vae_gan(*args, **kwargs):
-    vae_loss_function = kwargs.pop(
-        "vae_loss_function", keras.losses.MeanSquaredError(reduction="sum")
-    )
-    vae_optimizer = kwargs.pop(
-        "vae_optimizer", keras.optimizers.Adam(learning_rate=0.0005)
-    )
-    disc_loss_function = kwargs.pop(
-        "disc_loss_function", keras.losses.BinaryCrossentropy()
-    )
-    disc_optimizer = kwargs.pop(
-        "disc_optimizer", keras.optimizers.Adam(learning_rate=0.0005)
-    )
+    vae_loss_function = kwargs.pop("vae_loss_function", keras.losses.MeanSquaredError(reduction="sum"))
+    vae_optimizer = kwargs.pop("vae_optimizer", keras.optimizers.Adam(learning_rate=0.0005))
+    disc_loss_function = kwargs.pop("disc_loss_function", keras.losses.BinaryCrossentropy())
+    disc_optimizer = kwargs.pop("disc_optimizer", keras.optimizers.Adam(learning_rate=0.0005))
 
     n_disc_filters = kwargs.pop("n_disc_filters", (16, 16, 32))
 

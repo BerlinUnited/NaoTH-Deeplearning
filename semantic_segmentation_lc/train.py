@@ -3,10 +3,11 @@
     FIXME add early stopping callback
     FIXME add saving callback
 """
+
 import sys
 import os
 
-helper_path = os.path.join(os.path.dirname(__file__), '../tools')
+helper_path = os.path.join(os.path.dirname(__file__), "../tools")
 sys.path.append(helper_path)
 
 import argparse
@@ -16,7 +17,12 @@ import mlflow
 from tensorflow import keras
 from keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from models import bhuman_segmentation_lower_yuv_original, bhuman_segmentation_y_channel_240x320x1, bhuman_segmentation_y_channel_240x320x1_sigmoid, bhuman_segmentation_y_channel_120x160x1_sigmoid
+from models import (
+    bhuman_segmentation_lower_yuv_original,
+    bhuman_segmentation_y_channel_240x320x1,
+    bhuman_segmentation_y_channel_240x320x1_sigmoid,
+    bhuman_segmentation_y_channel_120x160x1_sigmoid,
+)
 from mflow_helper import set_tracking_url
 
 
@@ -24,18 +30,18 @@ class DataGenerator(Sequence):
     def __init__(self, file_path, batch_size):
         self.file_path = file_path
         self.batch_size = batch_size
-        with h5py.File(file_path, 'r') as f:
-            self.num_samples = len(f['X'])
+        with h5py.File(file_path, "r") as f:
+            self.num_samples = len(f["X"])
 
     def __len__(self):
         return int(np.ceil(self.num_samples / self.batch_size))
 
     def __getitem__(self, index):
-        with h5py.File(self.file_path, 'r') as f:
+        with h5py.File(self.file_path, "r") as f:
             start_index = index * self.batch_size
             end_index = min((index + 1) * self.batch_size, self.num_samples)
-            X_batch = f['X'][start_index:end_index] 
-            y_batch = f['Y'][start_index:end_index]
+            X_batch = f["X"][start_index:end_index]
+            y_batch = f["Y"][start_index:end_index]
         return X_batch, y_batch
 
 
@@ -44,87 +50,121 @@ class DataGeneratorAugmentation(Sequence):
     def __init__(self, file_path, batch_size):
         self.file_path = file_path
         self.batch_size = batch_size
-        with h5py.File(file_path, 'r') as f: 
-            self.num_samples = len(f['X'])
-        
+        with h5py.File(file_path, "r") as f:
+            self.num_samples = len(f["X"])
+
         self.datagen = ImageDataGenerator(
-                rotation_range=20,
-                width_shift_range=0.2,
-                height_shift_range=0.2,
-                shear_range=0.2,
-                zoom_range=0.2,
-                horizontal_flip=True,
-                fill_mode='nearest'
-            )
+            rotation_range=20,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True,
+            fill_mode="nearest",
+        )
 
     def __len__(self):
         return int(np.ceil(self.num_samples / self.batch_size))
 
     def __getitem__(self, index):
-        with h5py.File(self.file_path, 'r') as f:
+        with h5py.File(self.file_path, "r") as f:
             start_index = index * self.batch_size
             end_index = min((index + 1) * self.batch_size, self.num_samples)
-            X_batch = f['X'][start_index:end_index]
-            y_batch = f['Y'][start_index:end_index]
+            X_batch = f["X"][start_index:end_index]
+            y_batch = f["Y"][start_index:end_index]
         augmented = next(self.datagen.flow(X_batch, y_batch, batch_size=self.batch_size))
         images, masks = augmented[0], augmented[1]
         return images, masks
+
 
 def train_bhuman_segmentation_y_channel_240x320x1(args):
     with mlflow.start_run() as run:
         run = mlflow.active_run()
         # FIXME put validation data in the same h5 file for easier processing
-        train_generator = DataGenerator('bottom_y_only_training.h5', batch_size=32)
-        validation_generator = DataGenerator('bottom_y_only_validation.h5', batch_size=32)
+        train_generator = DataGenerator("bottom_y_only_training.h5", batch_size=32)
+        validation_generator = DataGenerator("bottom_y_only_validation.h5", batch_size=32)
 
-        dummy_dataset = mlflow.data.from_numpy(np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset)
+        dummy_dataset = mlflow.data.from_numpy(
+            np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset
+        )
         mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
 
         model = bhuman_segmentation_y_channel_240x320x1()
-        model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
 
         callbacks = [
             keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
             keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
-            keras.callbacks.ModelCheckpoint(filepath=f"runs/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto'),
-            keras.callbacks.ModelCheckpoint(filepath=f"runs/{run.info.run_name}/best.h5", monitor='loss', verbose=1, save_best_only=True, mode='auto')  # need to use this with compilednn
+            keras.callbacks.ModelCheckpoint(
+                filepath=f"runs/{run.info.run_name}/best.keras",
+                monitor="loss",
+                verbose=1,
+                save_best_only=True,
+                mode="auto",
+            ),
+            keras.callbacks.ModelCheckpoint(
+                filepath=f"runs/{run.info.run_name}/best.h5",
+                monitor="loss",
+                verbose=1,
+                save_best_only=True,
+                mode="auto",
+            ),  # need to use this with compilednn
         ]
 
-        model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
+        model.fit(
+            x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True
+        )
 
 
 def train_y_channel_v1(args):
     with mlflow.start_run() as run:
         run = mlflow.active_run()
         # FIXME put validation data in the same h5 file for easier processing
-        train_generator = DataGenerator('training_ds_y.h5', batch_size=32)
-        validation_generator = DataGenerator('validation_ds_y.h5', batch_size=32)
+        train_generator = DataGenerator("training_ds_y.h5", batch_size=32)
+        validation_generator = DataGenerator("validation_ds_y.h5", batch_size=32)
 
-        dummy_dataset = mlflow.data.from_numpy(np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset)
+        dummy_dataset = mlflow.data.from_numpy(
+            np.array([]), targets=np.array([]), source=f"https://datasets.naoth.de/{args.dataset}", name=args.dataset
+        )
         mlflow.log_input(dummy_dataset, context="training", tags={"name": args.dataset})
 
         # TODO implement metrics logging: https://mlflow.org/docs/latest/python_api/mlflow.tensorflow.html
-        
+
         model = bhuman_segmentation_y_channel_240x320x1_sigmoid()
-        #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
-        model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
+        # model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
 
         callbacks = [
             keras.callbacks.EarlyStopping(monitor="val_loss", patience=50, restore_best_weights=True),
             keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.75, patience=10),
-            keras.callbacks.ModelCheckpoint(filepath=f"runs/{run.info.run_name}/best.keras", monitor='loss', verbose=1, save_best_only=True, mode='auto'),
-            keras.callbacks.ModelCheckpoint(filepath=f"runs/{run.info.run_name}/best.h5", monitor='loss', verbose=1, save_best_only=True, mode='auto')  # need to use this with compilednn
+            keras.callbacks.ModelCheckpoint(
+                filepath=f"runs/{run.info.run_name}/best.keras",
+                monitor="loss",
+                verbose=1,
+                save_best_only=True,
+                mode="auto",
+            ),
+            keras.callbacks.ModelCheckpoint(
+                filepath=f"runs/{run.info.run_name}/best.h5",
+                monitor="loss",
+                verbose=1,
+                save_best_only=True,
+                mode="auto",
+            ),  # need to use this with compilednn
         ]
 
-        model.fit(x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True)
+        model.fit(
+            x=train_generator, validation_data=validation_generator, callbacks=callbacks, epochs=500, shuffle=True
+        )
+
 
 def train_yuv422():
-    train_generator = DataGenerator('training_ds_yuv.h5', batch_size=32)
-    validation_generator = DataGenerator('validation_ds_yuv.h5', batch_size=32)
+    train_generator = DataGenerator("training_ds_yuv.h5", batch_size=32)
+    validation_generator = DataGenerator("validation_ds_yuv.h5", batch_size=32)
 
     model = bhuman_segmentation_lower_yuv_original()
-    #model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
-    model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer='adam', metrics=['accuracy'])
+    # model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss=keras.losses.BinaryCrossentropy(), optimizer="adam", metrics=["accuracy"])
 
     model.fit(x=train_generator, validation_data=validation_generator, epochs=200)
     model.save(f"semantic_segmentation_yuv.keras")
@@ -133,13 +173,13 @@ def train_yuv422():
 if __name__ == "__main__":
     # FIXME add mlflow integration and upload to models.naoth.de
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--type", default='y', choices=['yuv', 'y'])
-    parser.add_argument("-c", "--camera", default='bottom', choices=['bottom', 'top'])
+    parser.add_argument("-t", "--type", default="y", choices=["yuv", "y"])
+    parser.add_argument("-c", "--camera", default="bottom", choices=["bottom", "top"])
     parser.add_argument("-ds", "--dataset", required=True)
     parser.add_argument("-u", "--user", required=True)
     args = parser.parse_args()
 
-    os.environ["LOGNAME"] = args.user # needed because for now the docker container runs as root user
+    os.environ["LOGNAME"] = args.user  # needed because for now the docker container runs as root user
     # set up remote tracking if the mlflow tracking server is available
     set_tracking_url()
     mlflow.enable_system_metrics_logging()

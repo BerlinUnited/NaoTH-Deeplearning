@@ -1,6 +1,7 @@
 import zipfile
 from pathlib import Path
 
+
 def create_zip_file():
     filenames = ["yolo-full-size-detection_dataset_top_2024-04-05.yaml"]
     directory = Path("yolo-full-size-detection_dataset_top_2024-04-05")

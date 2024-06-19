@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image as PIL_Image
 
+
 def load_image_as_yuv422_original(image_filename, patch_size=16):
     """
     this functions loads an image from a file to the correct format for the naoth library.
@@ -10,11 +11,10 @@ def load_image_as_yuv422_original(image_filename, patch_size=16):
     # don't import cv globally, because the dummy simulator shared library might need to load a non-system library
     # and we need to make sure loading the dummy simulator shared library happens first
     import cv2
+
     # we load the image in opencv BGR format here
     cv_img = cv2.imread(image_filename)
-    cv_img = cv2.resize(
-        cv_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST
-    )
+    cv_img = cv2.resize(cv_img, (patch_size, patch_size), interpolation=cv2.INTER_NEAREST)
 
     # convert image to yuv422
     cv_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2YUV).tobytes()

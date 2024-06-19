@@ -5,6 +5,7 @@
     - it should be clear what dataset was used
     - its best to use datasets that are actually already uploaded to datasets.naoth.de
 """
+
 import toml
 import tensorflow as tf
 from pathlib import Path
@@ -13,12 +14,12 @@ from utility_functions.model_zoo import fy_1500_new, fy_1500_new2, fy_1500_old, 
 from train import run_training
 
 # HACK set gpu to invisible. For some reason tensorflow got stuck on my machine when using gpu
-tf.config.set_visible_devices([], 'GPU')
+tf.config.set_visible_devices([], "GPU")
 
 
 def get_data_root():
     # FIXME this is a copy
-    with open('../config.toml', 'r') as f:
+    with open("../config.toml", "r") as f:
         config_dict = toml.load(f)
 
     return config_dict["data_root"]
@@ -34,10 +35,7 @@ def run_detection_multiple_times():
 
     model_functions = [fy_1500_new2, fy_1500_new, fy_1500_old, model1]
 
-    train_params = {
-        "batch_size": 256,
-        "epochs": 20
-    }
+    train_params = {"batch_size": 256, "epochs": 20}
     for model_f in model_functions:
         for i in range(10):
             model = model_f()
@@ -58,12 +56,9 @@ def run_classification_multiple_times():
     function_name = inspect.currentframe().f_code.co_name
     model_folder = (Path(get_data_root()) / "../Models" / function_name).resolve()
 
-    model_functions = [] # TODO
+    model_functions = []  # TODO
 
-    train_params = {
-        "batch_size": 256,
-        "epochs": 20
-    }
+    train_params = {"batch_size": 256, "epochs": 20}
     for model_f in model_functions:
         for i in range(10):
             model = model_f()

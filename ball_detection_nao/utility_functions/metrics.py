@@ -3,9 +3,9 @@ import numpy as np
 
 
 class ClassificationMetric(tf.keras.metrics.Metric):
-    def __init__(self, name='my metric', **kwargs):
+    def __init__(self, name="my metric", **kwargs):
         super(ClassificationMetric, self).__init__(name=name, **kwargs)
-        self.result_val = self.add_weight(name='tp', initializer='zeros')
+        self.result_val = self.add_weight(name="tp", initializer="zeros")
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         """
@@ -46,14 +46,14 @@ def calculate_iou(y_true, y_pred):
         y_boxTrue_tleft = y_true[0, 1]
         boxTrue_width = y_true[0, 2]
         boxTrue_height = y_true[0, 2]
-        area_boxTrue = (boxTrue_width * boxTrue_height)
+        area_boxTrue = boxTrue_width * boxTrue_height
 
         # boxPred
         x_boxPred_tleft = y_pred[0, 0]
         y_boxPred_tleft = y_pred[0, 1]
         boxPred_width = y_pred[0, 2]
         boxPred_height = y_pred[0, 2]
-        area_boxPred = (boxPred_width * boxPred_height)
+        area_boxPred = boxPred_width * boxPred_height
 
         # calculate the bottom right coordinates for boxTrue and boxPred
 
@@ -80,8 +80,7 @@ def calculate_iou(y_true, y_pred):
         # The np.max() function forces the intersection area to 0 if the boxes don't overlap.
 
         # Version 2 revision
-        area_of_intersection = \
-            np.max([0, (x_boxInt_br - x_boxInt_tleft)]) * np.max([0, (y_boxInt_br - y_boxInt_tleft)])
+        area_of_intersection = np.max([0, (x_boxInt_br - x_boxInt_tleft)]) * np.max([0, (y_boxInt_br - y_boxInt_tleft)])
 
         iou = area_of_intersection / ((area_boxTrue + area_boxPred) - area_of_intersection)
 

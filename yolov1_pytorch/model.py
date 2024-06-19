@@ -6,6 +6,7 @@ with slight modification with added BatchNorm.
 import torch
 import torch.nn as nn
 from config import *
+
 """ 
 Information about architecture config:
 Tuple is structured by (kernel_size, filters, stride, padding) 
@@ -66,7 +67,11 @@ class Yolov1(nn.Module):
             if type(x) == tuple:
                 layers += [
                     CNNBlock(
-                        in_channels, x[1], kernel_size=x[0], stride=x[2], padding=x[3],
+                        in_channels,
+                        x[1],
+                        kernel_size=x[0],
+                        stride=x[2],
+                        padding=x[3],
                     )
                 ]
                 in_channels = x[1]

@@ -19,23 +19,24 @@ def fy_1500_new():
     model = Sequential()
     model._name = "test_model"
 
-    model.add(Convolution2D(4, (3, 3), input_shape=input_shape, padding='same', name="Conv2D_1", activation='relu'))
-    model.add(Convolution2D(4, (3, 3), padding='same', name="Conv2D_2", activation='relu'))
+    model.add(Convolution2D(4, (3, 3), input_shape=input_shape, padding="same", name="Conv2D_1", activation="relu"))
+    model.add(Convolution2D(4, (3, 3), padding="same", name="Conv2D_2", activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Convolution2D(8, (3, 3), padding='same', name="Conv2D_3", activation="relu"))
+    model.add(Convolution2D(8, (3, 3), padding="same", name="Conv2D_3", activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
-    model.add(Convolution2D(8, (3, 3), padding='same', name="Conv2D_4", activation='relu'))
-    model.add(Convolution2D(8, (1, 1), padding='same', name="Conv2D_5"))
+    model.add(Convolution2D(8, (3, 3), padding="same", name="Conv2D_4", activation="relu"))
+    model.add(Convolution2D(8, (1, 1), padding="same", name="Conv2D_5"))
 
     # classifier
     model.add(Flatten(name="flatten_1"))
     # output is radius, x, y, confidence
     model.add(Dense(4, name="dense_1"))
 
-    model.compile(loss='mean_squared_error', optimizer='adam')
+    model.compile(loss="mean_squared_error", optimizer="adam")
 
     return model
 
+
 if __name__ == "__main__":
     model = fy_1500_new()
-    model.save('keras__test_model.h5', include_optimizer=False)
+    model.save("keras__test_model.h5", include_optimizer=False)

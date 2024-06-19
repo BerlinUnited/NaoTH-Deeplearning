@@ -10,4 +10,4 @@ def mish(x):
     return x * K.tanh(K.softplus(x))
 
 
-custom_keras_activations = {'swish': swish, 'mish': mish}
+custom_keras_activations = {"swish": swish, "mish": mish}

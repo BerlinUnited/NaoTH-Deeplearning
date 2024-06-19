@@ -1,6 +1,7 @@
 """
     The functions create datasets for the new cppyy patch data
 """
+
 from pathlib import Path
 import cv2
 import numpy as np
@@ -11,8 +12,7 @@ from common_tools.main import get_data_root
 
 
 def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_combined=True):
-    """
-    """
+    """ """
     naoth_root_path = Path(get_data_root()) / "data_balldetection/naoth"
     rc19_path = Path(get_data_root()) / "data_cvat/RoboCup2019/combined/COCO_1.0/"
     color_string = "color" if color else "bw"
@@ -31,7 +31,7 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
     # TODO the for loops can go into a function
     subfu = [f for f in rc19_path.iterdir() if f.is_dir()]
     for folder in subfu:
-        patch_paths = Path(folder / "all_patches").glob('**/*.png')
+        patch_paths = Path(folder / "all_patches").glob("**/*.png")
         for patch_path in patch_paths:
             if color:
                 img_cv = cv2.imread(str(patch_path))
@@ -79,13 +79,15 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
     # create validation datasets. For better evaluation i split the bottom and top images
     """
     # create bottom eval dataset
-    val_img, val_target = create_val_sets(bottom_ball_images, bottom_noball_images, bottom_ball_targets, bottom_noball_targets)
-    output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_val_btm.pkl')
+    val_img, val_target = create_val_sets(
+        bottom_ball_images, bottom_noball_images, bottom_ball_targets, bottom_noball_targets
+    )
+    output_name = str(naoth_root_path / f"rc19_classification_{patch_size}_{color_string}_val_btm.pkl")
     save_datasets(val_img, val_target, output_name)
 
     # create top eval dataset
     val_img, val_target = create_val_sets(top_ball_images, top_noball_images, top_ball_targets, top_noball_targets)
-    output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_val_top.pkl')
+    output_name = str(naoth_root_path / f"rc19_classification_{patch_size}_{color_string}_val_top.pkl")
     save_datasets(val_img, val_target, output_name)
 
     """
@@ -106,12 +108,12 @@ def create_2019_patch_dataset(patch_size=16, color=False, iou_tresh=0.3, cam_com
         all_images = all_bottom_images + all_top_images
         all_targets = all_bottom_targets + all_top_targets
 
-        output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_combined.pkl')
+        output_name = str(naoth_root_path / f"rc19_classification_{patch_size}_{color_string}_combined.pkl")
         save_datasets(all_images, all_targets, output_name)
     else:
-        output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_bottom.pkl')
+        output_name = str(naoth_root_path / f"rc19_classification_{patch_size}_{color_string}_bottom.pkl")
         save_datasets(all_bottom_images, all_bottom_targets, output_name)
-        output_name = str(naoth_root_path / f'rc19_classification_{patch_size}_{color_string}_top.pkl')
+        output_name = str(naoth_root_path / f"rc19_classification_{patch_size}_{color_string}_top.pkl")
         save_datasets(all_top_images, all_top_targets, output_name)
 
 
@@ -160,15 +162,15 @@ def save_datasets(all_images, targets, output_name):
 
 if __name__ == "__main__":
     # Top vs bottom vs combined experiment
-    #create_2019_patch_dataset(16, color=False, cam_combined=False)
-    #create_2019_patch_dataset(16, color=False, cam_combined=True)
+    # create_2019_patch_dataset(16, color=False, cam_combined=False)
+    # create_2019_patch_dataset(16, color=False, cam_combined=True)
 
     # color experiment
-    #create_2019_patch_dataset(16, color=True, cam_combined=True)
+    # create_2019_patch_dataset(16, color=True, cam_combined=True)
 
     # patch size experiment
-    #create_2019_patch_dataset(8, color=False, cam_combined=True)
-    #create_2019_patch_dataset(12, color=False, cam_combined=True)
-    #create_2019_patch_dataset(24, color=False, cam_combined=True)
-    #create_2019_patch_dataset(32, color=False, cam_combined=True)
+    # create_2019_patch_dataset(8, color=False, cam_combined=True)
+    # create_2019_patch_dataset(12, color=False, cam_combined=True)
+    # create_2019_patch_dataset(24, color=False, cam_combined=True)
+    # create_2019_patch_dataset(32, color=False, cam_combined=True)
     pass

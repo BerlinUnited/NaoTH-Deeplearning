@@ -16,9 +16,7 @@ from helper import (
 
 if __name__ == "__main__":
     DEVILS_SAVE_DIR = "/tmp/devils_dataset"
-    DEVILS_SAVE_DIR_EXTRACTED = (
-        f"{DEVILS_SAVE_DIR}/patches_classification_naodevils_32x32x3_GO24"
-    )
+    DEVILS_SAVE_DIR_EXTRACTED = f"{DEVILS_SAVE_DIR}/patches_classification_naodevils_32x32x3_GO24"
     NAOTH_TRAIN_SAVE_DIR = "/tmp/naoth_labeled_patches_train"
     NAOTH_TEST_SAVE_DIR = "/tmp/naoth_labeled_patches_test"
 
@@ -79,9 +77,7 @@ if __name__ == "__main__":
         f.create_dataset("X", data=X_train)
         f.create_dataset("y", data=y_train)
 
-    with h5py.File(
-        "classification_patches_yuv888_y_only_devils+naoth_val_ball_no_ball_X_y.h5", "w"
-    ) as f:
+    with h5py.File("classification_patches_yuv888_y_only_devils+naoth_val_ball_no_ball_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_val)
         f.create_dataset("y", data=y_val)
 
@@ -119,7 +115,6 @@ if __name__ == "__main__":
     # print("y_test shape:", y_test.shape)
     # print("Number of ball examples in test set:", y_test.sum())
     # print()
-
 
     # with h5py.File(
     #     "classification_patches_yuv888_y_only_naoth_test_ball_no_ball_X_y.h5", "w"

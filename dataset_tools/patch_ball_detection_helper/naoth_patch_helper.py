@@ -14,21 +14,17 @@ from common_tools import get_data_root, download_function
 
 
 def download_tk03_dataset():
-    """
-    """
-
+    """ """
 
     download_path = Path(get_data_root()) / "data_balldetection/naoth/TK-03"
 
-    download_function("http://datasets.naoteamhumboldt.de/tk03.zip",
-                      f"{download_path}/tk03.zip")
+    download_function("http://datasets.naoteamhumboldt.de/tk03.zip", f"{download_path}/tk03.zip")
     # FIXME unzip is missing
 
 
 def adjust_gamma(image, gamma=1.0):
     inv_gamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** inv_gamma) * 255
-                      for i in np.arange(0, 256)]).astype("uint8")
+    table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(image, table)
 
 
@@ -49,7 +45,7 @@ def create_blender_classification_dataset(path, res):
     num_ball_img = 0
     print(f"Loading images from {path} ...")
     for patch_folder, mask_folder in get_blender_patch_paths(path):
-        patch_images = list(Path(patch_folder).glob('**/*.png'))
+        patch_images = list(Path(patch_folder).glob("**/*.png"))
         for patch_image in patch_images:
             img = cv2.imread(str(patch_image), cv2.IMREAD_GRAYSCALE)
             img = cv2.resize(img, (res["x"], res["y"]))
@@ -86,7 +82,7 @@ def create_blender_detection_dataset(path, res):
     db = []
     print(f"Loading images from {path} ...")
     for patch_folder, mask_folder in get_blender_patch_paths(path):
-        patch_images = list(Path(patch_folder).glob('**/*.png'))
+        patch_images = list(Path(patch_folder).glob("**/*.png"))
         for patch_image in patch_images:
             relative_patch_path = relpath(str(patch_image), path)
 
@@ -165,12 +161,12 @@ def create_blender_detection_dataset(path, res):
 
 def create_blender_detection_dataset_without_classification(path, res):
     """
-        without classification value in output
+    without classification value in output
     """
     db = []
     print(f"Loading images from {path} ...")
     for patch_folder, mask_folder in get_blender_patch_paths(path):
-        patch_images = list(Path(patch_folder).glob('**/*.png'))
+        patch_images = list(Path(patch_folder).glob("**/*.png"))
         for patch_image in patch_images:
             relative_patch_path = relpath(str(patch_image), path)
 
@@ -252,7 +248,7 @@ def create_blender_segmentation_dataset(path, res):
         # print("patch_folder: ", patch_folder)
         # print("mask_folder: ", mask_folder)
 
-        patch_images = list(Path(patch_folder).glob('**/*.png'))
+        patch_images = list(Path(patch_folder).glob("**/*.png"))
         for patch_image in patch_images:
             img = cv2.imread(str(patch_image), cv2.IMREAD_GRAYSCALE)
             img = cv2.resize(img, (res["x"], res["y"]))
@@ -290,7 +286,7 @@ def create_natural_classification_dataset(path, res):
     db_noballs = []
 
     # parse csv file
-    with open(path, newline='') as csvfile:
+    with open(path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             f = os.path.join(os.path.dirname(path), row["filename"])
@@ -324,7 +320,7 @@ def create_natural_classification_dataset(path, res):
                     continue
                 else:
                     # unknown type
-                    print("Unknown type \"" + atts["type"] + "\" in file " + f)
+                    print('Unknown type "' + atts["type"] + '" in file ' + f)
                     continue
             else:
                 y = 0.0
@@ -346,7 +342,7 @@ def create_natural_detection_dataset(path, res):
     db_noballs = []
 
     # parse csv file
-    with open(path, newline='') as csvfile:
+    with open(path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             f = os.path.join(os.path.dirname(path), row["filename"])
@@ -380,8 +376,8 @@ def create_natural_detection_dataset(path, res):
                         # cv2.circle(debug_img, (int(x),int(y)), int(radius), color=(0,0,255))
 
                         # normalize to resolution
-                        x_coord = (x_coord / res["x"])
-                        y_coord = (y_coord / res["y"])
+                        x_coord = x_coord / res["x"]
+                        y_coord = y_coord / res["y"]
                         radius = radius / max(res["x"], res["y"])
                         is_ball = True
                     else:
@@ -392,7 +388,7 @@ def create_natural_detection_dataset(path, res):
                     continue
                 else:
                     # unknown type
-                    print("Unknown type \"" + atts["type"] + "\" in file " + f)
+                    print('Unknown type "' + atts["type"] + '" in file ' + f)
                     continue
             else:
                 # no region means no ball
@@ -409,8 +405,9 @@ def create_natural_detection_dataset(path, res):
                 db_noballs.append((img_normalized, target, p))
 
             # augment: binarized image
-            bin_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                            cv2.THRESH_BINARY, 11, 2).reshape((16, 16))
+            bin_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2).reshape(
+                (16, 16)
+            )
 
             if is_ball:
                 db_balls.append((bin_img.astype(float) / 255.0, target, p))
@@ -441,7 +438,7 @@ def create_natural_detection_dataset_without_classification(path, res):
     db_noballs = []
 
     # parse csv file
-    with open(path, newline='') as csvfile:
+    with open(path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             f = os.path.join(os.path.dirname(path), row["filename"])
@@ -475,8 +472,8 @@ def create_natural_detection_dataset_without_classification(path, res):
                         # cv2.circle(debug_img, (int(x),int(y)), int(radius), color=(0,0,255))
 
                         # normalize to resolution
-                        x_coord = (x_coord / res["x"])
-                        y_coord = (y_coord / res["y"])
+                        x_coord = x_coord / res["x"]
+                        y_coord = y_coord / res["y"]
                         radius = radius / max(res["x"], res["y"])
                         is_ball = True
                     else:
@@ -487,7 +484,7 @@ def create_natural_detection_dataset_without_classification(path, res):
                     continue
                 else:
                     # unknown type
-                    print("Unknown type \"" + atts["type"] + "\" in file " + f)
+                    print('Unknown type "' + atts["type"] + '" in file ' + f)
                     continue
             else:
                 # no region means no ball
@@ -504,8 +501,9 @@ def create_natural_detection_dataset_without_classification(path, res):
                 db_noballs.append((img_normalized, target, p))
 
             # augment: binarized image
-            bin_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                            cv2.THRESH_BINARY, 11, 2).reshape((16, 16))
+            bin_img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2).reshape(
+                (16, 16)
+            )
 
             if is_ball:
                 db_balls.append((bin_img.astype(float) / 255.0, target, p))
@@ -532,7 +530,7 @@ def create_natural_segmentation_dataset(path, res):
     db_balls = []
     db_noballs = []
     # parse csv file
-    with open(path, newline='') as csvfile:
+    with open(path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             f = os.path.join(os.path.dirname(path), row["filename"])
@@ -570,8 +568,8 @@ def create_natural_segmentation_dataset(path, res):
                         mask_normalized = mask.astype(float) / 255.0
 
                         # normalize to resolution
-                        x_coord = (x_coord / res["x"])
-                        y_coord = (y_coord / res["y"])
+                        x_coord = x_coord / res["x"]
+                        y_coord = y_coord / res["y"]
                         radius = radius / max(res["x"], res["y"])
 
                         is_ball = True
@@ -583,7 +581,7 @@ def create_natural_segmentation_dataset(path, res):
                     continue
                 else:
                     # unknown type
-                    print("Unknown type \"" + atts["type"] + "\" in file " + f)
+                    print('Unknown type "' + atts["type"] + '" in file ' + f)
                     continue
             else:
                 # no region means no ball
@@ -608,7 +606,7 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
     complete_db_noball_list = []
 
     # find csv files
-    all_paths = list(Path(root_path).absolute().glob('**/*.csv'))
+    all_paths = list(Path(root_path).absolute().glob("**/*.csv"))
 
     # print("ALL PATHS", all_paths)
 
@@ -650,7 +648,13 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
 
     print("Loading finished")
     print("\nStatistic:")
-    print("number of images: " + str(len(input_images)) + " balls images: " + str(len(complete_db_ball_list)) +
-          " no ball images: " + str(len(complete_db_noball_list)))
+    print(
+        "number of images: "
+        + str(len(input_images))
+        + " balls images: "
+        + str(len(complete_db_ball_list))
+        + " no ball images: "
+        + str(len(complete_db_noball_list))
+    )
 
     return input_images, targets, file_paths

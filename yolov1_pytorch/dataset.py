@@ -13,7 +13,11 @@ from config import *
 
 class VOCDataset(torch.utils.data.Dataset):
     def __init__(
-        self, csv_file, img_dir, label_dir, transform=None,
+        self,
+        csv_file,
+        img_dir,
+        label_dir,
+        transform=None,
     ):
         self.annotations = pd.read_csv(csv_file)
         self.img_dir = img_dir
@@ -32,8 +36,7 @@ class VOCDataset(torch.utils.data.Dataset):
         with open(label_path) as f:
             for label in f.readlines():
                 class_label, x, y, width, height = [
-                    float(x) if float(x) != int(float(x)) else int(x)
-                    for x in label.replace("\n", "").split()
+                    float(x) if float(x) != int(float(x)) else int(x) for x in label.replace("\n", "").split()
                 ]
 
                 boxes.append([class_label, x, y, width, height])
@@ -84,19 +87,24 @@ class VOCDataset(torch.utils.data.Dataset):
                 label_matrix[i, j, self.C] = 1
 
                 # Box coordinates
-                box_coordinates = torch.tensor(
-                    [x_cell, y_cell, width_cell, height_cell]
-                )
+                box_coordinates = torch.tensor([x_cell, y_cell, width_cell, height_cell])
 
-                label_matrix[i, j, (self.C + 1):(self.C + 5)] = box_coordinates
+                label_matrix[i, j, (self.C + 1) : (self.C + 5)] = box_coordinates
 
                 # Set one hot encoding for class_label
                 label_matrix[i, j, class_label] = 1
 
         return image, label_matrix
-    
+
+
 class NaoTHDataset(torch.utils.data.Dataset):
-    def __init__(self, S=7, B=1, C=1, transform=None,):
+    def __init__(
+        self,
+        S=7,
+        B=1,
+        C=1,
+        transform=None,
+    ):
         img_height = 448
         img_width = 448
         self.S = S
@@ -108,20 +116,18 @@ class NaoTHDataset(torch.utils.data.Dataset):
         self.image_list = list()
         self.transform = transform
 
-        
         for image_path, data in self.image_label_mapping.items():
             image = data["image"]
             label = data["label"]
             try:
-                cls_id, cx, cy, w, h = label.split(" ") # FIXME work with multiple labels per image
+                cls_id, cx, cy, w, h = label.split(" ")  # FIXME work with multiple labels per image
             except:
-                #print("label", label)
+                # print("label", label)
                 print("code cant deal with multiple annotations per image yet")
                 continue
 
             self.label_list.append(label)
             self.image_list.append(image)
-
 
     def load_data_from_ultralytics_dataset(self):
         # Expect that all txt files contain labels
@@ -153,12 +159,12 @@ class NaoTHDataset(torch.utils.data.Dataset):
                     # Ensure the label file exists
                     if os.path.isfile(label_file_path):
                         # Load the image
-                        #image = Image.open(image_file_path)
-                        #image = cv2.imread(str(image_file_path))
-                        #image = image / 255.0
-                        #resized = cv2.resize(image, (448,448), interpolation= cv2.INTER_LINEAR)
+                        # image = Image.open(image_file_path)
+                        # image = cv2.imread(str(image_file_path))
+                        # image = image / 255.0
+                        # resized = cv2.resize(image, (448,448), interpolation= cv2.INTER_LINEAR)
                         image = Image.open(str(image_file_path))
-                        image = image.resize((448,448))
+                        image = image.resize((448, 448))
                         # Read the label data
                         with open(label_file_path, "r") as f:
                             label_data = f.read()
@@ -170,11 +176,12 @@ class NaoTHDataset(torch.utils.data.Dataset):
                             "label": label_data,
                         }
         return image_label_mapping
+
     def __len__(self):
         return len(self.image_list)
 
     def __getitem__(self, index):
-        #return self.image_list[index], self.label_list[index]
+        # return self.image_list[index], self.label_list[index]
         boxes = []
         try:
             class_label, x, y, width, height = self.label_list[index].split(" ")
@@ -187,7 +194,7 @@ class NaoTHDataset(torch.utils.data.Dataset):
             print(self.label_list[index])
             quit()
         boxes.append([class_label, x, y, width, height])
-        #img_path = os.path.join(self.img_dir, self.annotations.iloc[index, 0])
+        # img_path = os.path.join(self.img_dir, self.annotations.iloc[index, 0])
         image = self.image_list[index]
         boxes = torch.tensor(boxes)
 
@@ -230,11 +237,9 @@ class NaoTHDataset(torch.utils.data.Dataset):
                 label_matrix[i, j, self.C] = 1
 
                 # Box coordinates
-                box_coordinates = torch.tensor(
-                    [x_cell, y_cell, width_cell, height_cell]
-                )
+                box_coordinates = torch.tensor([x_cell, y_cell, width_cell, height_cell])
 
-                label_matrix[i, j, self.C +1:self.C+5] = box_coordinates
+                label_matrix[i, j, self.C + 1 : self.C + 5] = box_coordinates
 
                 # Set one hot encoding for class_label
                 label_matrix[i, j, class_label] = 1

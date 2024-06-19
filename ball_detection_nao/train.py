@@ -22,17 +22,25 @@ def run_training(model, dataset, modelname, params):
         x = pickle.load(f)  # x are all input images
         y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
 
-    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(modelname), monitor='loss', verbose=1,
-                                                       save_best_only=True, mode='auto')
+    save_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=str(modelname), monitor="loss", verbose=1, save_best_only=True, mode="auto"
+    )
 
-    log_path = Path(modelname).parent / "logs" / (
-            model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    log_path = (
+        Path(modelname).parent / "logs" / (model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    )
     log_callback = keras.callbacks.TensorBoard(log_dir=log_path, profile_batch=0)
 
     callbacks = [save_callback, log_callback]
-    history = model.fit(x, y, batch_size=params["batch_size"], epochs=params["epochs"], verbose=1,
-                        validation_split=0.1,
-                        callbacks=callbacks)
+    history = model.fit(
+        x,
+        y,
+        batch_size=params["batch_size"],
+        epochs=params["epochs"],
+        verbose=1,
+        validation_split=0.1,
+        callbacks=callbacks,
+    )
 
 
 def load_model(my_config):
@@ -45,9 +53,9 @@ def load_model(my_config):
         # if you use proceed then you have to give in a model
         print("Loading model " + my_config.model_path)
 
-        #toml_metrics = my_config["metrics"]
-        #metrics_dict = {}
-        #for metrics_name in toml_metrics:
+        # toml_metrics = my_config["metrics"]
+        # metrics_dict = {}
+        # for metrics_name in toml_metrics:
         #    reference = getattr(metrics_module, metrics_name)
         #    if isfunction(reference):
         #        metrics_dict.update({metrics_name: reference})
@@ -55,17 +63,18 @@ def load_model(my_config):
         #        metrics_dict.update({metrics_name: reference()})
 
         # FIXME custom objects create problems for evaluate and compile
-        #model = tf.keras.models.load_model(my_config.model_path, custom_objects=metrics_dict)
+        # model = tf.keras.models.load_model(my_config.model_path, custom_objects=metrics_dict)
         model = tf.keras.models.load_model(my_config.model_path)
         return model
     else:
         print(
-            "ERROR: No model specified, you have to either specify model_name in the config or set proceed to true and set model_path")
+            "ERROR: No model specified, you have to either specify model_name in the config or set proceed to true and set model_path"
+        )
         exit(1)
 
 
 def main(config_name):
-    with open('detection.toml', 'r') as f:
+    with open("detection.toml", "r") as f:
         config_dict = toml.load(f)
 
     my_config = config_dict[config_name]
@@ -83,11 +92,15 @@ def main(config_name):
         training will always overwrite the models.
     """
     filepath = Path(my_config["output_path"]) / (model.name + "_" + Path(my_config["trainings_data"]).stem + ".h5")
-    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='loss', verbose=1,
-                                                       save_best_only=True, mode='auto')
+    save_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=str(filepath), monitor="loss", verbose=1, save_best_only=True, mode="auto"
+    )
 
-    log_path = Path(my_config["output_path"]) / "logs" / (
-            model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    log_path = (
+        Path(my_config["output_path"])
+        / "logs"
+        / (model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    )
     log_callback = keras.callbacks.TensorBoard(log_dir=log_path, profile_batch=0)
 
     callbacks = [save_callback, log_callback]
@@ -96,9 +109,15 @@ def main(config_name):
     # history = model.fit(x, y, batch_size=args.batch_size, epochs=args.epochs, verbose=1,
     # validation_data=(X_test, Y_test),callbacks=callbacks)
 
-    history = model.fit(x, y, batch_size=my_config["batch_size"], epochs=my_config["epochs"], verbose=1,
-                        validation_split=0.1,
-                        callbacks=callbacks)
+    history = model.fit(
+        x,
+        y,
+        batch_size=my_config["batch_size"],
+        epochs=my_config["epochs"],
+        verbose=1,
+        validation_split=0.1,
+        callbacks=callbacks,
+    )
     history_filename = "history_" + model.name + "_" + Path(my_config["trainings_data"]).stem + ".pkl"
 
     # save history in same folder as model
@@ -109,5 +128,5 @@ def main(config_name):
     return history, history_filename
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main("stella_config_rc23_v1")

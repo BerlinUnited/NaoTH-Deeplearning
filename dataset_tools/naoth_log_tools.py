@@ -8,6 +8,7 @@
         - export images from naoth logfiles
         - TODO export list of representations from logs
 """
+
 import os
 import sys
 import subprocess
@@ -45,8 +46,7 @@ def get_images(frame):
     except KeyError:
         cm_bottom = None
 
-    return [frame.number, image_bottom,
-            image_top, cm_bottom, cm_top]
+    return [frame.number, image_bottom, image_top, cm_bottom, cm_top]
 
 
 def image_from_proto(message):
@@ -68,7 +68,7 @@ def image_from_proto(message):
     yuv888 = yuv888.reshape((message.height, message.width, 3))
 
     # convert the image to rgb and save it
-    img = PIL_Image.frombytes('YCbCr', (message.width, message.height), yuv888.tostring())
+    img = PIL_Image.frombytes("YCbCr", (message.width, message.height), yuv888.tostring())
     return img
 
 
@@ -106,8 +106,8 @@ def extract_frames_from_videos(event_name="2019-07-02_RC19-others"):
         video_folder = game / "videos"
 
         # TODO test this in windows. Maybe it finds the same file twice there
-        video_files1 = list(Path(video_folder).rglob('*.MP4'))
-        video_files2 = list(Path(video_folder).rglob('*.mp4'))
+        video_files1 = list(Path(video_folder).rglob("*.MP4"))
+        video_files2 = list(Path(video_folder).rglob("*.mp4"))
         video_files = video_files1 + video_files2
 
         if len(video_files) == 0:
@@ -115,7 +115,8 @@ def extract_frames_from_videos(event_name="2019-07-02_RC19-others"):
             continue
         elif len(video_files) > 1:
             print(
-                "\ttoo many video files found. Can't decide which one is the correct video. Maybe you need to combine the videos? ")
+                "\ttoo many video files found. Can't decide which one is the correct video. Maybe you need to combine the videos? "
+            )
             continue
         else:
             video_file = video_files[0]
@@ -133,15 +134,20 @@ def extract_frames_from_videos(event_name="2019-07-02_RC19-others"):
         shutil.copy(str(video_file), f)
 
         # ffmpeg executable is named differently on windows and linux
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             ffmpeg_exe = "ffmpeg.exe"
         else:
             ffmpeg_exe = "ffmpeg"
 
-        # build the ffmpeg command 
+        # build the ffmpeg command
         # FIXME "/%06d.jpg\" must be changed to "\%06d.jpg\" in windows. Maybe i can figure out a way to make it work in both envs
-        cmd = f"{ffmpeg_exe} -i \"{str(temp_video_file_name)}\" " + "\"" + str(
-            temp_frame_folder) + "/%06d.jpg\"" + " -loglevel quiet -stats"
+        cmd = (
+            f'{ffmpeg_exe} -i "{str(temp_video_file_name)}" '
+            + '"'
+            + str(temp_frame_folder)
+            + '/%06d.jpg"'
+            + " -loglevel quiet -stats"
+        )
         print("\trun ffmpg with: ", cmd)
 
         try:
@@ -151,7 +157,7 @@ def extract_frames_from_videos(event_name="2019-07-02_RC19-others"):
             quit()
 
         print("\tzipping frames ...")
-        shutil.make_archive(str(temp_zipfile.parent / temp_zipfile.stem), 'zip', str(temp_frame_folder))
+        shutil.make_archive(str(temp_zipfile.parent / temp_zipfile.stem), "zip", str(temp_frame_folder))
 
         print("\tcopy zip file to repl")
         shutil.copy(str(temp_zipfile), str(output_zipfile))
@@ -171,14 +177,15 @@ def combine_logfiles(event_name="2019-11-21_Koeln"):
         print("Indexing image log...")
         image_log_index = create_image_log_dict(str(image_logfile))
         print('Writing new log to: "{}"...'.format(str(combined_log)))
-        with open(str(combined_log), 'wb') as output, open(str(image_logfile), 'rb') as image_log, LogReader(
-                str(gamelog)) as reader:
+        with open(str(combined_log), "wb") as output, open(str(image_logfile), "rb") as image_log, LogReader(
+            str(gamelog)
+        ) as reader:
             for frame in reader.read():
                 # only write frames which have corresponding images
                 if frame.number in image_log_index:
                     # load image data
                     offset, size, camera_bottom = image_log_index[frame.number]
-                    image_name = 'Image' if camera_bottom else 'ImageTop'
+                    image_name = "Image" if camera_bottom else "ImageTop"
                     image_log.seek(offset)
                     image_data = image_log.read(size)
 
@@ -229,11 +236,11 @@ def combine_logfiles(event_name="2019-11-21_Koeln"):
 
 def export_images(logfile, img):
     """
-        creates two folders:
-            <logfile name>_top
-            <logfile name>_bottom
+    creates two folders:
+        <logfile name>_top
+        <logfile name>_bottom
 
-        and saves the images inside those folders
+    and saves the images inside those folders
     """
     # TODO save in extraced folder and zipped
     logfile_name = Path(logfile).parent / Path(logfile).stem
@@ -245,11 +252,11 @@ def export_images(logfile, img):
 
     for i, img_b, img_t, cm_b, cm_t in img:
         if img_b:
-            img_b = img_b.convert('RGB')
+            img_b = img_b.convert("RGB")
             save_image_to_png(i, img_b, cm_b, output_folder_bottom, cam_id=1, name=logfile)
 
         if img_t:
-            img_t = img_t.convert('RGB')
+            img_t = img_t.convert("RGB")
             save_image_to_png(i, img_t, cm_t, output_folder_top, cam_id=0, name=logfile)
 
         print("saving images from frame ", i)
@@ -284,7 +291,7 @@ def save_image_to_png(j, img, cm, target_dir, cam_id, name):
 
 def get_representations_from_log(event_name="2019-07-02_RC19"):
     """
-        for example this is useful to find logs that contain images
+    for example this is useful to find logs that contain images
     """
     event_root = Path(get_logs_root()) / event_name
     for game in sorted(event_root.iterdir()):
@@ -314,7 +321,7 @@ def get_representations_from_log(event_name="2019-07-02_RC19"):
 
         break
     return
-    
+
 
 def export_images_from_logs(event_name="2019-11-21_Koeln"):
     event_root = Path(get_logs_root()) / event_name
@@ -362,21 +369,24 @@ def create_image_log_dict(image_log):
 
     images_dict = dict()
 
-    with open(image_log, 'rb') as f:
+    with open(image_log, "rb") as f:
         is_camera_bottom = False  # assumes the first image is a top image
         while True:
             frame = f.read(4)
             if len(frame) != 4:
                 break
-            frame_number = int.from_bytes(frame, byteorder='little')
+            frame_number = int.from_bytes(frame, byteorder="little")
 
             offset = f.tell()
             f.seek(offset + image_data_size)
 
             # handle the case of incomplete image at the end of the logfile
             if f.tell() >= file_size:
-                print("Info: frame {} in {} incomplete, missing {} bytes. Stop."
-                      .format(frame_number, image_log, f.tell() + 1 - file_size))
+                print(
+                    "Info: frame {} in {} incomplete, missing {} bytes. Stop.".format(
+                        frame_number, image_log, f.tell() + 1 - file_size
+                    )
+                )
                 print("Info: Last frame seems to be incomplete.")
                 break
 

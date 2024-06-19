@@ -8,10 +8,11 @@
     # TODO remove output folder if exists
     # TODO use helper here
 """
+
 import sys
 import os
 
-helper_path = os.path.join(os.path.dirname(__file__), '../tools')
+helper_path = os.path.join(os.path.dirname(__file__), "../tools")
 sys.path.append(helper_path)
 
 import zipfile
@@ -43,7 +44,7 @@ def get_annotations(task_output, filename, output_folder):
     if output.exists():
         return
     with open(str(output), "w") as f:
-        for anno in task_output['annotations']:
+        for anno in task_output["annotations"]:
             results = anno["result"]
             # print(anno)
             for result in results:
@@ -52,9 +53,14 @@ def get_annotations(task_output, filename, output_folder):
                     continue
                 try:
                     # x,y,width,height are all percentages within [0,100]
-                    x, y, width, height = result["value"]["x"], result["value"]["y"], result["value"]["width"], result["value"]["height"]
-                    img_width = result['original_width']
-                    img_height = result['original_height']
+                    x, y, width, height = (
+                        result["value"]["x"],
+                        result["value"]["y"],
+                        result["value"]["width"],
+                        result["value"]["height"],
+                    )
+                    img_width = result["original_width"]
+                    img_height = result["original_height"]
                     actual_label = result["value"]["rectanglelabels"][0]
                     label_id = label_dict[actual_label]
                 except Exception as error:
@@ -69,7 +75,7 @@ def get_annotations(task_output, filename, output_folder):
                 width_px = width / 100 * img_width
                 height_px = height / 100 * img_height
 
-                #calculate the center of the box
+                # calculate the center of the box
                 cx = x_px + width_px / 2
                 cy = y_px + height_px / 2
 
@@ -79,12 +85,12 @@ def get_annotations(task_output, filename, output_folder):
                 cx = cx / img_width
                 cy = cy / img_height
 
-                #print(label_id, cx, cy, width, height)
+                # print(label_id, cx, cy, width, height)
                 # format https://roboflow.com/formats/yolov5-pytorch-txt?ref=ultralytics
                 f.write(f"{label_id} {cx} {cy} {width} {height}\n")
 
                 # FIXME -> make me more general
-                #test_visualize(x_px,y_px,width_px,height_px)
+                # test_visualize(x_px,y_px,width_px,height_px)
 
 
 def get_projects_bottom():
@@ -95,7 +101,7 @@ def get_projects_bottom():
     pg_cur.execute(select_statement1)
     rtn_val = pg_cur.fetchall()
 
-    projects= []
+    projects = []
     for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
     return projects
@@ -108,22 +114,21 @@ def get_projects_top():
     pg_cur.execute(select_statement1)
     rtn_val = pg_cur.fetchall()
 
-    projects= []
+    projects = []
     for id in [int(x[0]) for x in rtn_val]:
         projects.append(ls.get_project(id))
     return projects
 
 
 def export_dataset(dataset_name="", camera=""):
-    """
-    """
+    """ """
     Path(dataset_name).mkdir(parents=True, exist_ok=True)
 
     # TODO data from postgres that account for broken images
     # get the minio bucket and ls labelstudio project id from the postgres
     def my_sort_function(project):
         return project.id
-    
+
     if camera == "bottom":
         existing_projects = get_projects_bottom()
     elif camera == "top":
@@ -132,12 +137,12 @@ def export_dataset(dataset_name="", camera=""):
         print("ERROR: not a valid camera argument")
         quit()
     print(f"exporting projects")
-    
+
     for project in tqdm(sorted(existing_projects, key=my_sort_function)):
         tasks = project.get_labeled_tasks()
         for task_output in tasks:
             image_file_name = task_output["storage_filename"]
-            #print(task_output['annotations'])
+            # print(task_output['annotations'])
 
             label_path = Path(dataset_name) / "labels" / project.title
             img_path = Path(dataset_name) / "images" / project.title
@@ -148,17 +153,13 @@ def export_dataset(dataset_name="", camera=""):
     # create yaml file
     # TODO can we do this automatically? -> like also with excluding segmentations and so on
     data = dict(
-        path = f'{dataset_name}',
-        train = 'autosplit_train.txt', 
-        val = 'autosplit_val.txt',
-        names = {
-            label_dict["ball"]: "ball",
-            label_dict["nao"]: "nao",
-            label_dict["penalty_mark"]: "penalty_mark"
-        }
+        path=f"{dataset_name}",
+        train="autosplit_train.txt",
+        val="autosplit_val.txt",
+        names={label_dict["ball"]: "ball", label_dict["nao"]: "nao", label_dict["penalty_mark"]: "penalty_mark"},
     )
 
-    with open(f'{dataset_name}.yaml', 'w') as outfile:
+    with open(f"{dataset_name}.yaml", "w") as outfile:
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
 
 
@@ -184,14 +185,14 @@ def zip_and_upload_datasets(dataset_name):
 if __name__ == "__main__":
     # FIXME add a check for access to naoth.datasets in the beginning - see train.py
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--camera", required=True, choices=['bottom', 'top'])
+    parser.add_argument("-c", "--camera", required=True, choices=["bottom", "top"])
     args = parser.parse_args()
 
-    now = datetime.datetime.now().strftime('%Y-%m-%d')
-    dataset_name= Path("datasets") / f"yolo-full-size-detection_dataset_{args.camera}_{now}"
+    now = datetime.datetime.now().strftime("%Y-%m-%d")
+    dataset_name = Path("datasets") / f"yolo-full-size-detection_dataset_{args.camera}_{now}"
     export_dataset(dataset_name, args.camera)
     # FIXME importing ultralytics takes a long time - maybe use sklearn to split or write my own function
-    ultralytics.data.utils.autosplit(f'{dataset_name}/images', weights=(0.9, 0.1, 0.0), annotated_only=False)
-    
+    ultralytics.data.utils.autosplit(f"{dataset_name}/images", weights=(0.9, 0.1, 0.0), annotated_only=False)
+
     # zip and upload created dataset
     zip_and_upload_datasets(dataset_name)

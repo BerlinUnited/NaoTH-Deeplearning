@@ -36,9 +36,7 @@ def transform_data(X, y):
 
 
 def make_tf_datasets(X, y, batch_size=4 * 1024):
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.15, random_state=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
 
     with tf.device("/cpu:0"):
         train_ds = tf.data.Dataset.from_tensor_slices((X_train, y_train))
@@ -52,12 +50,8 @@ def make_tf_datasets(X, y, batch_size=4 * 1024):
 
 def make_callbacks():
     callbacks = [
-        keras.callbacks.EarlyStopping(
-            monitor="val_loss", patience=100, restore_best_weights=True
-        ),
-        keras.callbacks.ReduceLROnPlateau(
-            monitor="loss", factor=0.5, patience=10, min_lr=1e-7
-        ),
+        keras.callbacks.EarlyStopping(monitor="val_loss", patience=100, restore_best_weights=True),
+        keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.5, patience=10, min_lr=1e-7),
     ]
 
     return callbacks

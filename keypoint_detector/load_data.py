@@ -32,7 +32,7 @@ def load_data_from_ultralytics_dataset():
                 # Ensure the label file exists
                 if os.path.isfile(label_file_path):
                     # Load the image
-                    #image = Image.open(image_file_path)
+                    # image = Image.open(image_file_path)
                     image = cv2.imread(str(image_file_path))
                     image = image / 255.0
 
@@ -47,4 +47,3 @@ def load_data_from_ultralytics_dataset():
                         "label": label_data,
                     }
     return image_label_mapping
-

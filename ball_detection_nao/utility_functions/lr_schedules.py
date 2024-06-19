@@ -1,6 +1,7 @@
 """
     TODO build a schedule that works even if it get stuck early on
 """
+
 import tensorflow as tf
 
 

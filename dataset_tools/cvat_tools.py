@@ -33,7 +33,7 @@ from common_tools.main import cvat_login, get_data_root
 
 def get_projects(session):
     try:
-        response = session.get('https://ball.informatik.hu-berlin.de/api/v1/projects')
+        response = session.get("https://ball.informatik.hu-berlin.de/api/v1/projects")
         response.raise_for_status()
 
         # TODO handle pagination
@@ -47,14 +47,14 @@ def get_projects(session):
 
 def get_annotation_formats(session):
     try:
-        response = session.get('https://ball.informatik.hu-berlin.de/api/server/annotation/formats')
+        response = session.get("https://ball.informatik.hu-berlin.de/api/server/annotation/formats")
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
 
     exporter_list = list()
-    for exporter_format in response.json()['exporters']:
-        exporter_list.append(exporter_format['name'])
+    for exporter_format in response.json()["exporters"]:
+        exporter_list.append(exporter_format["name"])
 
     return exporter_list
 
@@ -73,7 +73,7 @@ def get_project_name(session, project_id):
 
 def download_dataset(session, task_id, data_subfolder="unfinished", export_format="YOLO 1.1"):
     # get task details
-    task_url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}'
+    task_url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}"
     try:
         response = session.get(task_url)
         response.raise_for_status()
@@ -86,12 +86,12 @@ def download_dataset(session, task_id, data_subfolder="unfinished", export_forma
     project_name = get_project_name(session, task_details["project_id"]).replace(" ", "_")
     format_name = export_format.replace(" ", "_")
 
-    local_filename = Path(get_data_root()) / f'data_cvat/{project_name}/{data_subfolder}/{format_name}/{task_id}.zip'
+    local_filename = Path(get_data_root()) / f"data_cvat/{project_name}/{data_subfolder}/{format_name}/{task_id}.zip"
     Path(local_filename.parent).mkdir(parents=True, exist_ok=True)
     if Path(local_filename).exists():
         return local_filename
     format_quoted = urllib.parse.quote(export_format)
-    url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/dataset?format={format_quoted}&action=download'
+    url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/dataset?format={format_quoted}&action=download"
 
     with session.get(url, stream=True) as r:
         r.raise_for_status()
@@ -99,9 +99,9 @@ def download_dataset(session, task_id, data_subfolder="unfinished", export_forma
             r = session.get(url, stream=True)
             sleep(1)
 
-        total_size_in_bytes = int(r.headers.get('content-length', 0))
-        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
-        with open(local_filename, 'wb') as f:
+        total_size_in_bytes = int(r.headers.get("content-length", 0))
+        progress_bar = tqdm(total=total_size_in_bytes, unit="iB", unit_scale=True)
+        with open(local_filename, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 progress_bar.update(len(chunk))
                 f.write(chunk)
@@ -185,7 +185,7 @@ def download_finished_tasks(session, project_id, exporter_format):
 
 def download_all_tasks_from_project(relevant_project_ids, export_format=None):
     """
-        returns a list of the paths to the downloaded zip files
+    returns a list of the paths to the downloaded zip files
     """
     downloaded_datasets = list()
 
@@ -193,7 +193,7 @@ def download_all_tasks_from_project(relevant_project_ids, export_format=None):
         cvat_login(session)
         available_export_formats = get_annotation_formats(session)
         if export_format is None:
-            export_format = 'COCO 1.0'
+            export_format = "COCO 1.0"
 
         elif export_format not in available_export_formats:
             print("ERROR: Only the following export formats are supported")
@@ -203,8 +203,9 @@ def download_all_tasks_from_project(relevant_project_ids, export_format=None):
             task_ids = get_all_tasks(session, project_id)
             for task_id in task_ids:
                 # will download zipped datasets
-                dataset_path = download_dataset(session, task_id, data_subfolder="combined",
-                                                export_format=export_format)
+                dataset_path = download_dataset(
+                    session, task_id, data_subfolder="combined", export_format=export_format
+                )
                 downloaded_datasets.append(dataset_path)
 
     return downloaded_datasets
@@ -212,16 +213,16 @@ def download_all_tasks_from_project(relevant_project_ids, export_format=None):
 
 def get_labels_from_tasks(session, task_id):
     """
-        get the label names and id's that are valid for a given task
+    get the label names and id's that are valid for a given task
 
-        returns a dict like
-        {
-            name: id,
-            name: id
-        }
-        the label id's are needed for uploading annotations to a task
+    returns a dict like
+    {
+        name: id,
+        name: id
+    }
+    the label id's are needed for uploading annotations to a task
     """
-    task_url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}'
+    task_url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}"
     try:
         response = session.get(task_url)
         response.raise_for_status()
@@ -237,22 +238,20 @@ def get_labels_from_tasks(session, task_id):
 
 
 def unpack_zips(downloaded_datasets):
-    """
-        
-    """
+    """ """
 
     for zip_file in sorted(downloaded_datasets):
         print(zip_file)
         output_folder_name = zip_file.with_suffix("")  # ../../108.zip becomes ../../108/
 
         # TODO catch errors here and remove folder if error occurs. Make sure ctrl+c is catched as well here
-        with zipfile.ZipFile(str(zip_file), 'r') as zip_ref:
+        with zipfile.ZipFile(str(zip_file), "r") as zip_ref:
             zip_ref.extractall(str(output_folder_name))
 
 
 def fix_yolo_files(folder):
     """
-        modify the contents in the unzipped folders so it reflects the actual paths
+    modify the contents in the unzipped folders so it reflects the actual paths
     """
     # change paths in obj.data
     obj_data_path = folder / "obj.data"
@@ -273,14 +272,14 @@ def fix_yolo_files(folder):
             new_lines.append(new_line)
 
     with open(str(obj_data_path), "w") as file1:
-        file1.writelines(line + '\n' for line in new_lines)
+        file1.writelines(line + "\n" for line in new_lines)
 
     # change paths in train.txt
     f = open(str(train_txt_path), "w")
 
     # TODO add annotations to train.txt
     print(train_data_path)
-    all_image_paths = list(Path(train_data_path).glob('**/*.png'))
+    all_image_paths = list(Path(train_data_path).glob("**/*.png"))
     for path in sorted(all_image_paths):
         txt_path = path.with_suffix(".txt")
         annotation_data = str(path)
@@ -298,7 +297,7 @@ def fix_yolo_files(folder):
 
 def delete_all_tasks_in_project(project_id):
     """
-        Deletes all tasks in the TestProjekt project.
+    Deletes all tasks in the TestProjekt project.
     """
     with requests.Session() as session:
         cvat_login(session)
@@ -306,8 +305,8 @@ def delete_all_tasks_in_project(project_id):
 
         for task_id in tqdm(tasks):
             url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}?org="
-            csrftoken = session.cookies['csrftoken']
-            token = session.cookies['token']
+            csrftoken = session.cookies["csrftoken"]
+            token = session.cookies["token"]
             try:
                 response = session.delete(url, headers={"x-csrftoken": csrftoken, "Authorization": "token " + token})
 
@@ -319,14 +318,14 @@ def delete_all_tasks_in_project(project_id):
 def create_task(session, task_dict, project_id):
     url = "https://ball.informatik.hu-berlin.de/api/tasks?org="
     # setting this token is important for some reason but only for post requests, it seems
-    csrftoken = session.cookies['csrftoken']
-    token = session.cookies['token']
+    csrftoken = session.cookies["csrftoken"]
+    token = session.cookies["token"]
     data = {
         "name": task_dict["name"],
         "project_id": project_id,
         "overlap": 0,
         "segment_size": 1000,  # this works
-        'csrfmiddlewaretoken': csrftoken
+        "csrfmiddlewaretoken": csrftoken,
     }
 
     try:
@@ -338,26 +337,26 @@ def create_task(session, task_dict, project_id):
     response = response.json()
 
     data = {
-        'image_quality': 100,
-        'csrfmiddlewaretoken': csrftoken,
-        'compressed_chunk_type': "imageset",
-        'storage': "local",
-        'storage_method': "file_system",
-        'copy_data': True,
+        "image_quality": 100,
+        "csrfmiddlewaretoken": csrftoken,
+        "compressed_chunk_type": "imageset",
+        "storage": "local",
+        "storage_method": "file_system",
+        "copy_data": True,
         # use_cache': True  makes the task creation fast, viewing the frames is slower. It will load for a couple of
         # seconds every 200 frames
-        'use_cache': True,
-        'server_files[0]': task_dict["path"]
+        "use_cache": True,
+        "server_files[0]": task_dict["path"],
     }
-    task_id = response['id']
+    task_id = response["id"]
 
     # add data to task
-    url = f'https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/data?org='
+    url = f"https://ball.informatik.hu-berlin.de/api/tasks/{task_id}/data?org="
     response = session.post(url, data=data, headers={"Authorization": "token " + token})
 
     # check for completion of data before returning
     while True:
-        url = 'https://ball.informatik.hu-berlin.de/api/tasks/{}/status'.format(task_id)
+        url = "https://ball.informatik.hu-berlin.de/api/tasks/{}/status".format(task_id)
         response = session.get(url)
         print(response.json())
         if response.json()["state"] == "Finished":
@@ -369,7 +368,7 @@ def create_task(session, task_dict, project_id):
 
 def create_tasks_from_json(json_file, project_id):
     """
-        this is an example of how the tasks can be created automatically
+    this is an example of how the tasks can be created automatically
     """
     with open(json_file) as f:
         task_list = json.load(f)
@@ -394,11 +393,11 @@ def main():
         # download_dataset(session, task_id=66, exporter_format=exporters[0])
         # download_unfinished_tasks(session, project_id=3, exporter_format=exporters[11])
         # download_finished_tasks(session, project_id=3, exporter_format=exporters[11])
-        #unpack_zips()
+        # unpack_zips()
 
         # TODO add function to combine train.txt files
         # TODO the fix_yolo functions should go to another script
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
