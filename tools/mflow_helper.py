@@ -6,6 +6,7 @@ import requests
 
 def on_pretrain_routine_end(trainer):
     from ultralytics.utils import LOGGER, colorstr
+
     PREFIX = colorstr("MLflow: ")
     SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     uri = mlflow.get_tracking_uri()
@@ -13,9 +14,9 @@ def on_pretrain_routine_end(trainer):
     mlflow.set_tracking_uri(uri)
 
     # Set experiment and run names
-    #experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/YOLOv8"
+    # experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME") or trainer.args.project or "/Shared/YOLOv8"
     run_name = os.environ.get("MLFLOW_RUN") or trainer.args.name
-    #mlflow.set_experiment(experiment_name)
+    # mlflow.set_experiment(experiment_name)
 
     mlflow.autolog()
     try:
@@ -31,6 +32,7 @@ def on_pretrain_routine_end(trainer):
 
 def on_train_epoch_end(trainer):
     from ultralytics.utils import colorstr
+
     SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     """Log training metrics at the end of each train epoch to MLflow."""
     if mlflow:
@@ -42,8 +44,10 @@ def on_train_epoch_end(trainer):
             step=trainer.epoch,
         )
 
+
 def on_fit_epoch_end(trainer):
     from ultralytics.utils import colorstr
+
     SANITIZE = lambda x: {k.replace("(", "").replace(")", ""): float(v) for k, v in x.items()}
     """Log training metrics at the end of each fit epoch to MLflow."""
     if mlflow:
@@ -53,22 +57,24 @@ def on_fit_epoch_end(trainer):
 def on_train_end(trainer):
     """Log model artifacts at the end of the training."""
     pass
-    #if mlflow:
-        #mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
-        #for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
-        #    if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
-        #        mlflow.log_artifact(str(f))
-        #keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
-        #if keep_run_active:
-        #    LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
-        #else:
-        #    mlflow.end_run()
-        #    LOGGER.debug(f"{PREFIX}mlflow run ended")
+    # if mlflow:
+    # mlflow.log_artifact(str(trainer.best.parent))  # log save_dir/weights directory with best.pt and last.pt
+    # for f in trainer.save_dir.glob("*"):  # log all other files in save_dir
+    #    if f.suffix in {".png", ".jpg", ".csv", ".pt", ".yaml"}:
+    #        mlflow.log_artifact(str(f))
+    # keep_run_active = os.environ.get("MLFLOW_KEEP_RUN_ACTIVE", "False").lower() == "true"
+    # if keep_run_active:
+    #    LOGGER.info(f"{PREFIX}mlflow run still alive, remember to close it using mlflow.end_run()")
+    # else:
+    #    mlflow.end_run()
+    #    LOGGER.debug(f"{PREFIX}mlflow run ended")
 
- #       LOGGER.info(
-  #          f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
-   #         f"{PREFIX}disable with 'yolo settings mlflow=False'"
-    #    )
+
+#       LOGGER.info(
+#          f"{PREFIX}results logged to {mlflow.get_tracking_uri()}\n"
+#         f"{PREFIX}disable with 'yolo settings mlflow=False'"
+#    )
+
 
 def set_tracking_url():
     try:

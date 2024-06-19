@@ -17,12 +17,12 @@ def get_model(model):
 def representative_dataset(dataset_path):
     def representative_dataset_gen():
         with h5py.File(dataset_path, "r") as f:
-            for idx, a in enumerate(f['X']):
-                image = f['X'][idx]
-                yield {
-                "image": image
-                }
+            for idx, a in enumerate(f["X"]):
+                image = f["X"][idx]
+                yield {"image": image}
+
     return representative_dataset_gen
+
 
 def generate_fully_dynamic_quantized_model(model_path, dataset_path):
     # TODO: check that it has h5 or .keras file ending
@@ -32,9 +32,9 @@ def generate_fully_dynamic_quantized_model(model_path, dataset_path):
     converter.representative_dataset = representative_dataset(dataset_path)
 
     tflite_model = converter.convert()
-    
+
     output_file = Path(model_path).with_suffix(".tflite")
-    with open(output_file, 'wb') as f:
+    with open(output_file, "wb") as f:
         f.write(tflite_model)
 
 
@@ -51,7 +51,7 @@ def generate_fully_int_quantized_model(model_path, dataset_path):
     tflite_model = converter.convert()
 
     output_file = Path(model_path).parent / (str(Path(model_path).stem) + "_int_quant.tflite")
-    with open(output_file, 'wb') as f:
+    with open(output_file, "wb") as f:
         f.write(tflite_model)
 
 
@@ -66,7 +66,7 @@ def generate_float16_quantized_model(model_path, dataset_path):
     tflite_model = converter.convert()
 
     output_file = Path(model_path).parent / (str(Path(model_path).stem) + "_float16_quant.tflite")
-    with open(output_file, 'wb') as f:
+    with open(output_file, "wb") as f:
         f.write(tflite_model)
 
 

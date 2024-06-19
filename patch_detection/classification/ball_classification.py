@@ -32,11 +32,7 @@ def make_naoth_classifier():
     model = keras.models.Sequential()
 
     # we don't know the kernel size b-human used
-    model.add(
-        keras.layers.Convolution2D(
-            16, (3, 3), input_shape=input_shape, padding="same", name="Conv2D_1"
-        )
-    )
+    model.add(keras.layers.Convolution2D(16, (3, 3), input_shape=input_shape, padding="same", name="Conv2D_1"))
     # Batch Norm
     model.add(keras.layers.ReLU(name="activation_1"))
     model.add(keras.layers.MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
@@ -97,12 +93,8 @@ def train_classifier_early_stop(
         save_best_only=True,
         mode="auto",
     )
-    reduce_callback = keras.callbacks.ReduceLROnPlateau(
-        monitor="loss", factor=0.5, patience=5, verbose=0, mode="auto"
-    )
-    early_stopping_callback = keras.callbacks.EarlyStopping(
-        monitor="val_loss", patience=20, restore_best_weights=True
-    )
+    reduce_callback = keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.5, patience=5, verbose=0, mode="auto")
+    early_stopping_callback = keras.callbacks.EarlyStopping(monitor="val_loss", patience=20, restore_best_weights=True)
 
     callbacks = [save_callback, reduce_callback, early_stopping_callback]
 

@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 from typing import Callable
 
+
 def convert_to_logits(y_pred: tf.Tensor) -> tf.Tensor:
     """
     Converting output of sigmoid to logits.
@@ -13,6 +14,7 @@ def convert_to_logits(y_pred: tf.Tensor) -> tf.Tensor:
     y_pred = K.clip(y_pred, tf.keras.backend.epsilon(), 1 - tf.keras.backend.epsilon())
 
     return K.log(y_pred / (1 - y_pred))
+
 
 def binary_weighted_cross_entropy(beta: float, is_logits: bool = False) -> Callable[[tf.Tensor, tf.Tensor], tf.Tensor]:
     """
@@ -32,6 +34,7 @@ def binary_weighted_cross_entropy(beta: float, is_logits: bool = False) -> Calla
     :param is_logits: If y_pred are logits (bool, default=False)
     :return: Weighted cross entropy loss function (Callable[[tf.Tensor, tf.Tensor], tf.Tensor])
     """
+
     def loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         """
         Computes the weighted cross entropy.
@@ -53,7 +56,8 @@ def binary_weighted_cross_entropy(beta: float, is_logits: bool = False) -> Calla
 
     return loss
 
-def binary_focal_loss(beta: float, gamma: float = 2.) -> Callable[[tf.Tensor, tf.Tensor], tf.Tensor]:
+
+def binary_focal_loss(beta: float, gamma: float = 2.0) -> Callable[[tf.Tensor, tf.Tensor], tf.Tensor]:
     """
     Focal loss is derived from balanced cross entropy, where focal loss adds an extra focus on hard examples in the
     dataset:
@@ -70,6 +74,7 @@ def binary_focal_loss(beta: float, gamma: float = 2.) -> Callable[[tf.Tensor, tf
     :param gamma: Focusing parameter, γ ≥ 0 (float, default=2.)
     :return: Focal loss (Callable[[tf.Tensor, tf.Tensor], tf.Tensor])
     """
+
     def loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         """
         Computes the focal loss.
@@ -79,7 +84,7 @@ def binary_focal_loss(beta: float, gamma: float = 2.) -> Callable[[tf.Tensor, tf
         :return: Focal loss (tf.Tensor, shape=(<BATCH_SIZE>,))
         """
         f_loss = beta * (1 - y_pred) ** gamma * y_true * K.log(y_pred)  # β*(1-p̂)ᵞ*p*log(p̂)
-        f_loss += (1 - beta) * y_pred ** gamma * (1 - y_true) * K.log(1 - y_pred)  # (1-β)*p̂ᵞ*(1−p)*log(1−p̂)
+        f_loss += (1 - beta) * y_pred**gamma * (1 - y_true) * K.log(1 - y_pred)  # (1-β)*p̂ᵞ*(1−p)*log(1−p̂)
         f_loss = -f_loss  # −[β*(1-p̂)ᵞ*p*log(p̂) + (1-β)*p̂ᵞ*(1−p)*log(1−p̂)]
 
         # Average over each data point/image in batch
@@ -91,7 +96,7 @@ def binary_focal_loss(beta: float, gamma: float = 2.) -> Callable[[tf.Tensor, tf
     return loss
 
 
-def binary_tversky_coef(y_true: tf.Tensor, y_pred: tf.Tensor, beta: float, smooth: float = 1.) -> tf.Tensor:
+def binary_tversky_coef(y_true: tf.Tensor, y_pred: tf.Tensor, beta: float, smooth: float = 1.0) -> tf.Tensor:
     """
     Tversky coefficient is a generalization of the Dice's coefficient. It adds an extra weight (β) to false positives
     and false negatives:
@@ -116,14 +121,17 @@ def binary_tversky_coef(y_true: tf.Tensor, y_pred: tf.Tensor, beta: float, smoot
     """
     axis_to_reduce = range(1, K.ndim(y_pred))  # All axis but first (batch)
     numerator = K.sum(y_true * y_pred, axis=axis_to_reduce)  # p*p̂
-    denominator = y_true * y_pred + beta * (1 - y_true) * y_pred + (1 - beta) * y_true * (1 - y_pred)  # p*p̂ + β*(1-p)*p̂ + (1-β)*p*(1-p̂)
+    denominator = (
+        y_true * y_pred + beta * (1 - y_true) * y_pred + (1 - beta) * y_true * (1 - y_pred)
+    )  # p*p̂ + β*(1-p)*p̂ + (1-β)*p*(1-p̂)
     denominator = K.sum(denominator, axis=axis_to_reduce)
 
     return (numerator + smooth) / (denominator + smooth)  # (p*p̂ + smooth)/[p*p̂ + β*(1-p)*p̂ + (1-β)*p*(1-p̂) + smooth]
 
 
-def binary_weighted_dice_crossentropy_loss(smooth: float = 1.,
-                                           beta: float = 0.5) -> Callable[[tf.Tensor, tf.Tensor], tf.Tensor]:
+def binary_weighted_dice_crossentropy_loss(
+    smooth: float = 1.0, beta: float = 0.5
+) -> Callable[[tf.Tensor, tf.Tensor], tf.Tensor]:
     """
     Weighted Dice cross entropy combination loss is a weighted combination between Dice's coefficient loss and
     binary cross entropy:
@@ -139,7 +147,7 @@ def binary_weighted_dice_crossentropy_loss(smooth: float = 1.,
     :param beta: Loss weight coefficient (float, default=0.5)
     :return: Dice cross entropy combination loss (Callable[[tf.Tensor, tf.Tensor], tf.Tensor])
     """
-    assert 0. <= beta <= 1., "Loss weight has to be between 0.0 and 1.0"
+    assert 0.0 <= beta <= 1.0, "Loss weight has to be between 0.0 and 1.0"
 
     def loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         """
@@ -157,6 +165,6 @@ def binary_weighted_dice_crossentropy_loss(smooth: float = 1.,
 
         dice_coefficient = binary_tversky_coef(y_true=y_true, y_pred=y_pred, beta=0.5, smooth=smooth)
 
-        return beta*(1. - dice_coefficient) + (1. - beta)*cross_entropy
+        return beta * (1.0 - dice_coefficient) + (1.0 - beta) * cross_entropy
 
     return loss

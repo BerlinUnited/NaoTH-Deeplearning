@@ -15,22 +15,16 @@ def parse_tuple(arg_value, value_type=int):
     """Helper function to parse a tuple from a string."""
     try:
         value = ast.literal_eval(arg_value)
-        if isinstance(value, tuple) and all(
-            isinstance(item, value_type) for item in value
-        ):
+        if isinstance(value, tuple) and all(isinstance(item, value_type) for item in value):
             return value
         else:
-            raise argparse.ArgumentTypeError(
-                "Value must be a tuple of " + str(value_type)
-            )
+            raise argparse.ArgumentTypeError("Value must be a tuple of " + str(value_type))
     except:
         raise argparse.ArgumentTypeError("Value must be a valid tuple")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Parse model configuration parameters."
-    )
+    parser = argparse.ArgumentParser(description="Parse model configuration parameters.")
 
     parser.add_argument(
         "--model_name",

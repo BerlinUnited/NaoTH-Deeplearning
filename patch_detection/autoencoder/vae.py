@@ -102,9 +102,7 @@ class VAE(keras.Model):
 
             vae_gradients = tape.gradient(total_loss, self.vae_trainable_weights)
 
-            self.vae_optimizer.apply_gradients(
-                zip(vae_gradients, self.vae_trainable_weights)
-            )
+            self.vae_optimizer.apply_gradients(zip(vae_gradients, self.vae_trainable_weights))
 
         # Update metrics
         self.vae_loss_metric.update_state(total_loss)
@@ -145,9 +143,7 @@ def build_encoder(
     encoder_input = keras.layers.Input(shape=input_shape, name="encoder_input")
     enc_layer = encoder_input
 
-    for i, (filter_num, kernel_size, stride, padding) in enumerate(
-        zip(filters, kernel_sizes, strides, paddings)
-    ):
+    for i, (filter_num, kernel_size, stride, padding) in enumerate(zip(filters, kernel_sizes, strides, paddings)):
         enc_layer = keras.layers.Conv2D(
             filters=filter_num,
             kernel_size=kernel_size,
@@ -156,18 +152,14 @@ def build_encoder(
             name=f"encoder_conv2D_{i}",
         )(enc_layer)
         if batch_norm:
-            enc_layer = keras.layers.BatchNormalization(name=f"encoder_bn_{i}")(
-                enc_layer
-            )
+            enc_layer = keras.layers.BatchNormalization(name=f"encoder_bn_{i}")(enc_layer)
         enc_layer = activation_function(name=f"encoder_activation_{i}")(enc_layer)
 
     shape_before_flatten = K.int_shape(enc_layer)[1:]
     encoder_flatten = keras.layers.Flatten(name="encoder_flatten")(enc_layer)
 
     if n_dense is not None:
-        encoder_flatten = keras.layers.Dense(n_dense, name="extra_dense")(
-            encoder_flatten
-        )
+        encoder_flatten = keras.layers.Dense(n_dense, name="extra_dense")(encoder_flatten)
         if batch_norm:
             encoder_flatten = keras.layers.BatchNormalization()(encoder_flatten)
         encoder_flatten = activation_function()(encoder_flatten)
@@ -199,12 +191,10 @@ def build_decoder(
 ):
     decoder_input = keras.layers.Input(shape=(latent_dim), name="decoder_input")
 
-    decoder_dense_layer1 = keras.layers.Dense(
-        units=np.prod(shape_before_flatten), name="decoder_dense_0"
-    )(decoder_input)
-    dec_layer = keras.layers.Reshape(target_shape=shape_before_flatten)(
-        decoder_dense_layer1
+    decoder_dense_layer1 = keras.layers.Dense(units=np.prod(shape_before_flatten), name="decoder_dense_0")(
+        decoder_input
     )
+    dec_layer = keras.layers.Reshape(target_shape=shape_before_flatten)(decoder_dense_layer1)
 
     filters_decode = (
         output_shape[-1],
@@ -223,9 +213,7 @@ def build_decoder(
 
         if i < len(filters_decode) - 1:
             if batch_norm:
-                dec_layer = keras.layers.BatchNormalization(name=f"decoder_bn_{i}")(
-                    dec_layer
-                )
+                dec_layer = keras.layers.BatchNormalization(name=f"decoder_bn_{i}")(dec_layer)
             dec_layer = activation_function(name=f"decoder_activation_{i}")(dec_layer)
 
         if final_activation_function and i == len(filters_decode) - 1:

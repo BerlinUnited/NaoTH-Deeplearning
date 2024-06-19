@@ -110,9 +110,7 @@ def load_ds_patches_classification_ball_no_ball_top_bottom(
     y_top = np.concatenate([np.ones(ball_top.shape[0]), np.zeros(no_ball_top.shape[0])])
 
     X_bottom = np.concatenate([ball_bottom, no_ball_bottom])
-    y_bottom = np.concatenate(
-        [np.ones(ball_bottom.shape[0]), np.zeros(no_ball_bottom.shape[0])]
-    )
+    y_bottom = np.concatenate([np.ones(ball_bottom.shape[0]), np.zeros(no_ball_bottom.shape[0])])
 
     return X_top, y_top, X_bottom, y_bottom
 
@@ -123,9 +121,7 @@ def rescale_func(X, factor=255.0):
 
 @tf.function
 def gauss_noise(image):
-    return image + tf.random.normal(
-        shape=tf.shape(image), mean=0.0, stddev=0.001, dtype=tf.float32
-    )
+    return image + tf.random.normal(shape=tf.shape(image), mean=0.0, stddev=0.001, dtype=tf.float32)
 
 
 def augment_autoencoder_ds(ds):

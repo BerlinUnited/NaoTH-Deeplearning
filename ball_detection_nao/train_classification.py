@@ -22,13 +22,12 @@ def load_model(cfg):
         # TODO how to handle exceptions of getattr?
         return model
     else:
-        print(
-            "ERROR: No model specified, you have to specify model_name in the config")
+        print("ERROR: No model specified, you have to specify model_name in the config")
         exit(1)
 
 
 def main(config_name):
-    with open('classification.toml', 'r') as f:
+    with open("classification.toml", "r") as f:
         config_dict = toml.load(f)
 
     cfg = config_dict[config_name]
@@ -46,7 +45,7 @@ def main(config_name):
         x = mean_x
     else:
         # revert mean subtraction
-        x = (mean_x + mean)
+        x = mean_x + mean
 
         # generate validation set
     rng = np.random.default_rng(42)
@@ -59,13 +58,15 @@ def main(config_name):
         training will always overwrite the models.
     """
     filepath = Path(cfg["output_path"]) / (model.name + "_" + Path(cfg["trainings_data"]).stem + ".h5")
-    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='loss', verbose=1,
-                                                       save_best_only=True, mode='auto')
+    save_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=str(filepath), monitor="loss", verbose=1, save_best_only=True, mode="auto"
+    )
 
-    log_path = Path(cfg["output_path"]) / "logs" / (
-            model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    log_path = (
+        Path(cfg["output_path"]) / "logs" / (model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
+    )
     log_callback = keras.callbacks.TensorBoard(log_dir=log_path, profile_batch=0)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
+    reduce_lr = ReduceLROnPlateau(monitor="val_loss", factor=0.2, patience=5, min_lr=0.00001)
     callbacks = [save_callback, log_callback, reduce_lr]
 
     # TODO prepare an extra validation set, that is consistent over multiple runs
@@ -74,9 +75,16 @@ def main(config_name):
     # TODO set seed so that validation split is the same for all
     # FIXME sometimes training gets stuck early on, then reducing the learning rate is not helpful
     # https://towardsdatascience.com/hyperparameter-optimization-with-keras-b82e6364ca53
-    history = model.fit(x, y, batch_size=cfg["batch_size"], epochs=cfg["epochs"], verbose=1,
-                        validation_data=(val_x, val_y), shuffle=True,
-                        callbacks=callbacks)
+    history = model.fit(
+        x,
+        y,
+        batch_size=cfg["batch_size"],
+        epochs=cfg["epochs"],
+        verbose=1,
+        validation_data=(val_x, val_y),
+        shuffle=True,
+        callbacks=callbacks,
+    )
     history_filename = "history_" + model.name + "_" + Path(cfg["trainings_data"]).stem + ".pkl"
 
     # save history in same folder as model
@@ -87,7 +95,7 @@ def main(config_name):
     return history, history_filename
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # synthetic vs natural experiment
     # main("classification_tk_natural")
     # main("classification_tk_synthetic")
@@ -110,9 +118,9 @@ if __name__ == '__main__':
     # main("classification_64_bw_combined")  # TODO do it again
 
     # patch size experiment part 2
-    #main("classification_8_bw_combined_bhuman")
-    #main("classification_12_bw_combined_bhuman")
-    #main("classification_16_bw_combined_bhuman")
-    #main("classification_24_bw_combined_bhuman")
-    #main("classification_32_bw_combined_bhuman")
+    # main("classification_8_bw_combined_bhuman")
+    # main("classification_12_bw_combined_bhuman")
+    # main("classification_16_bw_combined_bhuman")
+    # main("classification_24_bw_combined_bhuman")
+    # main("classification_32_bw_combined_bhuman")
     pass

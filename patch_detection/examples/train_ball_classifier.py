@@ -31,9 +31,7 @@ if __name__ == "__main__":
     X, y = load_ds_patches_classification_ball_no_ball()
 
     # split into train and validation set
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # make tf.Dataset() objects for faster training
     X_train = make_classification_dataset(X_train, y_train, rescale=True, augment=True)

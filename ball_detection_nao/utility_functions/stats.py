@@ -75,10 +75,10 @@ def keras_plot_thresh_dist(pred, y):
 
 def save_false_positives(pred, x, y, p, mean):
     try:
-        makedirs('false_positives')
+        makedirs("false_positives")
     except:
         pass
     gt_noball_idx = list(np.where(y[:, 1] == 0)[0])
     idxs = [gt_noball_idx[i] for i in np.where(pred[gt_noball_idx][:, 1] > pred[gt_noball_idx][:, 0])[0]]
     for img, path, _pred in zip(x[idxs], p[idxs], pred[idxs, 1]):
-        cv2.imwrite('false_positives/' + "(" + str(_pred) + ")" + re.sub('[^\w\-_\. ]', '_', path), (img + mean) * 255)
+        cv2.imwrite("false_positives/" + "(" + str(_pred) + ")" + re.sub("[^\w\-_\. ]", "_", path), (img + mean) * 255)

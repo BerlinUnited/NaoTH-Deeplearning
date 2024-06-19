@@ -1,5 +1,3 @@
-
-
 @keras.saving.register_keras_serializable(name="weighted_binary_crossentropy")
 def weighted_binary_crossentropy(target, output, weights):
     target = tf.convert_to_tensor(target)
@@ -53,16 +51,12 @@ class WeightedBinaryCrossentropy:
     def __call__(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
-        self.label_smoothing = tf.convert_to_tensor(
-            self.label_smoothing, dtype=y_pred.dtype
-        )
+        self.label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
 
         def _smooth_labels():
             return y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
 
-        y_true = tf.__internal__.smart_cond.smart_cond(
-            self.label_smoothing, _smooth_labels, lambda: y_true
-        )
+        y_true = tf.__internal__.smart_cond.smart_cond(self.label_smoothing, _smooth_labels, lambda: y_true)
 
         return tf.reduce_mean(self.loss_fn(y_true, y_pred, self.weights), axis=-1)
 

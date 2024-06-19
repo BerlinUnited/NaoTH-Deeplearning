@@ -1,6 +1,7 @@
 """
 
 """
+
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -26,14 +27,14 @@ def test_dummy2_model_tflite():
 
     t0 = time.time()
     for i in range(1000):
-        interpreter.set_tensor(input_details[0]['index'], input_data)
+        interpreter.set_tensor(input_details[0]["index"], input_data)
         interpreter.invoke()
     t1 = time.time()
 
     total = (t1 - t0) * 1000
     # The function `get_tensor()` returns a copy of the tensor data.
     # Use `tensor()` in order to get a pointer to the tensor.
-    output_data = interpreter.get_tensor(output_details[0]['index'])
+    output_data = interpreter.get_tensor(output_details[0]["index"])
     print(total, "milliseconds")
 
 
@@ -53,6 +54,6 @@ def test_dummy2_model_keras():
     print(total, "milliseconds for keras")
 
 
-if __name__ == '__main__':
-    #test_dummy2_model_tflite()
+if __name__ == "__main__":
+    # test_dummy2_model_tflite()
     test_dummy2_model_keras()

@@ -11,9 +11,7 @@ import psycopg2
 from minio import Minio
 
 if not os.environ.get("LOG_DB_PASSWORD") or not os.environ.get("MINIO_SECRET_KEY"):
-    raise ValueError(
-        "Please set LOG_DB_PASSWORD and MINIO_SECRET_KEY environment variables!"
-    )
+    raise ValueError("Please set LOG_DB_PASSWORD and MINIO_SECRET_KEY environment variables!")
 
 params = {
     "host": os.environ.get("LOG_DB_HOST") or "pg.berlin-united.com",

@@ -9,6 +9,7 @@
         - https://openvinotoolkit.github.io/datumaro/docs/formats/coco/
         - https://openvinotoolkit.github.io/datumaro/docs/developer_manual/
 """
+
 from pathlib import Path
 from datumaro.components.dataset import Dataset
 from zipfile import ZipFile
@@ -20,7 +21,7 @@ def get_coco_dataset_from_path(dataset_path):
 
 
 def save_coco_dataset(dataset, output_path="new_dataset"):
-    dataset.export(output_path, format='coco_instances', save_images=True)
+    dataset.export(output_path, format="coco_instances", save_images=True)
 
 
 def remove_unlabeled_images(dataset):
@@ -29,18 +30,24 @@ def remove_unlabeled_images(dataset):
 
 
 def create_ball_only_dataset(dataset):
-    dataset.transform('remap_labels',
-                      {
-                          'ball': 'ball',  # keep the label by remapping it to the same name
-                      }, default='delete')  # remove everything else
+    dataset.transform(
+        "remap_labels",
+        {
+            "ball": "ball",  # keep the label by remapping it to the same name
+        },
+        default="delete",
+    )  # remove everything else
     return dataset
 
 
 def create_nao_only_dataset(dataset):
-    dataset.transform('remap_labels',
-                      {
-                          'nao': 'nao',  # keep the label by remapping it to the same name
-                      }, default='delete')  # remove everything else
+    dataset.transform(
+        "remap_labels",
+        {
+            "nao": "nao",  # keep the label by remapping it to the same name
+        },
+        default="delete",
+    )  # remove everything else
     return dataset
 
 
@@ -50,7 +57,7 @@ def unzip_and_filter(downloaded_datasets):
         print(zip_file)
         output_folder_name = Path(zip_file).with_suffix("")  # ../../108.zip becomes ../../108/
 
-        with ZipFile(str(zip_file), 'r') as zip_ref:
+        with ZipFile(str(zip_file), "r") as zip_ref:
             zip_ref.extractall(str(output_folder_name))
 
         # FIXME filtering does not make that much sense for images from log
@@ -65,5 +72,5 @@ def unzip_and_filter(downloaded_datasets):
         nao_dataset = create_nao_only_dataset(nao_dataset)
         nao_dataset = remove_unlabeled_images(nao_dataset)
 
-        #save_coco_dataset(ball_dataset, str(output_folder_name) + "_wo-unlabelled_ball")
-        #save_coco_dataset(nao_dataset, str(output_folder_name) + "_wo-unlabelled_nao")
+        # save_coco_dataset(ball_dataset, str(output_folder_name) + "_wo-unlabelled_ball")
+        # save_coco_dataset(nao_dataset, str(output_folder_name) + "_wo-unlabelled_nao")

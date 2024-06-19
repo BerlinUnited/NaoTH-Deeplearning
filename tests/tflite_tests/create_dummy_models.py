@@ -20,7 +20,7 @@ def create_dummy1_model():
     on the c++ part is needed.
     """
     a = tf.keras.layers.Input(shape=(1,), dtype=np.float32)
-    b = a + tf.constant(42.)
+    b = a + tf.constant(42.0)
 
     model = keras.Model(inputs=a, outputs=b, name="dummy_model1")
     model.compile()
@@ -35,7 +35,7 @@ def create_dummy1_model():
     tflite_model = converter.convert()
 
     # Save the model.
-    with open('dummy_model1.tflite', 'wb') as f:
+    with open("dummy_model1.tflite", "wb") as f:
         f.write(tflite_model)
 
 
@@ -49,29 +49,29 @@ def create_dummy2_model():
     model = Sequential()
     model._name = "dummy_ball_detection_model"
 
-    model.add(Convolution2D(4, (3, 3), input_shape=input_shape, padding='same', name="Conv2D_1", activation='relu'))
-    model.add(Convolution2D(4, (3, 3), padding='same', name="Conv2D_2", activation='relu'))
+    model.add(Convolution2D(4, (3, 3), input_shape=input_shape, padding="same", name="Conv2D_1", activation="relu"))
+    model.add(Convolution2D(4, (3, 3), padding="same", name="Conv2D_2", activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Convolution2D(8, (3, 3), padding='same', name="Conv2D_3", activation="relu"))
+    model.add(Convolution2D(8, (3, 3), padding="same", name="Conv2D_3", activation="relu"))
     model.add(MaxPooling2D(pool_size=(2, 2), name="pooling_1"))
-    model.add(Convolution2D(8, (3, 3), padding='same', name="Conv2D_4", activation='relu'))
-    model.add(Convolution2D(8, (1, 1), padding='same', name="Conv2D_5"))
+    model.add(Convolution2D(8, (3, 3), padding="same", name="Conv2D_4", activation="relu"))
+    model.add(Convolution2D(8, (1, 1), padding="same", name="Conv2D_5"))
     # classifier
     model.add(Flatten(name="flatten_1"))
     # output is radius, x, y, confidence
     model.add(Dense(4, name="dense_1"))
 
-    model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss="mean_squared_error", optimizer="adam", metrics=["accuracy"])
 
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     tflite_model = converter.convert()
 
     # Save the model.
-    with open('dummy_model2.tflite', 'wb') as f:
+    with open("dummy_model2.tflite", "wb") as f:
         f.write(tflite_model)
 
-    model.save("dummy_model2.h5", save_format='h5')
+    model.save("dummy_model2.h5", save_format="h5")
 
 
 def create_dummy3_model():
@@ -81,7 +81,7 @@ def create_dummy3_model():
     TODO: this is not tested yet. Maybe additional steps are necessary to make it work in c++
     """
     a = tf.keras.layers.Input(shape=(1,), dtype=np.float32)
-    b = a + tf.constant(42.)
+    b = a + tf.constant(42.0)
 
     model = keras.Model(inputs=a, outputs=b, name="dummy_model1")
     model.compile()
@@ -97,17 +97,19 @@ def create_dummy3_model():
     tflite_model = converter.convert()
 
     # Save the model.
-    with open('dummy_model3.tflite', 'wb') as f:
+    with open("dummy_model3.tflite", "wb") as f:
         f.write(tflite_model)
 
 
 def representative_dataset3():
     for _ in range(100):
-        data = np.random.rand(1, )
+        data = np.random.rand(
+            1,
+        )
         yield [data.astype(np.float32)]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     create_dummy1_model()
     create_dummy2_model()
     create_dummy3_model()

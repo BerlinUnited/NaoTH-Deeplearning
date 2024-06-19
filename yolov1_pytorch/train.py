@@ -27,10 +27,10 @@ from config import *
 seed = 123
 torch.manual_seed(seed)
 
-# Hyperparameters etc. 
+# Hyperparameters etc.
 LEARNING_RATE = 2e-5
-DEVICE = "cuda" #"cuda" if torch.cuda.is_available else "cpu"
-BATCH_SIZE = 16 # 64 in original paper but I don't have that much vram, grad accum?
+DEVICE = "cuda"  # "cuda" if torch.cuda.is_available else "cpu"
+BATCH_SIZE = 16  # 64 in original paper but I don't have that much vram, grad accum?
 WEIGHT_DECAY = 0
 EPOCHS = 1
 NUM_WORKERS = 2
@@ -52,7 +52,12 @@ class Compose(object):
         return img, bboxes
 
 
-transform = Compose([transforms.Resize((448, 448)), transforms.ToTensor(),])
+transform = Compose(
+    [
+        transforms.Resize((448, 448)),
+        transforms.ToTensor(),
+    ]
+)
 
 
 def train_fn(train_loader, model, optimizer, loss_fn):
@@ -76,14 +81,12 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
 def main():
     model = Yolov1().to(DEVICE)
-    optimizer = optim.Adam(
-        model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
-    )
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     loss_fn = YoloLoss()
 
     if LOAD_MODEL:
         load_checkpoint(torch.load(LOAD_MODEL_FILE), model, optimizer)
-   
+
     train_dataset = VOCDataset(
         "data/small_train.csv",
         transform=transform,
@@ -95,7 +98,7 @@ def main():
         "data/test.csv", transform=transform, img_dir=IMG_DIR, label_dir=LABEL_DIR,
     )
     """
-    #train_dataset = NaoTHDataset(transform=transform)
+    # train_dataset = NaoTHDataset(transform=transform)
 
     train_loader = DataLoader(
         dataset=train_dataset,
@@ -115,28 +118,25 @@ def main():
         drop_last=True,
     )
     """
-    
+
     for epoch in range(EPOCHS):
         # # Hack if we load the model we want to visualize some stuff
         if LOAD_MODEL:
             for x, y in train_loader:
-               x = x.to(DEVICE)
-               for idx in range(8):
-                   bboxes = cellboxes_to_boxes(model(x))
-                   bboxes = non_max_suppression(bboxes[idx], iou_threshold=0.5, threshold=0.4, box_format="midpoint")
-                   print("plot_image")
-                   plot_image(x[idx].permute(1,2,0).to("cpu"), bboxes, idx)
+                x = x.to(DEVICE)
+                for idx in range(8):
+                    bboxes = cellboxes_to_boxes(model(x))
+                    bboxes = non_max_suppression(bboxes[idx], iou_threshold=0.5, threshold=0.4, box_format="midpoint")
+                    print("plot_image")
+                    plot_image(x[idx].permute(1, 2, 0).to("cpu"), bboxes, idx)
 
-               import sys
-               sys.exit()
+                import sys
 
-        pred_boxes, target_boxes = get_bboxes(
-            train_loader, model, iou_threshold=0.5, threshold=0.4
-        )
+                sys.exit()
 
-        mean_avg_prec = mean_average_precision(
-            pred_boxes, target_boxes, iou_threshold=0.5, box_format="midpoint"
-        )
+        pred_boxes, target_boxes = get_bboxes(train_loader, model, iou_threshold=0.5, threshold=0.4)
+
+        mean_avg_prec = mean_average_precision(pred_boxes, target_boxes, iou_threshold=0.5, box_format="midpoint")
         print(f"Train mAP: {mean_avg_prec}")
 
         if mean_avg_prec > 0.2:
@@ -146,6 +146,7 @@ def main():
             }
             save_checkpoint(checkpoint, filename=LOAD_MODEL_FILE)
             import time
+
             time.sleep(10)
 
         train_fn(train_loader, model, optimizer, loss_fn)
