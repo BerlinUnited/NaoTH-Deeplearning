@@ -22,7 +22,7 @@ from tools.helper import (
 )
 
 
-def create_yuv_422_combined_datasets():
+def create_yuv_422_y_only_combined_datasets():
     DS_BASE_NAME = f"{DS_ROOT}_combined_{PATCH_SIZE}x{PATCH_SIZE}"
 
     print("Converting devils data to numpy arrays...")
@@ -109,7 +109,7 @@ def create_yuv_422_combined_datasets():
     #     f.create_dataset("y", data=y_test)
 
 
-def create_yuv_422_top_datasets():
+def create_yuv_422_y_only_top_datasets():
     DS_BASE_NAME = f"{DS_ROOT}_top_{PATCH_SIZE}x{PATCH_SIZE}"
 
     print("Converting devils data to numpy arrays...")
@@ -196,7 +196,7 @@ def create_yuv_422_top_datasets():
     #     f.create_dataset("y", data=y_test)
 
 
-def create_yuv_422_bottom_datasets():
+def create_yuv_422_y_only_bottom_datasets():
     DS_BASE_NAME = f"{DS_ROOT}_bottom_{PATCH_SIZE}x{PATCH_SIZE}"
 
     print("Converting devils data to numpy arrays...")
@@ -315,6 +315,6 @@ if __name__ == "__main__":
     #     filter_bottom=naoth_test_bottom_filter,
     # )
 
-    create_yuv_422_combined_datasets()
-    create_yuv_422_top_datasets()
-    create_yuv_422_bottom_datasets()
+    create_yuv_422_y_only_combined_datasets()
+    create_yuv_422_y_only_top_datasets()
+    create_yuv_422_y_only_bottom_datasets()
