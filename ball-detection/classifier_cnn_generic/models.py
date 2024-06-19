@@ -1,4 +1,4 @@
-from keras.layers import (
+from tensorflow.keras.layers import (
     Input,
     Conv2D,
     BatchNormalization,
@@ -8,8 +8,8 @@ from keras.layers import (
     Dense,
     Dropout,
 )
-from keras.regularizers import L1L2, L2
-from keras.models import Model
+from tensorflow.keras.regularizers import L1L2, L2
+from tensorflow.keras.models import Model
 
 
 def make_naoth_classifier_generic_functional(

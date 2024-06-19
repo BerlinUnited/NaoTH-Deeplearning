@@ -1,6 +1,6 @@
-from keras.layers import Input, Conv2D, ReLU, Flatten, Dense, Dropout
-from keras.regularizers import L1L2
-from keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, ReLU, Flatten, Dense, Dropout
+from tensorflow.keras.regularizers import L1L2, L2
+from tensorflow.keras.models import Model
 
 
 def build_classifier_cnn_ball_gopen24_functional():
@@ -44,7 +44,7 @@ def build_classifier_cnn_ball_gopen24_functional():
         256,
         activation="relu",
         kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
-        bias_regularizer=keras.regularizers.L2(1e-4),
+        bias_regularizer=L2(1e-4),
     )(x)
     x = Dropout(0.1)(x)
 
@@ -52,7 +52,7 @@ def build_classifier_cnn_ball_gopen24_functional():
         32,
         activation="relu",
         kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
-        bias_regularizer=keras.regularizers.L2(1e-4),
+        bias_regularizer=L2(1e-4),
     )(x)
 
     outputs = Dense(2, activation="softmax")(x)

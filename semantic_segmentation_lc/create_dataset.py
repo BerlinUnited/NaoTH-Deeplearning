@@ -27,7 +27,7 @@ from tools import (
     get_labelstudio_client,
     get_minio_client,
     get_postgres_cursor,
-    load_image_as_yuv888_y_only,
+    load_image_as_yuv422_y_only_pil,
 )
 
 
@@ -196,7 +196,10 @@ def create_ds_y(camera, scale_factor, ball_only=False):
         else:
             label_ds = h5f.create_dataset("Y", shape=(len(trainings_list), 15, 20, 3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(trainings_list)):
-            img = load_image_as_yuv888_y_only(str(image_path), rescale=True, subsample=True)  # FIXME
+            img = load_image_as_yuv422_y_only_pil(str(image_path))
+            img = img / 255.0  # rescale to [0,1]
+            img = img[::2, ::2]  # subsample by factor 2
+
             # TODO try batching here for speedup
             img_ds[cnt : cnt + 1 :, :, :] = img
 
@@ -217,7 +220,9 @@ def create_ds_y(camera, scale_factor, ball_only=False):
         else:
             label_ds = h5f.create_dataset("Y", shape=(len(validation_list), 15, 20, 3), dtype=np.float32)
         for cnt, image_path in enumerate(tqdm(validation_list)):
-            img = load_image_as_yuv888_y_only(str(image_path), rescale=True, subsample=True)
+            img = load_image_as_yuv422_y_only_pil(str(image_path))
+            img = img / 255.0  # rescale to [0,1]
+            img = img[::2, ::2]  # subsample by factor 2
             # TODO try batching here for speedup
             img_ds[cnt : cnt + 1 :, :, :] = img
 

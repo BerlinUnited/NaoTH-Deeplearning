@@ -1,3 +1,7 @@
+import tensorflow as tf
+import tensorflow.keras as keras
+
+
 @keras.saving.register_keras_serializable(name="weighted_binary_crossentropy")
 def weighted_binary_crossentropy(target, output, weights):
     target = tf.convert_to_tensor(target)
