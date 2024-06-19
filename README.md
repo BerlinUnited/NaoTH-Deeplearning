@@ -17,3 +17,18 @@ python3 -m venv venv_pytorch
 source venv_pytorch/bin/activate
 python -m pip install -r requirements-tensorflow.txt
 ```
+
+## Formatting
+We use the black formatter (https://black.readthedocs.io/en/stable/) with a custom pyproject.toml configuration.  
+
+
+Recommended setup:
+- install black into your virtual environment
+- set the following options for vscode IDE
+  - ```
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "black-formatter.importStrategy": "fromEnvironment"
+    ```
+- to format the entire codebase, run `black ./`
