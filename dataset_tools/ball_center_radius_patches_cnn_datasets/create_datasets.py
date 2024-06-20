@@ -218,7 +218,7 @@ def parse_args():
     parser.add_argument(
         "--color_mode", type=ColorMode, choices=list(ColorMode), default=ColorMode.YUV422_Y_ONLY_PIL, help="Color mode"
     )
-    parser.add_argument("--force-download", action="store_true", default=False, help="Force download of patches")
+    parser.add_argument("--force_download", action="store_true", default=False, help="Force download of patches")
 
     args = parser.parse_args()
     return args
@@ -250,15 +250,31 @@ if __name__ == "__main__":
     make_data_dir()
     download_patches(overwrite=args.force_download)
 
-    print("\nCreating datasets combined")
-    if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL:
-        download_tk03_patches(overwrite=args.force_download)
-        create_datasets_tk03_and_naoth_combined()
-    else:
-        create_datasets_combined()
+    # Currently we only do segmentation patches for the bottom camera
+    if PATCH_TYPE == PatchType.LEGACY:
+        print("\nCreating datasets combined")
 
-    print("\nCreating datasets top")
-    create_datasets_top()
+        try:
+            # TK03 dataset is only available in grayscale
+            # and we don't have the top/bottom camera information
+            if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL:
+                download_tk03_patches(overwrite=args.force_download)
+                create_datasets_tk03_and_naoth_combined()
+            else:
+                # for color images we only have the naoth dataset
+                # but we can split it into top and bottom patches
+                create_datasets_combined()
+        except Exception as e:
+            print(f"Error creating combined datasets: {e}")
 
-    print("\nCreating datasets bottom")
-    create_datasets_bottom()
+        try:
+            print("\nCreating datasets top")
+            create_datasets_top()
+        except Exception as e:
+            print(f"Error creating top datasets: {e}")
+
+    try:
+        print("\nCreating datasets bottom")
+        create_datasets_bottom()
+    except Exception as e:
+        print(f"Error creating bottom datasets: {e}")

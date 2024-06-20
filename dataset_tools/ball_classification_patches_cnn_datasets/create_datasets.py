@@ -218,11 +218,23 @@ if __name__ == "__main__":
     make_data_dir()
     download_patches(overwrite=args.force_download)
 
-    print("\nCreating datasets combined")
-    create_datasets_combined()
+    # Currently we only do segmentation patches for the bottom camera
+    if PATCH_TYPE == PatchType.LEGACY:
+        print("\nCreating datasets combined")
 
-    print("\nCreating datasets top")
-    create_datasets_top()
+        try:
+            create_datasets_combined()
+        except Exception as e:
+            print(f"Error creating combined datasets: {e}")
 
-    print("\nCreating datasets bottom")
-    create_datasets_bottom()
+        try:
+            print("\nCreating datasets top")
+            create_datasets_top()
+        except Exception as e:
+            print(f"Error creating top datasets: {e}")
+
+    try:
+        print("\nCreating datasets bottom")
+        create_datasets_bottom()
+    except Exception as e:
+        print(f"Error creating bottom datasets: {e}")
