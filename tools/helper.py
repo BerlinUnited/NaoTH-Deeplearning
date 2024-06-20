@@ -106,10 +106,14 @@ def get_file_from_server(origin, target):
         raise
 
 
-def download_from_minio(client, bucket_name, filename, output_folder):
+def download_from_minio(client, bucket_name, filename, output_folder, overwrite=False):
     output = Path(output_folder) / str(bucket_name + "_" + filename)
-    if not output.exists():
+
+    if overwrite or not output.exists():
         client.fget_object(bucket_name, filename, output)
+    else:
+        print(f"File {output} already exists. Skipping download.")
+
     return str(output)
 
 
@@ -179,6 +183,7 @@ def combine_datasets_split_train_val(Xs, ys, test_size=0.15, stratify=True):
 def download_devils_labeled_patches(
     save_dir,
     url="https://datasets.naoth.de/NaoDevils_Patches_GO24_32x32x3_nsamples_%20215820/patches_classification_naodevils_32x32x3_GO24.zip",
+    overwrite=False,
 ):
     save_dir = Path(save_dir)
     filename = "devils_dataset.zip"
@@ -186,7 +191,7 @@ def download_devils_labeled_patches(
 
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
-    if not filepath.exists():
+    if overwrite or not filepath.exists():
         print(f"Downloading dataset from {url}...")
         get_file_from_server(url, filepath)
 
@@ -195,14 +200,14 @@ def download_devils_labeled_patches(
             f_zip.extractall(save_dir)
 
 
-def download_tk_03_dataset(save_dir, url="https://datasets.naoth.de/tk03_combined_detection.pkl"):
+def download_tk_03_dataset(save_dir, url="https://datasets.naoth.de/tk03_combined_detection.pkl", overwrite=False):
     save_dir = Path(save_dir)
     filename = url.rsplit("/", 1)[-1]
     filepath = save_dir / filename
 
     filepath.parent.mkdir(parents=True, exist_ok=True)
 
-    if not filepath.exists():
+    if overwrite or not filepath.exists():
         print(f"Downloading dataset from {url}...")
         get_file_from_server(url, filepath)
 
@@ -265,7 +270,7 @@ def get_patch_buckets(camera: str, validated=True, filter_: str = ""):
     return result
 
 
-def download_and_extract_patches_from_bucket(data, save_dir, filename):
+def download_and_extract_patches_from_bucket(data, save_dir, filename, overwrite=False):
     mclient = get_minio_client()
 
     for bucket_name in sorted(data):
@@ -276,9 +281,10 @@ def download_and_extract_patches_from_bucket(data, save_dir, filename):
                 bucket_name=bucket_name,
                 filename=filename,
                 output_folder=save_dir,
+                overwrite=overwrite,
             )
 
-            print(f"Working on {file_path}")
+            print(f"Extracting {file_path}")
 
             with zipfile.ZipFile(file_path, "r") as f:
                 f.extractall(save_dir / bucket_name)
@@ -308,8 +314,12 @@ def download_naoth_labeled_patches(
     data_top = get_patch_buckets("top", validated, filter_top)
     data_bottom = get_patch_buckets("bottom", validated, filter_bottom)
 
-    download_and_extract_patches_from_bucket(data_top, save_dir / "top", filename)
-    download_and_extract_patches_from_bucket(data_bottom, save_dir / "bottom", filename)
+    download_and_extract_patches_from_bucket(
+        data=data_top, save_dir=save_dir / "top", filename=filename, overwrite=overwrite
+    )
+    download_and_extract_patches_from_bucket(
+        data=data_bottom, save_dir=save_dir / "bottom", filename=filename, overwrite=overwrite
+    )
 
 
 def get_classification_data_devils_combined(

@@ -29,9 +29,9 @@ def make_data_dir():
     Path(f"{DS_ROOT}").mkdir(parents=True, exist_ok=True)
 
 
-def download_patches():
+def download_patches(overwrite=False):
     print("Downloading devils data...")
-    download_devils_labeled_patches(save_dir=DEVILS_SAVE_DIR)
+    download_devils_labeled_patches(save_dir=DEVILS_SAVE_DIR, overwrite=overwrite)
 
     print("Downloading naoth training data...")
     download_naoth_labeled_patches(
@@ -41,6 +41,7 @@ def download_patches():
         filter_bottom=naoth_train_bottom_filter,
         patch_type=PATCH_TYPE,
         border=BORDER,
+        overwrite=overwrite,
     )
 
     print("Downloading naoth test data...")
@@ -51,6 +52,7 @@ def download_patches():
         filter_bottom=naoth_test_bottom_filter,
         patch_type=PATCH_TYPE,
         border=BORDER,
+        overwrite=overwrite,
     )
 
 
@@ -176,6 +178,7 @@ def parse_args():
     parser.add_argument(
         "--color_mode", type=ColorMode, choices=list(ColorMode), default=ColorMode.YUV422_Y_ONLY_PIL, help="Color mode"
     )
+    parser.add_argument("--force-download", action="store_true", default=False, help="Force download of patches")
 
     args = parser.parse_args()
     return args
@@ -213,7 +216,7 @@ if __name__ == "__main__":
     naoth_test_bottom_filter = "ls_project_bottom IN ('629', '630', '631', '632')"
 
     make_data_dir()
-    download_patches()
+    download_patches(overwrite=args.force_download)
 
     print("Creating datasets combined")
     create_datasets_combined()

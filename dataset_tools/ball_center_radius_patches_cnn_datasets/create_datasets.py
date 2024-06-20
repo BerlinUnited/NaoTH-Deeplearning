@@ -29,14 +29,18 @@ def make_data_dir():
     Path(f"{DS_ROOT}").mkdir(parents=True, exist_ok=True)
 
 
-def download_tk03_patches():
+def download_tk03_patches(overwrite=False):
     print("Downloading tk03 detection training data...")
-    download_tk_03_dataset(save_dir=TK_SAVE_DIR, url="https://datasets.naoth.de/tk03_combined_detection.pkl")
+    download_tk_03_dataset(
+        save_dir=TK_SAVE_DIR, url="https://datasets.naoth.de/tk03_combined_detection.pkl", overwrite=overwrite
+    )
 
 
-def download_patches():
+def download_patches(overwrite=False):
     print("Downloading naoth detection training data...")
-    download_naoth_labeled_patches(save_dir=NAOTH_SAVE_DIR, validated=True, patch_type=PATCH_TYPE, border=BORDER)
+    download_naoth_labeled_patches(
+        save_dir=NAOTH_SAVE_DIR, validated=True, patch_type=PATCH_TYPE, border=BORDER, overwrite=overwrite
+    )
 
 
 def load_and_prepare_data_naoth(get_data_func, file_path, color_mode, filter_ambiguous_balls=False):
@@ -214,6 +218,7 @@ def parse_args():
     parser.add_argument(
         "--color_mode", type=ColorMode, choices=list(ColorMode), default=ColorMode.YUV422_Y_ONLY_PIL, help="Color mode"
     )
+    parser.add_argument("--force-download", action="store_true", default=False, help="Force download of patches")
 
     args = parser.parse_args()
     return args
@@ -243,11 +248,11 @@ if __name__ == "__main__":
     TK_FILE_PATH = f"{TK_SAVE_DIR}/tk03_combined_detection.pkl"
 
     make_data_dir()
-    download_patches()
+    download_patches(overwrite=args.force_download)
 
     print("Creating datasets combined")
     if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL:
-        download_tk03_patches()
+        download_tk03_patches(overwrite=args.force_download)
         create_datasets_tk03_and_naoth_combined()
     else:
         create_datasets_combined()
