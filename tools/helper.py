@@ -1,8 +1,8 @@
+import pickle
 import zipfile
 from enum import Enum
 from os import environ
 from pathlib import Path
-from typing import Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
 
@@ -142,7 +142,7 @@ def resize_image_cv2_inter_nearest(image, size):
     return cv2.resize(image, size, interpolation=cv2.INTER_NEAREST)
 
 
-def combine_datasets_split_train_val_stratify(Xs, ys, test_size=0.15):
+def combine_datasets_split_train_val(Xs, ys, test_size=0.15, stratify=True):
     # Combine multiple datasets and split them into train and validation sets
     # with stratification before merging them into a single dataset.
     # This ensures that the class distribution is preserved in the train and
@@ -159,7 +159,7 @@ def combine_datasets_split_train_val_stratify(Xs, ys, test_size=0.15):
             y,
             test_size=test_size,
             random_state=42,
-            stratify=y,
+            stratify=y if stratify else None,
         )
 
         Xs_train.append(X_train)
@@ -173,7 +173,7 @@ def combine_datasets_split_train_val_stratify(Xs, ys, test_size=0.15):
     X_val = np.concatenate(Xs_val)
     y_val = np.concatenate(ys_val)
 
-    return X_train, y_train, X_val, y_val
+    return X_train, X_val,y_train, y_val
 
 
 def download_devils_labeled_patches(
@@ -193,6 +193,54 @@ def download_devils_labeled_patches(
     print(f"Extracting dataset to {save_dir}...")
     with zipfile.ZipFile(filepath, "r") as f_zip:
         f_zip.extractall(save_dir)
+
+
+def download_tk_03_dataset(save_dir, url="https://datasets.naoth.de/tk03_combined_detection.pkl"):
+    save_dir = Path(save_dir)
+    filename = url.rsplit("/", 1)[-1]
+    filepath = save_dir / filename
+
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    if not filepath.exists():
+        print(f"Downloading dataset from {url}...")
+        get_file_from_server(url, filepath)
+
+    # no need to extract, tk03 datasets are pickle files
+
+
+def get_ball_center_radius_data_tk_03_combined(file_path, balls_only=True, debug=False):
+    with open(file_path, "rb") as f:
+        mean = pickle.load(f)
+        images = pickle.load(f)
+        targets = pickle.load(f)  # radius, x_coord, y_coord, is_ball
+        # filepaths = pickle.load(f) # not needed
+
+    is_ball = [target[3] for target in targets]
+
+    # load targets in same format as naoth data
+    targets = np.array([[target[1], target[2], target[0]] for target in targets])
+
+    # add mean back to images for consistent data format
+    images_norm = images + mean
+
+    # scale images to [0, 255] for consistent data format
+    images_norm = (images_norm * 255).astype(np.uint8)
+
+    if debug:
+        print("Images shape: ", images.shape)
+        print("Images mean: ", mean)
+        print("Images range before normalization: ", images.min(), images.max())
+        print()
+        print("Images range after normalization: ", images_norm.min(), images_norm.max())
+        print("Images mean after normalization: ", images_norm.mean())
+
+    if balls_only:
+        print("Filtering out non-ball patches...")
+        images_norm = [img for img, is_ball in zip(images_norm, is_ball) if is_ball]
+        targets = [target for target, is_ball in zip(targets, is_ball) if is_ball]
+
+    return images_norm, targets
 
 
 def get_patch_buckets(camera: str, validated=True, filter_: str = ""):
@@ -350,13 +398,12 @@ def get_classification_data_naoth_top(
     filter_ambiguous_balls=True,
     # TODO: Add parameter to filter out blurry balls
 ):
-    from tools.image_loader import get_meta_from_png, get_multiclass_from_meta
+    from tools.image_loader import get_multiclass_from_meta
 
     naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("top/*/*/*.png"))
 
-    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
-    meta = [get_meta_from_png(img_path) for img_path in image_paths]
+    X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
     y = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
@@ -374,13 +421,12 @@ def get_classification_data_naoth_bottom(
     # TODO: Add parameter to filter out blurry balls
 ):
     from tools.helper import filter_ambiguous_ball_patches
-    from tools.image_loader import get_meta_from_png, get_multiclass_from_meta
+    from tools.image_loader import get_multiclass_from_meta
 
     naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("bottom/*/*/*.png"))
 
-    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
-    meta = [get_meta_from_png(img_path) for img_path in image_paths]
+    X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
     y = np.array([get_multiclass_from_meta(m) for m in meta])
 
     if filter_ambiguous_balls:
@@ -391,12 +437,107 @@ def get_classification_data_naoth_bottom(
     return X, y
 
 
-def filter_ambiguous_ball_patches(X, y):
+def get_ball_center_radius_data_naoth_combined(
+    file_path,
+    color_mode: ColorMode,
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    X_top, y_top = get_ball_center_radius_data_naoth_top(
+        file_path=file_path,
+        color_mode=color_mode,
+        filter_ambiguous_balls=filter_ambiguous_balls,
+    )
+    X_bottom, y_bottom = get_ball_center_radius_data_naoth_bottom(
+        file_path=file_path,
+        color_mode=color_mode,
+        filter_ambiguous_balls=filter_ambiguous_balls,
+    )
+
+    X = X_top + X_bottom  # patches may be inconsistent in shape at this point
+    y = y_top + y_bottom
+
+    return X, y
+
+
+def get_ball_center_radius_data_naoth_top(
+    file_path,
+    color_mode: ColorMode,
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
+
+    naoth_patches = Path(file_path)
+    image_paths = list(naoth_patches.rglob("top/*/*/*.png"))
+
+    X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
+    y = [get_ball_center_radius_from_meta(m) for m in meta]
+    y_multiclass = [get_multiclass_from_meta(m) for m in meta]
+
+    if filter_ambiguous_balls:
+        X_new = []
+        y_new = []
+
+        for img, class_, target in zip(X, y_multiclass, y):
+            # multiclass is [ball, penalty, robot]
+            if class_[0] == 1 and class_[2] == 1:
+                continue
+            else:
+                X_new.append(img)
+                y_new.append(target)
+        X, y = X_new, y_new
+
+    return X, y
+
+
+def get_ball_center_radius_data_naoth_bottom(
+    file_path,
+    color_mode: ColorMode,
+    filter_ambiguous_balls=True,
+    # TODO: Add parameter to filter out blurry balls
+):
+    from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
+
+    naoth_patches = Path(file_path)
+    image_paths = list(naoth_patches.rglob("bottom/*/*/*.png"))
+
+    X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
+    y = [get_ball_center_radius_from_meta(m) for m in meta]
+    y_multiclass = [get_multiclass_from_meta(m) for m in meta]
+
+    if filter_ambiguous_balls:
+        X_new = []
+        y_new = []
+
+        for img, class_, target in zip(X, y_multiclass, y):
+            # multiclass is [ball, penalty, robot]
+            if class_[0] == 1 and class_[2] == 1:
+                continue
+            else:
+                X_new.append(img)
+                y_new.append(target)
+
+        X, y = X_new, y_new
+
+    return X, y
+
+
+def load_naoth_images_with_meta(image_paths, color_mode: ColorMode):
+    from tools.image_loader import get_meta_from_png
+
+    X = load_images_from_paths(image_paths=image_paths, color_mode=color_mode)
+    meta = [get_meta_from_png(img_path) for img_path in image_paths]
+
+    return X, meta
+
+
+def filter_ambiguous_ball_patches(X, y_multiclass):
     # only keep ball patches that do not contain robot class as well
     X_new = []
     y_new = []
 
-    for img, target in zip(X, y):
+    for img, target in zip(X, y_multiclass):
         # target is [ball, penalty, robot]
         if target[0] == 1 and target[2] == 1:
             continue
