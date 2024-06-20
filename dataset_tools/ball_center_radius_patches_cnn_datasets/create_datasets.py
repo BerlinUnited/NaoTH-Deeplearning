@@ -243,7 +243,7 @@ if __name__ == "__main__":
     DS_NAME = f"ball_center_radius_patches_{COLOR_MODE.value.lower()}_{PATCH_TYPE.name.lower()}_border{BORDER}"
     DS_ROOT = f"../../data/{DS_NAME}/"
 
-    NAOTH_SAVE_DIR = f"/tmp/naoth_labeled_patches_ball_center_radius_{PATCH_TYPE.name.lower()}_border{BORDER}"
+    NAOTH_SAVE_DIR = f"/tmp/naoth_labeled_patches_{PATCH_TYPE.name.lower()}_border{BORDER}"
     TK_SAVE_DIR = f"/tmp/tk03_combined_detection"
     TK_FILE_PATH = f"{TK_SAVE_DIR}/tk03_combined_detection.pkl"
 

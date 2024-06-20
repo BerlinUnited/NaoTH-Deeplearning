@@ -206,7 +206,6 @@ if __name__ == "__main__":
     DEVILS_SAVE_DIR = "/tmp/devils_dataset"
     DEVILS_SAVE_DIR_EXTRACTED = f"{DEVILS_SAVE_DIR}/patches_classification_naodevils_32x32x3_GO24"
 
-    NAOTH_SAVE_DIR = f"/tmp/naoth_labeled_patches_ball_center_radius_{PATCH_TYPE.name.lower()}_border{BORDER}"
     NAOTH_TRAIN_SAVE_DIR = f"/tmp/naoth_labeled_patches_train_{PATCH_TYPE.name.lower()}_border{BORDER}"
     NAOTH_TEST_SAVE_DIR = f"/tmp/naoth_labeled_patches_test_{PATCH_TYPE.name.lower()}_border{BORDER}"
 
