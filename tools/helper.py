@@ -112,7 +112,7 @@ def download_from_minio(client, bucket_name, filename, output_folder, overwrite=
     if overwrite or not output.exists():
         client.fget_object(bucket_name, filename, output)
     else:
-        print(f"File {output} already exists. Skipping download.")
+        print(f"File {output} already exists. Skipping download...")
 
     return str(output)
 
@@ -284,8 +284,8 @@ def download_and_extract_patches_from_bucket(data, save_dir, filename, overwrite
                 overwrite=overwrite,
             )
 
+            # TODO: Only extract if file was downloaded without breaking existing code
             print(f"Extracting {file_path}")
-
             with zipfile.ZipFile(file_path, "r") as f:
                 f.extractall(save_dir / bucket_name)
 

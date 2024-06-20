@@ -218,11 +218,11 @@ if __name__ == "__main__":
     make_data_dir()
     download_patches(overwrite=args.force_download)
 
-    print("Creating datasets combined")
+    print("\nCreating datasets combined")
     create_datasets_combined()
 
-    print("Creating datasets top")
+    print("\nCreating datasets top")
     create_datasets_top()
 
-    print("Creating datasets bottom")
+    print("\nCreating datasets bottom")
     create_datasets_bottom()

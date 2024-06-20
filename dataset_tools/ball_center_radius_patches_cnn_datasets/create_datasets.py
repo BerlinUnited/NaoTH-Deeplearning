@@ -250,15 +250,15 @@ if __name__ == "__main__":
     make_data_dir()
     download_patches(overwrite=args.force_download)
 
-    print("Creating datasets combined")
+    print("\nCreating datasets combined")
     if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL:
         download_tk03_patches(overwrite=args.force_download)
         create_datasets_tk03_and_naoth_combined()
     else:
         create_datasets_combined()
 
-    print("Creating datasets top")
+    print("\nCreating datasets top")
     create_datasets_top()
 
-    print("Creating datasets bottom")
+    print("\nCreating datasets bottom")
     create_datasets_bottom()
