@@ -1,22 +1,12 @@
-from tensorflow.keras.layers import (
-    Input,
-    Conv2D,
-    BatchNormalization,
-    LeakyReLU,
-    MaxPool2D,
-    Flatten,
-    Dense,
-    Dropout,
-)
-from tensorflow.keras.regularizers import L1L2, L2
+from tensorflow.keras.layers import BatchNormalization, Conv2D, Dense, Dropout, Flatten, Input, LeakyReLU, MaxPool2D
 from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import L1L2, L2
 
 
 def make_naoth_classifier_generic_functional(
     input_shape=(16, 16, 1),
     filters=(8, 8, 16, 16),
     n_dense=64,
-    dropout=0.33,
     regularize=True,
     softmax=True,
 ):
@@ -75,8 +65,8 @@ def make_naoth_classifier_generic_functional(
         bias_regularizer=L2(1e-4) if regularize else None,
     )(x)
 
-    if dropout is not None and dropout > 0.0:
-        x = Dropout(dropout)(x)
+    if regularize:
+        x = Dropout(0.33)(x)
 
     if softmax:
         outputs = Dense(2, activation="softmax")(x)
