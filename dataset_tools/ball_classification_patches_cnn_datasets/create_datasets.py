@@ -25,7 +25,7 @@ from tools.helper import (
 )
 
 
-def make_save_dir():
+def make_data_dir():
     Path(f"{DS_ROOT}").mkdir(parents=True, exist_ok=True)
 
 
@@ -61,7 +61,7 @@ def load_and_prepare_data_devils(get_data_func, file_path, color_mode):
 
     print(f"Resizing images to {PATCH_SIZE}x{PATCH_SIZE}...")
     X = np.array([resize_image_cv2_inter_nearest(img, (PATCH_SIZE, PATCH_SIZE)) for img in X])
-    X = X.reshape(-1, PATCH_SIZE, PATCH_SIZE, 2)
+    X = X.reshape(-1, PATCH_SIZE, PATCH_SIZE, CHANNELS)
 
     return X, y
 
@@ -73,7 +73,7 @@ def load_and_prepare_data_naoth(get_data_func, file_path, color_mode, filter_amb
 
     print(f"Resizing images to {PATCH_SIZE}x{PATCH_SIZE}...")
     X = np.array([resize_image_cv2_inter_nearest(img, (PATCH_SIZE, PATCH_SIZE)) for img in X])
-    X = X.reshape(-1, PATCH_SIZE, PATCH_SIZE, 2)
+    X = X.reshape(-1, PATCH_SIZE, PATCH_SIZE, CHANNELS)
 
     return X, y
 
@@ -150,7 +150,9 @@ def create_datasets_devils_and_naoth(get_classification_data_devils, get_classif
 
 
 def create_datasets_combined():
-    create_datasets_devils_and_naoth(get_classification_data_devils_combined, get_classification_data_naoth_combined, "combined")
+    create_datasets_devils_and_naoth(
+        get_classification_data_devils_combined, get_classification_data_naoth_combined, "combined"
+    )
 
 
 def create_datasets_top():
@@ -158,7 +160,9 @@ def create_datasets_top():
 
 
 def create_datasets_bottom():
-    create_datasets_devils_and_naoth(get_classification_data_devils_bottom, get_classification_data_naoth_bottom, "bottom")
+    create_datasets_devils_and_naoth(
+        get_classification_data_devils_bottom, get_classification_data_naoth_bottom, "bottom"
+    )
 
 
 def parse_args():
@@ -191,6 +195,8 @@ if __name__ == "__main__":
     BORDER = args.border
     COLOR_MODE = args.color_mode
 
+    CHANNELS = 1 if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL else 2
+
     DS_NAME = f"classification_patches_{COLOR_MODE.value.lower()}_{PATCH_TYPE.name.lower()}_border{BORDER}"
     DS_ROOT = f"../../data/{DS_NAME}/"
 
@@ -205,6 +211,9 @@ if __name__ == "__main__":
     naoth_train_bottom_filter = "ls_project_bottom NOT IN ('629', '630', '631', '632')"
     naoth_test_top_filter = "ls_project_top IN ('625', '626', '627', '628')"
     naoth_test_bottom_filter = "ls_project_bottom IN ('629', '630', '631', '632')"
+
+    make_data_dir()
+    download_patches()
 
     print("Creating datasets combined")
     create_datasets_combined()

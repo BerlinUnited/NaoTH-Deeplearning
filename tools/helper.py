@@ -173,7 +173,7 @@ def combine_datasets_split_train_val(Xs, ys, test_size=0.15, stratify=True):
     X_val = np.concatenate(Xs_val)
     y_val = np.concatenate(ys_val)
 
-    return X_train, X_val,y_train, y_val
+    return X_train, X_val, y_train, y_val
 
 
 def download_devils_labeled_patches(
@@ -190,9 +190,9 @@ def download_devils_labeled_patches(
         print(f"Downloading dataset from {url}...")
         get_file_from_server(url, filepath)
 
-    print(f"Extracting dataset to {save_dir}...")
-    with zipfile.ZipFile(filepath, "r") as f_zip:
-        f_zip.extractall(save_dir)
+        print(f"Extracting dataset to {save_dir}...")
+        with zipfile.ZipFile(filepath, "r") as f_zip:
+            f_zip.extractall(save_dir)
 
 
 def download_tk_03_dataset(save_dir, url="https://datasets.naoth.de/tk03_combined_detection.pkl"):
@@ -286,11 +286,6 @@ def download_and_extract_patches_from_bucket(data, save_dir, filename):
         except Exception as e:
             print(f"Error downloading from bucket {bucket_name}: {e}")
 
-        finally:
-            # check if zip file_path is defined and if the file exists, delete it
-            if "file_path" in locals() and Path(file_path).exists():
-                Path(file_path).unlink()
-
 
 def download_naoth_labeled_patches(
     save_dir,
@@ -299,6 +294,7 @@ def download_naoth_labeled_patches(
     filter_top=None,
     filter_bottom=None,
     border=0,
+    overwrite=False,
 ):
     # prevent mutable default arguments
     filter_top = filter_top or ""
