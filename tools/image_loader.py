@@ -116,3 +116,11 @@ def get_multiclass_from_meta(
     robot_class = int(robot_intersect > min_robot_intersect)
 
     return np.array([ball_class, penalty_class, robot_class])
+
+
+def get_ball_center_radius_from_meta(meta):
+    ball_center_x = float(meta.get("ball_center_x", 0))
+    ball_center_y = float(meta.get("ball_center_y", 0))
+    ball_radius = float(meta.get("ball_radius", 0))
+
+    return np.array([ball_center_x, ball_center_y, ball_radius])

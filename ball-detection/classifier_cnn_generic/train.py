@@ -53,12 +53,6 @@ def parse_args():
         help="List of filters for each convolutional layer.",
     )
     parser.add_argument("--regularize", type=bool, default=True, help="Whether to apply regularization.")
-    parser.add_argument(
-        "--dropout",
-        type=float,
-        default=0.33,
-        help="Dropout rate for the dropout layers.",
-    )
     parser.add_argument("--n_dense", type=int, default=64, help="Number of units in the dense layer.")
     parser.add_argument(
         "--input_shape",
@@ -137,7 +131,7 @@ def make_model_name(args):
     color = "yuv422_gray" if args.input_shape[-1] == 1 else "yuv888_color"
     filters_str = "FL" + "_".join(map(str, args.filters))
     dense_str = f"D{args.n_dense}"
-    dropout_str = f"DO{args.dropout}" if args.dropout != 0.0 else "noDO"
+    dropout_str = f"DO{0.33}" if args.regularize else "noDO"
     regularize_str = "reg" if args.regularize else "noReg"
     augment_str = "aug" if args.augment_training else "noAug"
     return f"{date_ymd}_ball_classifier_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
@@ -186,7 +180,6 @@ if __name__ == "__main__":
         input_shape=args.input_shape,
         filters=args.filters,
         regularize=args.regularize,
-        dropout=args.dropout,
         n_dense=args.n_dense,
     )
 
