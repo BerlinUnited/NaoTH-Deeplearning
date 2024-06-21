@@ -1,12 +1,11 @@
 #! /bin/bash
 
-mlflow_experiment="Ball Classifier CNN YUV422 Top"
-input_shape="16 16 3"
+mlflow_experiment="Ball Detector CNN YUV422 Y-Only Legacy Patches Border 0 Combined"
+input_shape="16 16 1"
 epochs=2000
 batch_size=12880
-data_train="../data/classification_patches_yuv422_top_16x16_train_ball_no_ball_X_y.h5"
-data_val="../data/classification_patches_yuv422_top_16x16_validation_ball_no_ball_X_y.h5"
-data_test="../data/classification_patches_yuv422_top_16x16_test_ball_no_ball_X_y.h5"
+data_train="ball_center_radius_patches_yuv422_y_only_pil_legacy_border0/ball_center_radius_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_center_radius_X_y.h5"
+data_val="ball_center_radius_patches_yuv422_y_only_pil_legacy_border0/ball_center_radius_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_validation_ball_center_radius_X_y.h5"
 
 augment_training_values=("True" "False")
 regularize_values=("True" "False")
@@ -32,7 +31,6 @@ for augment_training in "${augment_training_values[@]}"; do
             --n_dense $n_dense \
             --data_train $data_train \
             --data_val $data_val \
-            --data_test $data_test \
             --batch_size $batch_size \
             --rescale True \
             --subtract_mean True 

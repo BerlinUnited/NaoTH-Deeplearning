@@ -123,4 +123,19 @@ def get_ball_center_radius_from_meta(meta):
     ball_center_y = float(meta.get("ball_center_y", 0))
     ball_radius = float(meta.get("ball_radius", 0))
 
+    # TODO scale target values as ratio of image size
+    # like thomas did in tk03
+
+    top_left_x = float(meta.get("p_min_x"))
+    top_left_y = float(meta.get("p_min_y"))
+    bottom_right_x = float(meta.get("p_max_x"))
+    bottom_right_y = float(meta.get("p_max_y"))
+
+    height = bottom_right_y - top_left_y
+    width = bottom_right_x - top_left_x
+
+    ball_center_x = ball_center_x / width
+    ball_center_y = ball_center_y / height
+    ball_radius = ball_radius / width  # assuming square patches
+
     return np.array([ball_center_x, ball_center_y, ball_radius])
