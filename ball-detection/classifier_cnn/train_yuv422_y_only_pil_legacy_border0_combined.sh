@@ -1,12 +1,12 @@
 #! /bin/bash
 
-mlflow_experiment="Ball Classifier CNN YUV422 Y-Only Top"
+mlflow_experiment="Ball Classifier CNN YUV422 Y-Only Legacy Patches Border 0 Combined"
 input_shape="16 16 1"
 epochs=2000
 batch_size=12880
-data_train="../data/classification_patches_yuv422_y_only_top_16x16_train_ball_no_ball_X_y.h5"
-data_val="../data/classification_patches_yuv422_y_only_top_16x16_validation_ball_no_ball_X_y.h5"
-data_test="../data/classification_patches_yuv422_y_only_top_16x16_test_ball_no_ball_X_y.h5"
+data_train="classification_patches_yuv422_y_only_pil_legacy_border0/classification_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_no_ball_X_y.h5"
+data_val="classification_patches_yuv422_y_only_pil_legacy_border0/classification_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_no_ball_X_y.h5"
+data_test="classification_patches_yuv422_y_only_pil_legacy_border0/classification_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_no_ball_X_y.h5"
 
 augment_training_values=("True" "False")
 regularize_values=("True" "False")

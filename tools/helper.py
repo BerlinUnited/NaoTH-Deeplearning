@@ -447,17 +447,20 @@ def get_ball_center_radius_data_naoth_combined(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
+    balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
     X_top, y_top = get_ball_center_radius_data_naoth_top(
         file_path=file_path,
         color_mode=color_mode,
         filter_ambiguous_balls=filter_ambiguous_balls,
+        balls_only=balls_only,
     )
     X_bottom, y_bottom = get_ball_center_radius_data_naoth_bottom(
         file_path=file_path,
         color_mode=color_mode,
         filter_ambiguous_balls=filter_ambiguous_balls,
+        balls_only=balls_only,
     )
 
     X = X_top + X_bottom  # patches may be inconsistent in shape at this point
@@ -470,6 +473,7 @@ def get_ball_center_radius_data_naoth_top(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
+    balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
     from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
@@ -482,17 +486,10 @@ def get_ball_center_radius_data_naoth_top(
     y_multiclass = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
-        X_new = []
-        y_new = []
+        X, y = filter_ambiguous_ball_patches_extra_target(X, y, y_multiclass)
 
-        for img, class_, target in zip(X, y_multiclass, y):
-            # multiclass is [ball, penalty, robot]
-            if class_[0] == 1 and class_[2] == 1:
-                continue
-            else:
-                X_new.append(img)
-                y_new.append(target)
-        X, y = X_new, y_new
+    if balls_only:
+        X, y = filter_ball_patches_extra_target(X, y, y_multiclass)
 
     return X, y
 
@@ -501,6 +498,7 @@ def get_ball_center_radius_data_naoth_bottom(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
+    balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
     from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
@@ -513,18 +511,10 @@ def get_ball_center_radius_data_naoth_bottom(
     y_multiclass = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
-        X_new = []
-        y_new = []
+        X, y = filter_ambiguous_ball_patches_extra_target(X, y, y_multiclass)
 
-        for img, class_, target in zip(X, y_multiclass, y):
-            # multiclass is [ball, penalty, robot]
-            if class_[0] == 1 and class_[2] == 1:
-                continue
-            else:
-                X_new.append(img)
-                y_new.append(target)
-
-        X, y = X_new, y_new
+    if balls_only:
+        X, y = filter_ball_patches_extra_target(X, y, y_multiclass)
 
     return X, y
 
@@ -546,6 +536,37 @@ def filter_ambiguous_ball_patches(X, y_multiclass):
     for img, target in zip(X, y_multiclass):
         # target is [ball, penalty, robot]
         if target[0] == 1 and target[2] == 1:
+            continue
+        else:
+            X_new.append(img)
+            y_new.append(target)
+
+    return X_new, y_new
+
+
+def filter_ambiguous_ball_patches_extra_target(X, y, y_multiclass):
+    # only keep ball patches that do not contain robot class as well
+    X_new = []
+    y_new = []
+
+    for img, target, target_multiclass in zip(X, y, y_multiclass):
+        # target_multiclass is [ball, penalty, robot]
+        if target_multiclass[0] == 1 and target_multiclass[2] == 1:
+            continue
+
+        X_new.append(img)
+        y_new.append(target)
+
+    return X_new, y_new
+
+
+def filter_ball_patches_extra_target(X, y, y_multiclass):
+    # only keep ball patches
+    X_new = []
+    y_new = []
+
+    for img, target, class_ in zip(X, y, y_multiclass):
+        if class_[0] != 1:
             continue
         else:
             X_new.append(img)

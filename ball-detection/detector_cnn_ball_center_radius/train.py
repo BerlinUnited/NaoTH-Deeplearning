@@ -8,20 +8,10 @@ import mlflow
 import mlflow.data.numpy_dataset
 import numpy as np
 import tensorflow as tf
-from losses import WeightedBinaryCrossentropy
-from models import make_naoth_classifier_generic_functional
+from models import make_naoth_detector_generic_functional
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
-from utils import (
-    flatten_dict,
-    get_classification_report_metrics,
-    get_false_negative_images,
-    get_false_positive_images,
-    get_optimized_classification_report_metrics,
-    load_h5_dataset_X_y,
-    make_callbacks,
-    make_classification_dataset,
-)
+from utils import load_h5_dataset_X_y, make_callbacks, make_detection_dataset, plot_images_with_ball_center_and_radius
 
 from tools.mflow_helper import set_tracking_url
 
@@ -74,7 +64,6 @@ def load_data_train_test_val(
     data_val,
     data_test=None,
     input_shape=None,
-    to_categorical=True,
     rescale=True,
     subtract_mean=True,
 ):
@@ -112,11 +101,6 @@ def load_data_train_test_val(
         X_val = X_val / 255.0
         X_test = X_test / 255.0 if X_test is not None else None
 
-    if to_categorical:
-        y_train = keras.utils.to_categorical(y_train, num_classes=2)
-        y_val = keras.utils.to_categorical(y_val, num_classes=2)
-        y_test = keras.utils.to_categorical(y_test, num_classes=2) if y_test is not None else None
-
     X_train = X_train.reshape(-1, *input_shape)
     X_val = X_val.reshape(-1, *input_shape)
     X_test = X_test.reshape(-1, *input_shape) if X_test is not None else None
@@ -126,15 +110,15 @@ def load_data_train_test_val(
 
 def make_model_name(args):
     date_ymd = time.strftime("%Y-%m-%d")
-    loss_str = "weighted_bce_10to1"  # TODO: make this configurable
+    loss_str = "MAE"  # TODO: make this configurable
     train_data_str = args.data_train.split("/")[-1].split(".")[0]
-    color = "yuv422_gray" if args.input_shape[-1] == 1 else "yuv888_color"
+    color = "yuv422_gray" if args.input_shape[-1] == 1 else "yuv422_color"
     filters_str = "FL" + "_".join(map(str, args.filters))
     dense_str = f"D{args.n_dense}"
     dropout_str = f"DO{0.33}" if args.regularize else "noDO"
     regularize_str = "reg" if args.regularize else "noReg"
     augment_str = "aug" if args.augment_training else "noAug"
-    return f"{date_ymd}_ball_classifier_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
+    return f"{date_ymd}_ball_detector_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
 
 
 if __name__ == "__main__":
@@ -152,23 +136,22 @@ if __name__ == "__main__":
         data_val,
         data_test,
         input_shape=args.input_shape,
-        to_categorical=True,
         rescale=args.rescale,
         subtract_mean=args.subtract_mean,
     )
 
-    train_ds = make_classification_dataset(
+    train_ds = make_detection_dataset(
         X=X_train,
         y=y_train,
         batch_size=args.batch_size,
         augment=args.augment_training,
         rescale=False,
         prob=0.33,
-        stddev=0.15,
-        delta=0.15,
+        stddev=0.025,
+        delta=0.1,
     )
 
-    val_ds = make_classification_dataset(
+    val_ds = make_detection_dataset(
         X=X_val,
         y=y_val,
         batch_size=args.batch_size,
@@ -176,19 +159,17 @@ if __name__ == "__main__":
         augment=False,
     )
 
-    classifier = make_naoth_classifier_generic_functional(
+    detector = make_naoth_detector_generic_functional(
         input_shape=args.input_shape,
         filters=args.filters,
         regularize=args.regularize,
         n_dense=args.n_dense,
+        final_activation=None,
     )
 
-    classifier.compile(
-        optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-        loss=WeightedBinaryCrossentropy(
-            weights=[1.0, 10.0],
-        ),
-        metrics=["accuracy"],
+    detector.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.001),
+        loss=keras.losses.MeanAbsoluteError(),
     )
 
     # set up mlflow tracking
@@ -210,7 +191,7 @@ if __name__ == "__main__":
         mlflow.log_input(
             mlflow.data.from_numpy(
                 np.array([]),
-                source=f"https://datasets.naoth.de/classification/{args.data_train}",
+                source=f"https://datasets.naoth.de/detection/{args.data_train}",
                 name=args.data_train,
             ),
             context="training",
@@ -218,7 +199,7 @@ if __name__ == "__main__":
         mlflow.log_input(
             mlflow.data.from_numpy(
                 np.array([]),
-                source=f"https://datasets.naoth.de/classification/{args.data_val}",
+                source=f"https://datasets.naoth.de/detection/{args.data_val}",
                 name=args.data_val,
             ),
             context="validation",
@@ -228,7 +209,7 @@ if __name__ == "__main__":
             mlflow.log_input(
                 mlflow.data.from_numpy(
                     np.array([]),
-                    source=f"https://datasets.naoth.de/classification/{args.data_test}",
+                    source=f"https://datasets.naoth.de/detection/{args.data_test}",
                     name=args.data_test,
                 ),
                 context="test",
@@ -237,7 +218,7 @@ if __name__ == "__main__":
         callbacks = make_callbacks(model_name=MODEL_NAME, mlflow=True)
 
         with tf.device("/device:GPU:0"):
-            history = classifier.fit(
+            history = detector.fit(
                 train_ds,
                 epochs=args.epochs,
                 batch_size=args.batch_size,
@@ -248,72 +229,27 @@ if __name__ == "__main__":
         # save model
         Path(DATA_ROOT / f"models/{MODEL_NAME}").mkdir(parents=True, exist_ok=True)
 
-        classifier.save(DATA_ROOT / f"models/{MODEL_NAME}/classifier_model.keras")
-        classifier.save(DATA_ROOT / f"models/{MODEL_NAME}/classifier_model.h5")
+        detector.save(DATA_ROOT / f"models/{MODEL_NAME}/detector_model.keras")
+        detector.save(DATA_ROOT / f"models/{MODEL_NAME}/detector_model.h5")
 
         # save history
-        with open(DATA_ROOT / f"models/{MODEL_NAME}/classifier.history.pkl", "wb") as f:
+        with open(DATA_ROOT / f"models/{MODEL_NAME}/detector.history.pkl", "wb") as f:
             pickle.dump(history.history, f)
 
         mlflow.keras.log_model(
-            classifier,
+            detector,
             artifact_path=MODEL_NAME,
             registered_model_name=MODEL_NAME,
         )
 
-        # Create FP and FN images for training and validation data
-        y_pred_train = classifier.predict(train_ds)
-        y_pred_val = classifier.predict(val_ds)
+        # Create Debug images
+        y_pred_val = detector.predict(X_val)
 
-        y_true_train = np.argmax(y_train, axis=1)
-        y_pred_train = np.argmax(y_pred_train, axis=1)
-        y_true_val = np.argmax(y_val, axis=1)
-        y_pred_val = np.argmax(y_pred_val, axis=1)
-
-        X_fp_train = get_false_positive_images(X_train, y_true_train, y_pred_train)
-        X_fn_train = get_false_negative_images(X_train, y_true_train, y_pred_train)
-        X_fp_val = get_false_positive_images(X_val, y_true_val, y_pred_val)
-        X_fn_val = get_false_negative_images(X_val, y_true_val, y_pred_val)
+        plot_images_with_ball_center_and_radius(
+            X_val, y_pred_val, str(DATA_ROOT / f"models/{MODEL_NAME}/val_debug.png")
+        )
 
         # TODO: save the images as artifacts
-
-        if args.data_test:
-
-            y_pred = classifier.predict(X_test)
-            y_prob = y_pred[:, 1]
-            y_pred = np.argmax(y_pred, axis=1)
-            y_test = np.argmax(y_test, axis=1)
-
-            X_fp_test = get_false_positive_images(X_test, y_test, y_pred)
-            X_fn_test = get_false_negative_images(X_test, y_test, y_pred)
-
-            # Get the classification report metrics
-            clf_report = get_classification_report_metrics(y_test, y_pred)
-
-            # Get the optimized classification report metrics for maximum precision
-            opt_threshold, opt_clf_report = get_optimized_classification_report_metrics(y_test, y_prob)
-
-            report_dict = {
-                "clf_report": clf_report,
-                "optimal_threshold": opt_threshold,
-                "optimal_clf_report": opt_clf_report,
-            }
-
-            # flatten the report dict by traversing the nested dicts
-            # and concatenating the keys until a scalar value is reached
-            report_dict = flatten_dict(report_dict)
-
-            # remove empty values
-            report_dict = {k: v for k, v in report_dict.items() if v}
-
-            for key, value in report_dict.items():
-                mlflow.log_metric(key, value)
-
-            print("Test metrics:")
-            pprint(report_dict)
-
-            with open(DATA_ROOT / f"models/{MODEL_NAME}/test_metrics.txt", "w") as f:
-                f.write(str(report_dict))
 
         # Log all artifacts
         mlflow.log_artifacts(str(DATA_ROOT / f"models/{MODEL_NAME}"))

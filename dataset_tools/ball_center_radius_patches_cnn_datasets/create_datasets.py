@@ -43,9 +43,14 @@ def download_patches(overwrite=False):
     )
 
 
-def load_and_prepare_data_naoth(get_data_func, file_path, color_mode, filter_ambiguous_balls=False):
+def load_and_prepare_data_naoth(get_data_func, file_path, color_mode, filter_ambiguous_balls=False, balls_only=False):
     print("Converting data to numpy arrays...")
-    X, y = get_data_func(file_path=file_path, color_mode=color_mode, filter_ambiguous_balls=filter_ambiguous_balls)
+    X, y = get_data_func(
+        file_path=file_path,
+        color_mode=color_mode,
+        filter_ambiguous_balls=filter_ambiguous_balls,
+        balls_only=balls_only,
+    )
     y = np.array(y)
 
     print(f"Resizing images to {PATCH_SIZE}x{PATCH_SIZE}...")
@@ -63,6 +68,7 @@ def create_datasets_tk03_and_naoth_combined():
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
+        balls_only=True,
     )
 
     X_tk, y_tk = get_ball_center_radius_data_tk_03_combined(file_path=TK_FILE_PATH, balls_only=True)
@@ -73,8 +79,15 @@ def create_datasets_tk03_and_naoth_combined():
     print(f"\nX_naoth shape: {X_naoth.shape}")
     print(f"y_naoth shape: {y_naoth.shape}")
 
+    print(f"y_naoth ball_center_x min/max/mean {y_naoth[:, 0].min()}/{y_naoth[:, 0].max()}/{y_naoth[:, 0].mean()}")
+    print(f"y_naoth ball_center_y min/max/mean {y_naoth[:, 1].min()}/{y_naoth[:, 1].max()}/{y_naoth[:, 1].mean()}")
+    print(f"y_naoth ball_radius min/max/mean {y_naoth[:, 2].min()}/{y_naoth[:, 2].max()}/{y_naoth[:, 2].mean()}")
+
     print(f"\nX_tk shape: {X_tk.shape}")
     print(f"y_tk shape: {y_tk.shape}")
+    print(f"y_tk ball_center_x min/max/mean {y_tk[:, 0].min()}/{y_tk[:, 0].max()}/{y_tk[:, 0].mean()}")
+    print(f"y_tk ball_center_y min/max/mean {y_tk[:, 1].min()}/{y_tk[:, 1].max()}/{y_tk[:, 1].mean()}")
+    print(f"y_tk ball_radius min/max/mean {y_tk[:, 2].min()}/{y_tk[:, 2].max()}/{y_tk[:, 2].mean()}")
 
     X_train, X_val, y_train, y_val = combine_datasets_split_train_val(
         Xs=[X_tk, X_naoth],
@@ -114,6 +127,7 @@ def create_datasets_combined():
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
+        balls_only=True,
     )
 
     print(f"\nX_naoth shape: {X_naoth.shape}")
@@ -148,6 +162,7 @@ def create_datasets_top():
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
+        balls_only=True,
     )
     print(f"\nX_naoth shape: {X_naoth.shape}")
     print(f"y_naoth shape: {y_naoth.shape}")
@@ -181,6 +196,7 @@ def create_datasets_bottom():
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
+        balls_only=True,
     )
 
     X_train, X_val, y_train, y_val = train_test_split(X_naoth, y_naoth, test_size=0.15, shuffle=True, random_state=42)
