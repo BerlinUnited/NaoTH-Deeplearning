@@ -7,7 +7,7 @@ import sys
 
 # TODO iterate over all images
 new_model = tf.keras.models.load_model("segment_test.keras")
-helper_path = os.path.join(os.path.dirname(__file__), "../tools")
+helper_path = os.path.join(os.path.dirname(__file__), "../")
 sys.path.append(helper_path)
 from tools.image_loader import load_image_as_yuv422_pil
 

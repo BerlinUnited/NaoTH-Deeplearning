@@ -12,7 +12,7 @@
 import sys
 import os
 
-helper_path = os.path.join(os.path.dirname(__file__), "../tools")
+helper_path = os.path.join(os.path.dirname(__file__), "../")
 sys.path.append(helper_path)
 
 import zipfile

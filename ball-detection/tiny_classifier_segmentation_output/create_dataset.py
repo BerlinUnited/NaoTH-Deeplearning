@@ -11,7 +11,7 @@ import random
 from zipfile import ZipFile
 import PIL.Image
 
-helper_path = os.path.join(os.path.dirname(__file__), "../../tools")
+helper_path = os.path.join(os.path.dirname(__file__), "../../")
 sys.path.append(helper_path)
 
 from helper import (
