@@ -1,6 +1,8 @@
 #! /bin/bash
 
 mlflow_experiment="Ball Classifier CNN YUV422 Y-Only Legacy Patches Border 0 Combined"
+mlflow_server="https://mlflow.berlin-united.com/" # https://mlflow2.berlin-united.com/
+mlflow_fail_on_timeout="True"
 input_shape="16 16 1"
 epochs=2000
 batch_size=12880
@@ -20,10 +22,12 @@ for augment_training in "${augment_training_values[@]}"; do
     for filters in "${filters_values[@]}"; do
       for n_dense in "${n_dense_values[@]}"; do
         echo ""
-        echo "Running with augment_training=$augment_training, filters=$filters, regularize=$regularize, dropout=$dropout, n_dense=$n_dense"
+        echo "Running with augment_training=$augment_training, filters=$filters, regularize=$regularize, n_dense=$n_dense"
         echo ""
         python train.py \
             --mlflow_experiment "$mlflow_experiment" \
+            --mlflow_server "$mlflow_server" \
+            --mlflow_fail_on_timeout "$mlflow_fail_on_timeout" \
             --epochs $epochs \
             --input_shape $input_shape \
             --augment_training $augment_training \
