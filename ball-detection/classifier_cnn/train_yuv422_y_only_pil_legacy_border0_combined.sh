@@ -22,7 +22,7 @@ for augment_training in "${augment_training_values[@]}"; do
     for filters in "${filters_values[@]}"; do
       for n_dense in "${n_dense_values[@]}"; do
         echo ""
-        echo "Running with augment_training=$augment_training, filters=$filters, regularize=$regularize, dropout=$dropout, n_dense=$n_dense"
+        echo "Running with augment_training=$augment_training, filters=$filters, regularize=$regularize, n_dense=$n_dense"
         echo ""
         python train.py \
             --mlflow_experiment "$mlflow_experiment" \
