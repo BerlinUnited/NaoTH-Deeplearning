@@ -79,15 +79,15 @@ def create_datasets_tk03_and_naoth_combined():
     print(f"\nX_naoth shape: {X_naoth.shape}")
     print(f"y_naoth shape: {y_naoth.shape}")
 
-    print(f"y_naoth ball_center_x min/max/mean {y_naoth[:, 0].min()}/{y_naoth[:, 0].max()}/{y_naoth[:, 0].mean()}")
-    print(f"y_naoth ball_center_y min/max/mean {y_naoth[:, 1].min()}/{y_naoth[:, 1].max()}/{y_naoth[:, 1].mean()}")
-    print(f"y_naoth ball_radius min/max/mean {y_naoth[:, 2].min()}/{y_naoth[:, 2].max()}/{y_naoth[:, 2].mean()}")
+    print(f"y_naoth ball_radius min/max/mean {y_naoth[:, 0].min()}/{y_naoth[:, 0].max()}/{y_naoth[:, 0].mean()}")
+    print(f"y_naoth ball_center_x min/max/mean {y_naoth[:, 1].min()}/{y_naoth[:, 1].max()}/{y_naoth[:, 1].mean()}")
+    print(f"y_naoth ball_center_y min/max/mean {y_naoth[:, 2].min()}/{y_naoth[:, 2].max()}/{y_naoth[:, 2].mean()}")
 
     print(f"\nX_tk shape: {X_tk.shape}")
     print(f"y_tk shape: {y_tk.shape}")
-    print(f"y_tk ball_center_x min/max/mean {y_tk[:, 0].min()}/{y_tk[:, 0].max()}/{y_tk[:, 0].mean()}")
-    print(f"y_tk ball_center_y min/max/mean {y_tk[:, 1].min()}/{y_tk[:, 1].max()}/{y_tk[:, 1].mean()}")
-    print(f"y_tk ball_radius min/max/mean {y_tk[:, 2].min()}/{y_tk[:, 2].max()}/{y_tk[:, 2].mean()}")
+    print(f"y_tk ball_radius min/max/mean {y_tk[:, 0].min()}/{y_tk[:, 0].max()}/{y_tk[:, 0].mean()}")
+    print(f"y_tk ball_center_x min/max/mean {y_tk[:, 1].min()}/{y_tk[:, 1].max()}/{y_tk[:, 1].mean()}")
+    print(f"y_tk ball_center_y min/max/mean {y_tk[:, 2].min()}/{y_tk[:, 2].max()}/{y_tk[:, 2].mean()}")
 
     X_train, X_val, y_train, y_val = combine_datasets_split_train_val(
         Xs=[X_tk, X_naoth],
