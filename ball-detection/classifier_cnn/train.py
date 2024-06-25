@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 from losses import WeightedBinaryCrossentropy
 from models import make_naoth_classifier_generic_functional
+from PIL import Image as PIL_Image
 from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from utils import (
@@ -109,6 +110,7 @@ def load_data_train_test_val(
     X_test, y_test = load_h5_dataset_X_y(data_test) if data_test else (None, None)
 
     # Subtract the mean from the datasets if required
+    X_train_mean = None
     if subtract_mean:
         X_train_mean = X_train.mean()
         X_train = X_train.astype(np.float32) - X_train_mean
@@ -131,7 +133,7 @@ def load_data_train_test_val(
     X_val = X_val.reshape(-1, *input_shape)
     X_test = X_test.reshape(-1, *input_shape) if X_test is not None else None
 
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train, y_train, X_val, y_val, X_test, y_test, X_train_mean
 
 
 def make_model_name(args):
@@ -154,6 +156,29 @@ def download_data(data_path):
         get_file_from_server(url, data_path)
 
 
+def save_images_as_png(images, path, X_mean=None):
+    if not path.exists():
+        path.mkdir(parents=True, exist_ok=True)
+
+    for i, image in enumerate(images):
+        if X_mean:
+            image = image + X_mean
+        image = image * 255
+        image = image.astype(np.uint8)
+        image = image.squeeze()
+        image = PIL_Image.fromarray(image)
+        image.save(path / f"{i}.png")
+
+
+def zip_image_dir(input_dir_path, output_zip_path, delete_source=True):
+    import shutil
+
+    shutil.make_archive(output_zip_path, "zip", input_dir_path)
+
+    if delete_source:
+        shutil.rmtree(input_dir_path)
+
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -172,7 +197,13 @@ if __name__ == "__main__":
     if data_test:
         download_data(data_test)
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data_train_test_val(
+    if args.subtract_mean and args.input_shape[-1] != 1:
+        print("Subtracting mean only supported for single channel images, setting to False for color images")
+        subtract_mean = False
+    else:
+        subtract_mean = args.subtract_mean
+
+    X_train, y_train, X_val, y_val, X_test, y_test, X_mean = load_data_train_test_val(
         data_train,
         data_val,
         data_test,
@@ -297,6 +328,17 @@ if __name__ == "__main__":
         X_fp_val = get_false_positive_images(X_val, y_true_val, y_pred_val)
         X_fn_val = get_false_negative_images(X_val, y_true_val, y_pred_val)
 
+        X_mean = X_mean if subtract_mean else None
+        save_images_as_png(X_fp_train, MODEL_ROOT / "false_positives_train", X_mean=X_mean)
+        save_images_as_png(X_fn_train, MODEL_ROOT / "false_negatives_train", X_mean=X_mean)
+        save_images_as_png(X_fp_val, MODEL_ROOT / "false_positives_val", X_mean=X_mean)
+        save_images_as_png(X_fn_val, MODEL_ROOT / "false_negatives_val", X_mean=X_mean)
+
+        zip_image_dir(MODEL_ROOT / "false_positives_train", MODEL_ROOT / "false_positives_train", delete_source=True)
+        zip_image_dir(MODEL_ROOT / "false_negatives_train", MODEL_ROOT / "false_negatives_train", delete_source=True)
+        zip_image_dir(MODEL_ROOT / "false_positives_val", MODEL_ROOT / "false_positives_val", delete_source=True)
+        zip_image_dir(MODEL_ROOT / "false_negatives_val", MODEL_ROOT / "false_negatives_val", delete_source=True)
+
         # TODO: save the images as artifacts
 
         if args.data_test:
@@ -308,6 +350,12 @@ if __name__ == "__main__":
 
             X_fp_test = get_false_positive_images(X_test, y_test, y_pred)
             X_fn_test = get_false_negative_images(X_test, y_test, y_pred)
+
+            save_images_as_png(X_fp_test, MODEL_ROOT / "false_positives_test", X_mean=X_mean)
+            save_images_as_png(X_fn_test, MODEL_ROOT / "false_negatives_test", X_mean=X_mean)
+
+            zip_image_dir(MODEL_ROOT / "false_positives_test", MODEL_ROOT / "false_positives_test", delete_source=True)
+            zip_image_dir(MODEL_ROOT / "false_negatives_test", MODEL_ROOT / "false_negatives_test", delete_source=True)
 
             # Get the classification report metrics
             clf_report = get_classification_report_metrics(y_test, y_pred)
