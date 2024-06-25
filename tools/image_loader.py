@@ -118,7 +118,7 @@ def get_multiclass_from_meta(
     return np.array([ball_class, penalty_class, robot_class])
 
 
-def get_ball_center_radius_from_meta(meta):
+def get_ball_radius_center_from_meta(meta):
     ball_center_x = float(meta.get("ball_center_x", 0))
     ball_center_y = float(meta.get("ball_center_y", 0))
     ball_radius = float(meta.get("ball_radius", 0))
@@ -138,4 +138,4 @@ def get_ball_center_radius_from_meta(meta):
     ball_center_y = ball_center_y / height
     ball_radius = ball_radius / width  # assuming square patches
 
-    return np.array([ball_center_x, ball_center_y, ball_radius])
+    return np.array([ball_radius, ball_center_x, ball_center_y])

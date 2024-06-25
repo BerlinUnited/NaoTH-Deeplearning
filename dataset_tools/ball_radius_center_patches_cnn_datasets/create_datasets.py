@@ -17,10 +17,10 @@ from tools.helper import (
     combine_datasets_split_train_val,
     download_naoth_labeled_patches,
     download_tk_03_dataset,
-    get_ball_center_radius_data_naoth_bottom,
-    get_ball_center_radius_data_naoth_combined,
-    get_ball_center_radius_data_naoth_top,
-    get_ball_center_radius_data_tk_03_combined,
+    get_ball_radius_center_data_naoth_bottom,
+    get_ball_radius_center_data_naoth_combined,
+    get_ball_radius_center_data_naoth_top,
+    get_ball_radius_center_data_tk_03_combined,
     resize_image_cv2_inter_nearest,
 )
 
@@ -64,14 +64,14 @@ def create_datasets_tk03_and_naoth_combined():
     DS_BASE_NAME = f"{DS_ROOT}/{DS_NAME}_combined_{PATCH_SIZE}x{PATCH_SIZE}"
 
     X_naoth, y_naoth = load_and_prepare_data_naoth(
-        get_ball_center_radius_data_naoth_combined,
+        get_ball_radius_center_data_naoth_combined,
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
         balls_only=True,
     )
 
-    X_tk, y_tk = get_ball_center_radius_data_tk_03_combined(file_path=TK_FILE_PATH, balls_only=True)
+    X_tk, y_tk = get_ball_radius_center_data_tk_03_combined(file_path=TK_FILE_PATH, balls_only=True)
     X_tk = np.array([resize_image_cv2_inter_nearest(img, (PATCH_SIZE, PATCH_SIZE)) for img in X_tk])
     X_tk = X_tk.reshape(-1, PATCH_SIZE, PATCH_SIZE, CHANNELS)
     y_tk = np.array(y_tk)
@@ -79,15 +79,15 @@ def create_datasets_tk03_and_naoth_combined():
     print(f"\nX_naoth shape: {X_naoth.shape}")
     print(f"y_naoth shape: {y_naoth.shape}")
 
-    print(f"y_naoth ball_center_x min/max/mean {y_naoth[:, 0].min()}/{y_naoth[:, 0].max()}/{y_naoth[:, 0].mean()}")
-    print(f"y_naoth ball_center_y min/max/mean {y_naoth[:, 1].min()}/{y_naoth[:, 1].max()}/{y_naoth[:, 1].mean()}")
-    print(f"y_naoth ball_radius min/max/mean {y_naoth[:, 2].min()}/{y_naoth[:, 2].max()}/{y_naoth[:, 2].mean()}")
+    print(f"y_naoth ball_radius min/max/mean {y_naoth[:, 0].min()}/{y_naoth[:, 0].max()}/{y_naoth[:, 0].mean()}")
+    print(f"y_naoth ball_center_x min/max/mean {y_naoth[:, 1].min()}/{y_naoth[:, 1].max()}/{y_naoth[:, 1].mean()}")
+    print(f"y_naoth ball_center_y min/max/mean {y_naoth[:, 2].min()}/{y_naoth[:, 2].max()}/{y_naoth[:, 2].mean()}")
 
     print(f"\nX_tk shape: {X_tk.shape}")
     print(f"y_tk shape: {y_tk.shape}")
-    print(f"y_tk ball_center_x min/max/mean {y_tk[:, 0].min()}/{y_tk[:, 0].max()}/{y_tk[:, 0].mean()}")
-    print(f"y_tk ball_center_y min/max/mean {y_tk[:, 1].min()}/{y_tk[:, 1].max()}/{y_tk[:, 1].mean()}")
-    print(f"y_tk ball_radius min/max/mean {y_tk[:, 2].min()}/{y_tk[:, 2].max()}/{y_tk[:, 2].mean()}")
+    print(f"y_tk ball_radius min/max/mean {y_tk[:, 0].min()}/{y_tk[:, 0].max()}/{y_tk[:, 0].mean()}")
+    print(f"y_tk ball_center_x min/max/mean {y_tk[:, 1].min()}/{y_tk[:, 1].max()}/{y_tk[:, 1].mean()}")
+    print(f"y_tk ball_center_y min/max/mean {y_tk[:, 2].min()}/{y_tk[:, 2].max()}/{y_tk[:, 2].mean()}")
 
     X_train, X_val, y_train, y_val = combine_datasets_split_train_val(
         Xs=[X_tk, X_naoth],
@@ -102,19 +102,19 @@ def create_datasets_tk03_and_naoth_combined():
     print(f"\nX_val shape: {X_val.shape}")
     print(f"y_val shape: {y_val.shape}")
 
-    with h5py.File(f"{DS_BASE_NAME}_tk03_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_tk03_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_naoth)
         f.create_dataset("y", data=y_naoth)
 
-    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_naoth)
         f.create_dataset("y", data=y_naoth)
 
-    with h5py.File(f"{DS_BASE_NAME}_train_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_train_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_train)
         f.create_dataset("y", data=y_train)
 
-    with h5py.File(f"{DS_BASE_NAME}_validation_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_validation_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_val)
         f.create_dataset("y", data=y_val)
 
@@ -123,7 +123,7 @@ def create_datasets_combined():
     DS_BASE_NAME = f"{DS_ROOT}/{DS_NAME}_combined_{PATCH_SIZE}x{PATCH_SIZE}"
 
     X_naoth, y_naoth = load_and_prepare_data_naoth(
-        get_ball_center_radius_data_naoth_combined,
+        get_ball_radius_center_data_naoth_combined,
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
@@ -141,15 +141,15 @@ def create_datasets_combined():
     print(f"\nX_val shape: {X_val.shape}")
     print(f"y_val shape: {y_val.shape}")
 
-    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_naoth)
         f.create_dataset("y", data=y_naoth)
 
-    with h5py.File(f"{DS_BASE_NAME}_train_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_train_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_train)
         f.create_dataset("y", data=y_train)
 
-    with h5py.File(f"{DS_BASE_NAME}_validation_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_validation_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_val)
         f.create_dataset("y", data=y_val)
 
@@ -158,7 +158,7 @@ def create_datasets_top():
     DS_BASE_NAME = f"{DS_ROOT}/{DS_NAME}_top_{PATCH_SIZE}x{PATCH_SIZE}"
 
     X_naoth, y_naoth = load_and_prepare_data_naoth(
-        get_ball_center_radius_data_naoth_top,
+        get_ball_radius_center_data_naoth_top,
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
@@ -175,15 +175,15 @@ def create_datasets_top():
     print(f"\nX_val shape: {X_val.shape}")
     print(f"y_val shape: {y_val.shape}")
 
-    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_naoth)
         f.create_dataset("y", data=y_naoth)
 
-    with h5py.File(f"{DS_BASE_NAME}_train_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_train_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_train)
         f.create_dataset("y", data=y_train)
 
-    with h5py.File(f"{DS_BASE_NAME}_validation_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_validation_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_val)
         f.create_dataset("y", data=y_val)
 
@@ -192,7 +192,7 @@ def create_datasets_bottom():
     DS_BASE_NAME = f"{DS_ROOT}/{DS_NAME}_bottom_{PATCH_SIZE}x{PATCH_SIZE}"
 
     X_naoth, y_naoth = load_and_prepare_data_naoth(
-        get_ball_center_radius_data_naoth_bottom,
+        get_ball_radius_center_data_naoth_bottom,
         file_path=NAOTH_SAVE_DIR,
         color_mode=COLOR_MODE,
         filter_ambiguous_balls=True,
@@ -210,15 +210,15 @@ def create_datasets_bottom():
     print(f"\nX_naoth shape: {X_naoth.shape}")
     print(f"y_naoth shape: {y_naoth.shape}")
 
-    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_naoth_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_naoth)
         f.create_dataset("y", data=y_naoth)
 
-    with h5py.File(f"{DS_BASE_NAME}_train_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_train_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_train)
         f.create_dataset("y", data=y_train)
 
-    with h5py.File(f"{DS_BASE_NAME}_validation_ball_center_radius_X_y.h5", "w") as f:
+    with h5py.File(f"{DS_BASE_NAME}_validation_ball_radius_center_X_y.h5", "w") as f:
         f.create_dataset("X", data=X_val)
         f.create_dataset("y", data=y_val)
 
@@ -242,7 +242,7 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    print("CREATING BALL CENTER RADIUS PATCHES DATASETS")
+    print("CREATING BALL RADIUS  CENTER PATCHES DATASETS")
     print("========================================")
     print(f"PATCH_SIZE = {args.patch_size}")
     print(f"PATCH_TYPE = {args.patch_type}")
@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
     CHANNELS = 1 if COLOR_MODE == ColorMode.YUV422_Y_ONLY_PIL else 2
 
-    DS_NAME = f"ball_center_radius_patches_{COLOR_MODE.value.lower()}_{PATCH_TYPE.name.lower()}_border{BORDER}"
+    DS_NAME = f"ball_radius_center_patches_{COLOR_MODE.value.lower()}_{PATCH_TYPE.name.lower()}_border{BORDER}"
     DS_ROOT = f"../../data/{DS_NAME}/"
 
     NAOTH_SAVE_DIR = f"/tmp/naoth_labeled_patches_{PATCH_TYPE.name.lower()}_border{BORDER}"
