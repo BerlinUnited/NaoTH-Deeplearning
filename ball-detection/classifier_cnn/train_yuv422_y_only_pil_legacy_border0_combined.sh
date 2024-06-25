@@ -27,7 +27,7 @@ for augment_training in "${augment_training_values[@]}"; do
         python train.py \
             --mlflow_experiment "$mlflow_experiment" \
             --mlflow_server "$mlflow_server" \
-            --mlflow_fail_on_timeout "$mlflow_fail_on_timeout"
+            --mlflow_fail_on_timeout "$mlflow_fail_on_timeout" \
             --epochs $epochs \
             --input_shape $input_shape \
             --augment_training $augment_training \
