@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import sys
 import requests
+from requests.auth import HTTPBasicAuth
 
 
 def on_pretrain_routine_end(trainer):
@@ -80,14 +81,21 @@ def on_train_end(trainer):
 def set_tracking_url(url="https://mlflow.berlin-united.com/", fail_on_timeout=False):
     try:
         # we can either get an error or an undesireable status code. Check for both
-        page = requests.get(url, timeout=10)
+        if os.environ.get('MLFLOW_TRACKING_USERNAME') is not None:
+            page = requests.get(url, 
+                            auth=HTTPBasicAuth(os.environ.get("MLFLOW_TRACKING_USERNAME"), 
+                                                os.environ.get("MLFLOW_TRACKING_PASSWORD")
+                                                ),
+                            timeout=10)        
+        else:
+            page = requests.get(url, timeout=10)
         if page.status_code == 200:
             mlflow.set_tracking_uri(url)
         else:
-            print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+            print(f"Error connecting to mlflow. Can't upload trainings progress to {url}")
             if fail_on_timeout:
                 sys.exit(1)
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
-        print("Error connecting to mlflow. Can't upload trainings progress to mlflow.berlin-united.com")
+        print(f"Error connecting to mlflow. Can't upload trainings progress to {url}")
         if fail_on_timeout:
             sys.exit(1)
