@@ -3,7 +3,7 @@ from utils import load_h5_dataset_X_y, make_detection_dataset, plot_images_with_
 
 if __name__ == "__main__":
     X, y = load_h5_dataset_X_y(
-        "../../data/ball_center_radius_patches_yuv422_y_only_pil_legacy_border0/ball_center_radius_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_validation_ball_center_radius_X_y.h5"
+        "../../data/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_validation_ball_radius_center_X_y.h5"
     )
 
     X_mean = X.mean()

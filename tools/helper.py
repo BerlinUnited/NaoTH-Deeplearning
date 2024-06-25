@@ -214,7 +214,7 @@ def download_tk_03_dataset(save_dir, url="https://datasets.naoth.de/tk03_combine
     # no need to extract, tk03 datasets are pickle files
 
 
-def get_ball_center_radius_data_tk_03_combined(file_path, balls_only=True, debug=False):
+def get_ball_radius_center_data_tk_03_combined(file_path, balls_only=True, debug=False):
     with open(file_path, "rb") as f:
         mean = pickle.load(f)
         images = pickle.load(f)
@@ -224,7 +224,8 @@ def get_ball_center_radius_data_tk_03_combined(file_path, balls_only=True, debug
     is_ball = [target[3] for target in targets]
 
     # load targets in same format as naoth data
-    targets = np.array([[target[1], target[2], target[0]] for target in targets])
+    # radius, x_coord, y_coord
+    targets = np.array([[target[0], target[1], target[2]] for target in targets])
 
     # add mean back to images for consistent data format
     images_norm = images + mean
@@ -443,20 +444,20 @@ def get_classification_data_naoth_bottom(
     return X, y
 
 
-def get_ball_center_radius_data_naoth_combined(
+def get_ball_radius_center_data_naoth_combined(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
     balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
-    X_top, y_top = get_ball_center_radius_data_naoth_top(
+    X_top, y_top = get_ball_radius_center_data_naoth_top(
         file_path=file_path,
         color_mode=color_mode,
         filter_ambiguous_balls=filter_ambiguous_balls,
         balls_only=balls_only,
     )
-    X_bottom, y_bottom = get_ball_center_radius_data_naoth_bottom(
+    X_bottom, y_bottom = get_ball_radius_center_data_naoth_bottom(
         file_path=file_path,
         color_mode=color_mode,
         filter_ambiguous_balls=filter_ambiguous_balls,
@@ -469,20 +470,20 @@ def get_ball_center_radius_data_naoth_combined(
     return X, y
 
 
-def get_ball_center_radius_data_naoth_top(
+def get_ball_radius_center_data_naoth_top(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
     balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
-    from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
+    from tools.image_loader import get_ball_radius_center_from_meta, get_multiclass_from_meta
 
     naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("top/*/*/*.png"))
 
     X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
-    y = [get_ball_center_radius_from_meta(m) for m in meta]
+    y = [get_ball_radius_center_from_meta(m) for m in meta]
     y_multiclass = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
@@ -494,20 +495,20 @@ def get_ball_center_radius_data_naoth_top(
     return X, y
 
 
-def get_ball_center_radius_data_naoth_bottom(
+def get_ball_radius_center_data_naoth_bottom(
     file_path,
     color_mode: ColorMode,
     filter_ambiguous_balls=True,
     balls_only=True,
     # TODO: Add parameter to filter out blurry balls
 ):
-    from tools.image_loader import get_ball_center_radius_from_meta, get_multiclass_from_meta
+    from tools.image_loader import get_ball_radius_center_from_meta, get_multiclass_from_meta
 
     naoth_patches = Path(file_path)
     image_paths = list(naoth_patches.rglob("bottom/*/*/*.png"))
 
     X, meta = load_naoth_images_with_meta(image_paths=image_paths, color_mode=color_mode)
-    y = [get_ball_center_radius_from_meta(m) for m in meta]
+    y = [get_ball_radius_center_from_meta(m) for m in meta]
     y_multiclass = [get_multiclass_from_meta(m) for m in meta]
 
     if filter_ambiguous_balls:
