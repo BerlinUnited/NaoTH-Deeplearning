@@ -149,9 +149,9 @@ def make_model_name(args):
     return f"{date_ymd}_ball_classifier_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
 
 
-def download_data(data_path):
+def download_data(data_path, remote_file):
     if not data_path.exists():
-        url = f"https://datasets.naoth.de/classification/{data_path.name}"
+        url = f"https://datasets.naoth.de/classification/{remote_file}"
         print(f"Downloading {url} to {data_path}")
         get_file_from_server(url, data_path)
 
@@ -192,10 +192,10 @@ if __name__ == "__main__":
     data_val = DATA_ROOT / f"{args.data_val}"
     data_test = DATA_ROOT / f"{args.data_test}" if args.data_test else None
 
-    download_data(data_train)
-    download_data(data_val)
+    download_data(data_train, remote_file=args.data_train)
+    download_data(data_val, remote_file=args.data_val)
     if data_test:
-        download_data(data_test)
+        download_data(data_test, remote_file=args.data_test)
 
     if args.subtract_mean and args.input_shape[-1] != 1:
         print("Subtracting mean only supported for single channel images, setting to False for color images")
