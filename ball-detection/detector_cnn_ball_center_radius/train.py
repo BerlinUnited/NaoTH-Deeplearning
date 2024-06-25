@@ -20,6 +20,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Train a neural network with specified parameters.")
 
     parser.add_argument("--mlflow_experiment", type=str, help="Name of the MLFlow experiment to log.")
+    parser.add_argument("--mlflow_server", type=str, help="Server for Tracking")
+    parser.add_argument("--mlflow_fail_on_timeout", type=bool, default=False, help="wether to fail the training if mlflow server is unreachable")
     parser.add_argument("--epochs", type=int, default=2000, help="Number of epochs for training.")
     parser.add_argument("--batch_size", type=int, default=6 * 1024, help="Batch size for training.")
     parser.add_argument(
@@ -173,7 +175,7 @@ if __name__ == "__main__":
     )
 
     # set up mlflow tracking
-    set_tracking_url()
+    set_tracking_url(url=args.mlflow_server, fail_on_timeout=args.mlflow_fail_on_timeout)
 
     experiment_tags = {
         "user": "max",

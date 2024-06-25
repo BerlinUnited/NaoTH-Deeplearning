@@ -1,6 +1,8 @@
 #! /bin/bash
 
 mlflow_experiment="Ball Detector CNN YUV422 Y-Only Legacy Patches Border 0 Combined"
+mlflow_server="https://mlflow.berlin-united.com/" # https://mlflow2.berlin-united.com/
+mlflow_fail_on_timeout="True"
 input_shape="16 16 1"
 epochs=2000
 batch_size=12880
@@ -23,6 +25,8 @@ for augment_training in "${augment_training_values[@]}"; do
         echo ""
         python train.py \
             --mlflow_experiment "$mlflow_experiment" \
+            --mlflow_server "$mlflow_server" \
+            --mlflow_fail_on_timeout "$mlflow_fail_on_timeout" \
             --epochs $epochs \
             --input_shape $input_shape \
             --augment_training $augment_training \
