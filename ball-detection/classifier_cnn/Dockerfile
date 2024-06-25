@@ -3,7 +3,12 @@
 FROM tensorflow/tensorflow:2.15.0-gpu
 
 # install opencv deps
-RUN apt-get update && apt -y install libgl1-mesa-glx libglib2.0-0  nano
+# mlflow has somehow a dependency to git
+RUN apt-get update && apt -y install libgl1-mesa-glx libglib2.0-0 git nano
+
+RUN groupadd -g 1000 naoth && useradd -m -u 1000 -g 1000 -s /bin/bash naoth
+USER naoth
+
 RUN pip install --ignore-installed \
   pillow==10.3.0 \
   opencv-python==4.9.0.80 \
@@ -21,9 +26,9 @@ ENV OMP_NUM_THREADS "4"
 
 WORKDIR /experiment
 RUN mkdir /experiment/data
-RUN mkdir /data
+#RUN mkdir /data
 
-COPY ./ball-detection/classifier_cnn/ ./ball-detection/classifier_cnn/
-COPY ./tools/ ./tools/
+COPY --chown=1000:1000 ./ball-detection/classifier_cnn/ ./ball-detection/classifier_cnn/
+COPY --chown=1000:1000 ./tools/ ./tools/
 
 WORKDIR /experiment/ball-detection/classifier_cnn
