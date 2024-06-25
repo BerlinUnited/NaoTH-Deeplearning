@@ -1,23 +1,22 @@
 #! /bin/bash
 
 mlflow_experiment="CNN DETECTOR TEST"
+mlflow_server="https://mlflow.berlin-united.com/" # https://mlflow2.berlin-united.com/
+mlflow_fail_on_timeout="True"
 input_shape="16 16 1"
 epochs=10
-batch_size=12880
+batch_size=128
+data_root="../../data"
 data_train="ball_radius_center_patches_yuv422_y_only_pil_legacy_border0/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_radius_center_X_y.h5"
 data_val="ball_radius_center_patches_yuv422_y_only_pil_legacy_border0/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_validation_ball_radius_center_X_y.h5"
 
 
-python train.py \
-    --mlflow_experiment "$mlflow_experiment" \
-    --epochs $epochs \
-    --input_shape $input_shape \
-    --data_train $data_train \
-    --data_val $data_val \
-    --batch_size $batch_size \
-    --filters 8 8 16 16 \
-    --n_dense 16 \
-    --regularize True \
-    --rescale True \
-    --subtract_mean True  \
-    --augment_training True \
+./train.sh -e "$mlflow_experiment" \
+  -s "$mlflow_server" \
+  -f "$mlflow_fail_on_timeout" \
+  -i "$input_shape" \
+  -n "$epochs" \
+  -b "$batch_size" \
+  -d "$data_root" \
+  -t "$data_train" \
+  -v "$data_val" 

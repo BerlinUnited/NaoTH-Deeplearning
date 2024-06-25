@@ -9,10 +9,9 @@ from mlflow import log_metrics, log_params, log_text
 from mlflow.utils.annotations import experimental
 from mlflow.utils.autologging_utils import ExceptionSafeClass
 from tensorflow import keras
-import numpy as np
 
 
-def plot_images_with_ball_center_and_radius(X, y, save_name=None):
+def plot_images_with_ball_center_and_radius(X, y, save_name=None, show=False):
     save_name = save_name or "ball_images_with_center_and_radius.png"
 
     width = height = int(np.sqrt(X.shape[1]))
@@ -40,7 +39,9 @@ def plot_images_with_ball_center_and_radius(X, y, save_name=None):
 
             ax[i][j].axis("off")
 
-    plt.show()
+    if show:
+        plt.show()
+
     fig.savefig(save_name)
 
 
@@ -153,12 +154,11 @@ def make_detection_dataset(X, y, batch_size, augment=False, rescale=True, prob=0
     return dataset
 
 
-def make_callbacks(model_name, mlflow=False):
-    log_callback = keras.callbacks.TensorBoard(log_dir=f"../../data/logs/{model_name}/")
+def make_callbacks(mlflow=False):
     reduce_callback = keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.5, patience=20, verbose=0, mode="auto")
     early_stopping_callback = keras.callbacks.EarlyStopping(monitor="val_loss", patience=300, restore_best_weights=True)
 
-    callbacks = [log_callback, reduce_callback, early_stopping_callback]
+    callbacks = [reduce_callback, early_stopping_callback]
 
     if mlflow:
         callbacks.append(MLflowCallback())
