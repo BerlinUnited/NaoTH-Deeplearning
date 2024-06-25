@@ -217,7 +217,7 @@ if __name__ == "__main__":
                 context="test",
             )
 
-        callbacks = make_callbacks(model_name=MODEL_NAME, mlflow=True)
+        callbacks = make_callbacks(mlflow=True)
 
         with tf.device("/device:GPU:0"):
             history = detector.fit(

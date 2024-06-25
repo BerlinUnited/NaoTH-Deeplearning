@@ -143,12 +143,11 @@ def make_classification_dataset(
     return ds
 
 
-def make_callbacks(model_name, mlflow=False):
-    log_callback = keras.callbacks.TensorBoard(log_dir=f"../../data/logs/{model_name}/")
+def make_callbacks(mlflow=False):
     reduce_callback = keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.5, patience=20, verbose=0, mode="auto")
     early_stopping_callback = keras.callbacks.EarlyStopping(monitor="val_loss", patience=300, restore_best_weights=True)
 
-    callbacks = [log_callback, reduce_callback, early_stopping_callback]
+    callbacks = [reduce_callback, early_stopping_callback]
 
     if mlflow:
         callbacks.append(MLflowCallback())
