@@ -20,9 +20,10 @@ ENV PYTHONUNBUFFERED=1
 ENV OMP_NUM_THREADS "4"
 
 WORKDIR /experiment
+RUN mkdir /experiment/data
+RUN mkdir /data
 
 COPY ./ball-detection/detector_cnn_ball_radius_center/ ./ball-detection/detector_cnn_ball_radius_center/
 COPY ./tools/ ./tools/
-COPY ./data/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0 ./data/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0
 
 WORKDIR /experiment/ball-detection/detector_cnn_ball_radius_center

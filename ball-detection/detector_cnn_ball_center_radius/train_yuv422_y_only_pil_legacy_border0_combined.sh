@@ -4,41 +4,19 @@ mlflow_experiment="Ball Detector CNN YUV422 Y-Only Legacy Patches Border 0 Combi
 mlflow_server="https://mlflow.berlin-united.com/" # https://mlflow2.berlin-united.com/
 mlflow_fail_on_timeout="True"
 input_shape="16 16 1"
-epochs=2000
-batch_size=12880
+epochs=10
+batch_size=128
+data_root="../../data"
 data_train="ball_radius_center_patches_yuv422_y_only_pil_legacy_border0/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_train_ball_radius_center_X_y.h5"
 data_val="ball_radius_center_patches_yuv422_y_only_pil_legacy_border0/ball_radius_center_patches_yuv422_y_only_pil_legacy_border0_combined_16x16_validation_ball_radius_center_X_y.h5"
 
-augment_training_values=("True" "False")
-regularize_values=("True" "False")
-filters_values=("4 4 4 4" "4 4 8 8" "8 8 16 16" "8 16 32 64" "16 32 64 128")
-n_dense_values=("16" "32" "64" "128")
 
-
-# Loop over all combinations of parameter values
-for augment_training in "${augment_training_values[@]}"; do
-  for regularize in "${regularize_values[@]}"; do
-    for filters in "${filters_values[@]}"; do
-      for n_dense in "${n_dense_values[@]}"; do
-        echo ""
-        echo "Running with augment_training=$augment_training, filters=$filters, regularize=$regularize, n_dense=$n_dense"
-        echo ""
-        python train.py \
-            --mlflow_experiment "$mlflow_experiment" \
-            --mlflow_server "$mlflow_server" \
-            --mlflow_fail_on_timeout "$mlflow_fail_on_timeout" \
-            --epochs $epochs \
-            --input_shape $input_shape \
-            --augment_training $augment_training \
-            --filters $filters \
-            --regularize $regularize \
-            --n_dense $n_dense \
-            --data_train $data_train \
-            --data_val $data_val \
-            --batch_size $batch_size \
-            --rescale True \
-            --subtract_mean True 
-      done
-    done
-  done
-done
+./train.sh -e "$mlflow_experiment" \
+  -s "$mlflow_server" \
+  -f "$mlflow_fail_on_timeout" \
+  -i "$input_shape" \
+  -n "$epochs" \
+  -b "$batch_size" \
+  -d "$data_root" \
+  -t "$data_train" \
+  -v "$data_val" 

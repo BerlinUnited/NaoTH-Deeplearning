@@ -9,10 +9,9 @@ from mlflow import log_metrics, log_params, log_text
 from mlflow.utils.annotations import experimental
 from mlflow.utils.autologging_utils import ExceptionSafeClass
 from tensorflow import keras
-import numpy as np
 
 
-def plot_images_with_ball_center_and_radius(X, y, save_name=None):
+def plot_images_with_ball_center_and_radius(X, y, save_name=None, show=False):
     save_name = save_name or "ball_images_with_center_and_radius.png"
 
     width = height = int(np.sqrt(X.shape[1]))
@@ -40,7 +39,9 @@ def plot_images_with_ball_center_and_radius(X, y, save_name=None):
 
             ax[i][j].axis("off")
 
-    plt.show()
+    if show:
+        plt.show()
+
     fig.savefig(save_name)
 
 

@@ -14,6 +14,7 @@ from tensorflow import keras
 from utils import load_h5_dataset_X_y, make_callbacks, make_detection_dataset, plot_images_with_ball_center_and_radius
 
 from tools.mflow_helper import set_tracking_url
+from tools.helper import get_file_from_server
 
 
 def parse_args():
@@ -21,7 +22,12 @@ def parse_args():
 
     parser.add_argument("--mlflow_experiment", type=str, help="Name of the MLFlow experiment to log.")
     parser.add_argument("--mlflow_server", type=str, help="Server for Tracking")
-    parser.add_argument("--mlflow_fail_on_timeout", type=bool, default=False, help="wether to fail the training if mlflow server is unreachable")
+    parser.add_argument(
+        "--mlflow_fail_on_timeout",
+        type=bool,
+        default=False,
+        help="wether to fail the training if mlflow server is unreachable",
+    )
     parser.add_argument("--epochs", type=int, default=2000, help="Number of epochs for training.")
     parser.add_argument("--batch_size", type=int, default=6 * 1024, help="Batch size for training.")
     parser.add_argument(
@@ -54,6 +60,9 @@ def parse_args():
         help="Shape of the input data.",
     )
 
+    parser.add_argument(
+        "--data_root", type=str, default="../../data", help="Root directory for saving and loading data."
+    )
     parser.add_argument("--data_train", type=str, help="Path to the training data.")
     parser.add_argument("--data_val", type=str, default=None, help="Path to the validation data.")
     parser.add_argument("--data_test", type=str, default=None, help="Path to the test data.")
@@ -114,7 +123,7 @@ def make_model_name(args):
     date_ymd = time.strftime("%Y-%m-%d")
     loss_str = "MAE"  # TODO: make this configurable
     train_data_str = args.data_train.split("/")[-1].split(".")[0]
-    color = "yuv422_gray" if args.input_shape[-1] == 1 else "yuv422_color"
+    color = "yuv422_y_only" if args.input_shape[-1] == 1 else "yuv422"
     filters_str = "FL" + "_".join(map(str, args.filters))
     dense_str = f"D{args.n_dense}"
     dropout_str = f"DO{0.33}" if args.regularize else "noDO"
@@ -123,15 +132,28 @@ def make_model_name(args):
     return f"{date_ymd}_ball_detector_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
 
 
+def download_data(data_path):
+    if not data_path.exists():
+        url = f"https://datasets.naoth.de/detection/{data_path.name}"
+        print(f"Downloading {url} to {data_path}")
+        get_file_from_server(url, data_path)
+
+
 if __name__ == "__main__":
     args = parse_args()
 
     MODEL_NAME = make_model_name(args)
-    DATA_ROOT = Path("../../data")
+    DATA_ROOT = Path(args.data_root)
+    MODEL_ROOT = DATA_ROOT / "models" / MODEL_NAME
+
+    MODEL_ROOT.mkdir(parents=True, exist_ok=True)
 
     data_train = DATA_ROOT / f"{args.data_train}"
     data_val = DATA_ROOT / f"{args.data_val}"
     data_test = DATA_ROOT / f"{args.data_test}" if args.data_test else None
+
+    download_data(data_train)
+    download_data(data_val)
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_data_train_test_val(
         data_train,
@@ -228,14 +250,11 @@ if __name__ == "__main__":
                 callbacks=callbacks,
             )
 
-        # save model
-        Path(DATA_ROOT / f"models/{MODEL_NAME}").mkdir(parents=True, exist_ok=True)
-
-        detector.save(DATA_ROOT / f"models/{MODEL_NAME}/detector_model.keras")
-        detector.save(DATA_ROOT / f"models/{MODEL_NAME}/detector_model.h5")
+        detector.save(MODEL_ROOT / "detector_model.keras")
+        detector.save(MODEL_ROOT / "detector_model.h5")
 
         # save history
-        with open(DATA_ROOT / f"models/{MODEL_NAME}/detector.history.pkl", "wb") as f:
+        with open(MODEL_ROOT / "detector.history.pkl", "wb") as f:
             pickle.dump(history.history, f)
 
         mlflow.keras.log_model(
@@ -247,11 +266,9 @@ if __name__ == "__main__":
         # Create Debug images
         y_pred_val = detector.predict(X_val)
 
-        plot_images_with_ball_center_and_radius(
-            X_val, y_pred_val, str(DATA_ROOT / f"models/{MODEL_NAME}/val_debug.png")
-        )
+        plot_images_with_ball_center_and_radius(X_val, y_pred_val, str(MODEL_ROOT / "val_debug.png"))
 
         # TODO: save the images as artifacts
 
         # Log all artifacts
-        mlflow.log_artifacts(str(DATA_ROOT / f"models/{MODEL_NAME}"))
+        mlflow.log_artifacts(str(MODEL_ROOT))
