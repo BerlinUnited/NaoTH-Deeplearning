@@ -21,8 +21,8 @@ ENV OMP_NUM_THREADS "4"
 
 WORKDIR /experiment
 
-COPY ./ball-detection/classifier_cnn_generic/ ./ball-detection/classifier_cnn_generic/
+COPY ./ball-detection/classifier_cnn/ ./ball-detection/classifier_cnn/
 COPY ./tools/ ./tools/
 COPY ./data/classification_patches_yuv422_y_only_pil_legacy_border0 ./data/classification_patches_yuv422_y_only_pil_legacy_border0
 
-WORKDIR /experiment/ball-detection/classifier_cnn_generic
+WORKDIR /experiment/ball-detection/classifier_cnn
