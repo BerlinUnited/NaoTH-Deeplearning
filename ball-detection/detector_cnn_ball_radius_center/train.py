@@ -13,8 +13,8 @@ from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from utils import load_h5_dataset_X_y, make_callbacks, make_detection_dataset, plot_images_with_ball_center_and_radius
 
-from tools.mflow_helper import set_tracking_url
 from tools.helper import get_file_from_server, str2bool
+from tools.mflow_helper import set_tracking_url
 
 
 def parse_args():
@@ -132,9 +132,9 @@ def make_model_name(args):
     return f"{date_ymd}_ball_detector_{color}_{train_data_str}_{filters_str}_{dense_str}_{dropout_str}_{regularize_str}_{augment_str}_{loss_str}"
 
 
-def download_data(data_path):
+def download_data(data_path, remote_file):
     if not data_path.exists():
-        url = f"https://datasets.naoth.de/detection/{data_path.name}"
+        url = f"https://datasets.naoth.de/detection/{remote_file}"
         print(f"Downloading {url} to {data_path}")
         get_file_from_server(url, data_path)
 
@@ -152,8 +152,8 @@ if __name__ == "__main__":
     data_val = DATA_ROOT / f"{args.data_val}"
     data_test = DATA_ROOT / f"{args.data_test}" if args.data_test else None
 
-    download_data(data_train)
-    download_data(data_val)
+    download_data(data_train, remote_file=args.data_train)
+    download_data(data_val, remote_file=args.data_val)
 
     X_train, y_train, X_val, y_val, X_test, y_test = load_data_train_test_val(
         data_train,
