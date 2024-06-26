@@ -24,7 +24,7 @@ from utils import (
     make_classification_dataset,
 )
 
-from tools.helper import get_file_from_server
+from tools.helper import get_file_from_server, str2bool
 from tools.mflow_helper import set_tracking_url
 
 
@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument("--mlflow_server", type=str, help="Server for Tracking")
     parser.add_argument(
         "--mlflow_fail_on_timeout",
-        type=bool,
+        type=str2bool,
         default=False,
         help="wether to fail the training if mlflow server is unreachable",
     )
@@ -43,14 +43,14 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=6 * 1024, help="Batch size for training.")
     parser.add_argument(
         "--augment_training",
-        type=bool,
+        type=str2bool,
         default=True,
         help="Whether to use data augmentation during training.",
     )
-    parser.add_argument("--rescale", type=bool, default=True, help="Whether to rescale the input data.")
+    parser.add_argument("--rescale", type=str2bool, default=True, help="Whether to rescale the input data.")
     parser.add_argument(
         "--subtract_mean",
-        type=bool,
+        type=str2bool,
         default=True,
         help="Whether to subtract the mean from the input data.",
     )
@@ -61,7 +61,7 @@ def parse_args():
         default=[4, 4, 8, 8],
         help="List of filters for each convolutional layer.",
     )
-    parser.add_argument("--regularize", type=bool, default=True, help="Whether to apply regularization.")
+    parser.add_argument("--regularize", type=str2bool, default=True, help="Whether to apply regularization.")
     parser.add_argument("--n_dense", type=int, default=64, help="Number of units in the dense layer.")
     parser.add_argument(
         "--input_shape",
