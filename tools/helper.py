@@ -31,6 +31,17 @@ class ColorMode(Enum):
     YUV422_Y_ONLY_PIL = "YUV422_Y_ONLY_PIL"
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
+
+
 def get_minio_client():
     mclient = Minio(
         "minio.berlin-united.com",
