@@ -24,7 +24,7 @@ def plot_images_with_ball_center_and_radius(X, y, save_name=None, show=False):
             ball_image = X[index]
             target = y[index]
 
-            ball_x, ball_y, ball_radius = target
+            ball_radius, ball_x, ball_y = target
 
             ax[i][j].imshow(ball_image, cmap="gray")
 
