@@ -6,7 +6,7 @@ Each module comes with a `Dockerfile` and a `train.py` for reproducible training
 ## Datasets
 
 Each project is responsible for downloading the required datasets from https://datasets.naoth.de  
-The `classifier_cnn` and `detector_cnn_ball_center_radius` projects both use the patch datasets we create in
+The `classifier_cnn` and `detector_cnn_ball_radius_center` projects both use the patch datasets we create in
 `dataset_tools/ball*\*\_datasets`, which should already be uploaded to the datasets archive. See `dataset_tools/Readme.md` for more information and instructions on how to (re-)create these datasets.
 
 ## MlFlow Tracking
