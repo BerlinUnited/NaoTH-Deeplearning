@@ -4,6 +4,10 @@ FROM tensorflow/tensorflow:2.15.0-gpu
 
 # install opencv deps
 RUN apt-get update && apt -y install libgl1-mesa-glx libglib2.0-0  nano
+
+RUN groupadd -g 1000 naoth && useradd -m -u 1000 -g 1000 -s /bin/bash naoth
+USER naoth
+
 RUN pip install --ignore-installed \
   pillow==10.3.0 \
   opencv-python==4.9.0.80 \
@@ -21,9 +25,9 @@ ENV OMP_NUM_THREADS "4"
 
 WORKDIR /experiment
 RUN mkdir /experiment/data
-RUN mkdir /data
+# RUN mkdir /data
 
-COPY ./ball-detection/detector_cnn_ball_radius_center/ ./ball-detection/detector_cnn_ball_radius_center/
-COPY ./tools/ ./tools/
+COPY --chown=1000:1000 ./ball-detection/detector_cnn_ball_radius_center/ ./ball-detection/detector_cnn_ball_radius_center/
+COPY --chown=1000:1000 ./tools/ ./tools/
 
 WORKDIR /experiment/ball-detection/detector_cnn_ball_radius_center
