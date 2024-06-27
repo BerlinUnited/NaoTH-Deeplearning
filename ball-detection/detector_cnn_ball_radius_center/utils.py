@@ -156,7 +156,7 @@ def make_detection_dataset(X, y, batch_size, augment=False, rescale=True, prob=0
 
 def make_callbacks(mlflow=False):
     reduce_callback = keras.callbacks.ReduceLROnPlateau(monitor="loss", factor=0.5, patience=20, verbose=0, mode="auto")
-    early_stopping_callback = keras.callbacks.EarlyStopping(monitor="val_loss", patience=300, restore_best_weights=True)
+    early_stopping_callback = keras.callbacks.EarlyStopping(monitor="val_loss", patience=60, restore_best_weights=True)
 
     callbacks = [reduce_callback, early_stopping_callback]
 

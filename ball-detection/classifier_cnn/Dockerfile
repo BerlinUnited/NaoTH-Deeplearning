@@ -23,6 +23,7 @@ ENV LOGNAME "cnn-classifier-docker"
 ENV PYTHONPATH "${PYTHONPATH}:/experiment"
 ENV PYTHONUNBUFFERED=1
 ENV OMP_NUM_THREADS "4"
+ENV TF_FORCE_GPU_ALLOW_GROWTH "true"
 
 WORKDIR /experiment
 RUN mkdir /experiment/data

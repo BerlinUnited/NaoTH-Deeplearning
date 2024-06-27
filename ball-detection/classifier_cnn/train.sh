@@ -8,7 +8,7 @@ batch_size=128
 mlflow_fail_on_timeout="True"
 augment_training_values=("True" "False")
 regularize_values=("True" "False")
-filters_values=("4 4 4 4" "4 4 8 8" "8 8 16 16" "8 16 32 64" "16 32 64 128")
+filters_values=("4 4 4 4" "4 4 8 8" "8 8 16 16" "8 16 32 64")
 n_dense_values=("16" "32" "64" "128")
 
 # Get mandatory arguments and override default values where applicable
@@ -87,8 +87,9 @@ for augment_training in "${augment_training_values[@]}"; do
             --data_test $data_test \
             --batch_size $batch_size \
             --rescale True \
-            --subtract_mean True 
+            --subtract_mean True &
       done
+      wait
     done
   done
 done

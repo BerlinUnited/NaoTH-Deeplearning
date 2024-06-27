@@ -13,6 +13,12 @@ from sklearn.model_selection import train_test_split
 from tensorflow import keras
 from utils import load_h5_dataset_X_y, make_callbacks, make_detection_dataset, plot_images_with_ball_center_and_radius
 
+from tools.convert_tflite import (
+    generate_float16_quantized_model,
+    generate_fully_dynamic_quantized_model,
+    generate_fully_int_quantized_model,
+    representative_dataset_from_np_arr,
+)
 from tools.helper import get_file_from_server, str2bool
 from tools.mflow_helper import set_tracking_url
 
@@ -196,7 +202,6 @@ if __name__ == "__main__":
         loss=keras.losses.MeanAbsoluteError(),
     )
 
-
     # set up mlflow tracking
     set_tracking_url(url=args.mlflow_server, fail_on_timeout=args.mlflow_fail_on_timeout)
 
@@ -256,6 +261,12 @@ if __name__ == "__main__":
 
         detector.save(MODEL_ROOT / "detector_model.keras")
         detector.save(MODEL_ROOT / "detector_model.h5")
+
+        # fmt: off
+        generate_fully_dynamic_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
+        generate_fully_int_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
+        generate_float16_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
+        # fmt: on
 
         # save history
         with open(MODEL_ROOT / "detector.history.pkl", "wb") as f:
