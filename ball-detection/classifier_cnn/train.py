@@ -24,6 +24,12 @@ from utils import (
     make_classification_dataset,
 )
 
+from tools.convert_tflite import (
+    generate_float16_quantized_model,
+    generate_fully_dynamic_quantized_model,
+    generate_fully_int_quantized_model,
+    representative_dataset_from_np_arr,
+)
 from tools.helper import get_file_from_server, str2bool
 from tools.mflow_helper import set_tracking_url
 
@@ -306,6 +312,12 @@ if __name__ == "__main__":
 
         classifier.save(MODEL_ROOT / "classifier_model.keras")
         classifier.save(MODEL_ROOT / "classifier_model.h5")
+
+        # fmt: off
+        generate_fully_dynamic_quantized_model(MODEL_ROOT / "classifier_model.h5", representative_dataset_from_np_arr(X_val))
+        generate_fully_int_quantized_model(MODEL_ROOT / "classifier_model.h5", representative_dataset_from_np_arr(X_val))
+        generate_float16_quantized_model(MODEL_ROOT / "classifier_model.h5", representative_dataset_from_np_arr(X_val))
+        # fmt: on
 
         # save history
         with open(MODEL_ROOT / "classifier.history.pkl", "wb") as f:
