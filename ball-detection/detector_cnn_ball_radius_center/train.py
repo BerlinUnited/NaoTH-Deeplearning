@@ -196,6 +196,7 @@ if __name__ == "__main__":
         loss=keras.losses.MeanAbsoluteError(),
     )
 
+
     # set up mlflow tracking
     set_tracking_url(url=args.mlflow_server, fail_on_timeout=args.mlflow_fail_on_timeout)
 
@@ -211,6 +212,9 @@ if __name__ == "__main__":
         mlflow.set_experiment_tags(experiment_tags)
 
         mlflow.log_params(vars(args))
+
+        n_params = detector.count_params()
+        mlflow.log_param("n_params", n_params)
 
         mlflow.log_input(
             mlflow.data.from_numpy(

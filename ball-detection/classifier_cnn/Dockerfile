@@ -19,7 +19,7 @@ RUN pip install --ignore-installed \
   mlflow==2.14.0 \
   minio==7.2.7 
   
-ENV LOGNAME "cnn-clf-generic-docker"
+ENV LOGNAME "cnn-classifier-docker"
 ENV PYTHONPATH "${PYTHONPATH}:/experiment"
 ENV PYTHONUNBUFFERED=1
 ENV OMP_NUM_THREADS "4"
