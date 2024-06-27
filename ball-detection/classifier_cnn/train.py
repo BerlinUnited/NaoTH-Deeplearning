@@ -263,6 +263,9 @@ if __name__ == "__main__":
 
         mlflow.log_params(vars(args))
 
+        n_params = classifier.count_params()
+        mlflow.log_param("n_params", n_params)
+
         mlflow.log_input(
             mlflow.data.from_numpy(
                 np.array([]),

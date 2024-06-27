@@ -1,6 +1,6 @@
 #! /bin/bash
 
-mlflow_experiment="Ball Detector CNN YUV422 Y-Only Legacy Patches Border 0 Combined"
+mlflow_experiment="Ball Detector CNN YUV422 Y-Only Legacy Patches Border 0 16x16 Combined"
 mlflow_server="https://mlflow.berlin-united.com/" # https://mlflow2.berlin-united.com/
 mlflow_fail_on_timeout="True"
 input_shape="16 16 1"
