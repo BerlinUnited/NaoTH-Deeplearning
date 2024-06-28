@@ -3,7 +3,7 @@ import pickle
 import time
 from pathlib import Path
 from pprint import pprint
-
+import os, sys
 import mlflow
 import mlflow.data.numpy_dataset
 import numpy as np
@@ -23,6 +23,9 @@ from utils import (
     make_callbacks,
     make_classification_dataset,
 )
+
+tools_path = os.path.join(os.path.dirname(__file__), "../../")
+sys.path.append(tools_path)
 
 from tools.convert_tflite import (
     generate_float16_quantized_model,
@@ -310,6 +313,9 @@ if __name__ == "__main__":
                 validation_data=val_ds,
                 callbacks=callbacks,
             )
+        # overwrite the number of epochs with the actual number trained
+        num_epochs = len(history.history['loss'])
+        mlflow.log_param("actual_epochs", num_epochs)
 
         classifier.save(MODEL_ROOT / "classifier_model.keras")
         classifier.save(MODEL_ROOT / "classifier_model.h5")
