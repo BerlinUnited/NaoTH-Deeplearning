@@ -104,25 +104,26 @@ def load_data_train_test_val(
 
     X_test, y_test = load_h5_dataset_X_y(data_test) if data_test else (None, None)
 
-    # Subtract the mean from the datasets if required
-    if subtract_mean:
-        X_train_mean = X_train.mean()
-        X_train = X_train.astype(np.float32) - X_train_mean
-        X_val = X_val.astype(np.float32) - X_train_mean
-
-        if X_test is not None:
-            X_test = X_test.astype(np.float32) - X_train_mean
-
     if rescale:
         X_train = X_train / 255.0
         X_val = X_val / 255.0
         X_test = X_test / 255.0 if X_test is not None else None
 
+    # Subtract the mean from the datasets if required
+    X_mean = None
+    if subtract_mean:
+        X_mean = X_train.mean()
+        X_train = X_train.astype(np.float32) - X_mean
+        X_val = X_val.astype(np.float32) - X_mean
+
+        if X_test is not None:
+            X_test = X_test.astype(np.float32) - X_mean
+
     X_train = X_train.reshape(-1, *input_shape)
     X_val = X_val.reshape(-1, *input_shape)
     X_test = X_test.reshape(-1, *input_shape) if X_test is not None else None
 
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train, y_train, X_val, y_val, X_test, y_test, X_mean
 
 
 def make_model_name(args):
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     download_data(data_train, remote_file=args.data_train)
     download_data(data_val, remote_file=args.data_val)
 
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data_train_test_val(
+    X_train, y_train, X_val, y_val, X_test, y_test, X_mean = load_data_train_test_val(
         data_train,
         data_val,
         data_test,
@@ -220,6 +221,7 @@ if __name__ == "__main__":
 
         n_params = detector.count_params()
         mlflow.log_param("n_params", n_params)
+        mlflow.log_param("X_mean", X_mean)
 
         mlflow.log_input(
             mlflow.data.from_numpy(
