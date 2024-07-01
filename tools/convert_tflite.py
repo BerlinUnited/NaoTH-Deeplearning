@@ -31,8 +31,23 @@ def representative_dataset_from_np_arr(arr):
     return representative_dataset_gen
 
 
+def validate_model_file_format(model_path):
+    assert str(model_path).endswith(".h5") or str(model_path).endswith(
+        ".keras"
+    ), "Model file must be in .h5 or .keras format!"
+
+
 def generate_fully_dynamic_quantized_model(model_path, representative_dataset):
-    # TODO: check that it has h5 or .keras file ending
+    """
+    Integer quantization with float fallback (using default float input/output).
+
+    Tries to fully integer quantize a model, but use float operators when they don't
+    have an integer implementation.
+
+    https://www.tensorflow.org/lite/performance/post_training_quantization#integer_with_float_fallback_using_default_float_inputoutput
+
+    """
+    validate_model_file_format(model_path)
     model = get_model(model_path)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -46,6 +61,12 @@ def generate_fully_dynamic_quantized_model(model_path, representative_dataset):
 
 
 def generate_fully_int_quantized_model(model_path, representative_dataset):
+    """
+    Full integer quantization for all ops, including the input and output.
+
+    https://www.tensorflow.org/lite/performance/post_training_quantization#integer_only
+    """
+    validate_model_file_format(model_path)
     model = get_model(model_path)
 
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
@@ -63,6 +84,16 @@ def generate_fully_int_quantized_model(model_path, representative_dataset):
 
 
 def generate_float16_quantized_model(model_path, representative_dataset):
+    """
+    Float16 quantization.
+
+    NOTE: By default, a float16 quantized model will "dequantize" the weights values to
+    float32 when run on the CPU. (A GPU delegate will not perform this dequantization,
+    since it can operate on float16 data.)
+
+    https://www.tensorflow.org/lite/performance/post_training_quantization#float16_quantization
+    """
+    validate_model_file_format(model_path)
     model = get_model(model_path)
 
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
