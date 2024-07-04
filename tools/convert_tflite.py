@@ -16,9 +16,17 @@ def get_model(model):
     return load_model(model)
 
 
-def representative_dataset_from_h5(dataset_path):
+def representative_dataset_from_h5(dataset_path, rescale=False, subtract_mean=False):
     with h5py.File(dataset_path, "r") as f:
-        X = f["X"]
+        X = f["X"][:]
+
+    X = X.astype(np.float32)
+
+    if rescale:
+        X = X / 255.0
+
+    if subtract_mean:
+        X = X - np.mean(X, axis=0)
 
     return representative_dataset_from_np_arr(X)
 
