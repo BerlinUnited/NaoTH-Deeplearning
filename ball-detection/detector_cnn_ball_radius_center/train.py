@@ -14,9 +14,11 @@ from tensorflow import keras
 from utils import load_h5_dataset_X_y, make_callbacks, make_detection_dataset, plot_images_with_ball_center_and_radius
 
 from tools.convert_tflite import (
-    generate_float16_quantized_model,
-    generate_fully_dynamic_quantized_model,
-    generate_fully_int_quantized_model,
+    convert_to_float16_quantized_tflite_model,
+    convert_to_float32_tflite_model,
+    convert_to_fully_int_quantized_tflite_model,
+    convert_to_int_weights_int_ops_float_fallback_tflite_model,
+    convert_to_int_weights_mixed_ops_float_fallback_tflite_model,
     representative_dataset_from_np_arr,
 )
 from tools.helper import get_file_from_server, str2bool
@@ -264,11 +266,13 @@ if __name__ == "__main__":
         detector.save(MODEL_ROOT / "detector_model.keras")
         detector.save(MODEL_ROOT / "detector_model.h5")
 
-        # fmt: off
-        generate_fully_dynamic_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
-        generate_fully_int_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
-        generate_float16_quantized_model(MODEL_ROOT / "detector_model.h5", representative_dataset_from_np_arr(X_val))
-        # fmt: on
+        repr_dataset_gen = representative_dataset_from_np_arr(X_val)
+
+        convert_to_float32_tflite_model(MODEL_ROOT / "detector_model.h5")
+        convert_to_float16_quantized_tflite_model(MODEL_ROOT / "detector_model.h5", repr_dataset_gen)
+        convert_to_fully_int_quantized_tflite_model(MODEL_ROOT / "detector_model.h5", repr_dataset_gen)
+        convert_to_int_weights_mixed_ops_float_fallback_tflite_model(MODEL_ROOT / "detector_model.h5")
+        convert_to_int_weights_int_ops_float_fallback_tflite_model(MODEL_ROOT / "detector_model.h5", repr_dataset_gen)
 
         # save history
         with open(MODEL_ROOT / "detector.history.pkl", "wb") as f:
