@@ -32,9 +32,11 @@ def representative_dataset_from_h5(dataset_path, rescale=False, subtract_mean=Fa
 
 
 def representative_dataset_from_np_arr(arr):
+    arr_copy = arr.copy()
+    np.random.shuffle(arr_copy)
+
     def representative_dataset_gen():
-        np.random.shuffle(arr)
-        for x in tf.data.Dataset.from_tensor_slices((arr)).batch(1).take(2048):
+        for x in tf.data.Dataset.from_tensor_slices((arr_copy)).batch(1).take(2048):
             yield [tf.dtypes.cast(x, tf.float32)]
 
     return representative_dataset_gen
