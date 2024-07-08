@@ -14,7 +14,7 @@ The `classifier_cnn` and `detector_cnn_ball_radius_center` projects both use the
 We track all training progress via mlflow at these tracking servers:
 
 - https://mlflow.berlin-united.com/ (Default tracking)
-- https://mlflow2.berlin-united.com/ (Intended for tracking from within DeepL infrastructure)
+- https://mlflow2.berlin-united.com/ (Intended for tracking from within HU external infrastructure)
 
 If you create a new project, please make sure to include the required mlflow tracking code.  
 For implementation details, you can refer to `classifier_cnn/train.py`. Some of the most important things to track include:
@@ -29,7 +29,7 @@ All projects should contain a valid `Dockerfile` that runs the model training.
 If necessary, parametrize your training scripts so training can be done on the naoth goal server
 or DeepL infrastructure.
 
-TODO: Include information on how to ensure Dockerfile works on DeepL
+TODO: Include information on how to ensure Dockerfile works in restricted k8s environments
 
 ## Classifier CNN (Ball/NoBall)
 
