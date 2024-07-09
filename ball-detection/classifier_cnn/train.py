@@ -402,7 +402,7 @@ if __name__ == "__main__":
             report_dict = flatten_dict(report_dict)
 
             # remove empty values
-            report_dict = {k: v for k, v in report_dict.items() if v}
+            report_dict = {k: v for k, v in report_dict.items() if v not in [None, ""]}
 
             for key, value in report_dict.items():
                 mlflow.log_metric(key, value)

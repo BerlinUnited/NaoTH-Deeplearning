@@ -14,7 +14,7 @@ from minio import Minio
 from ultralytics import YOLO
 import argparse
 
-from helper import get_file_from_server
+from tools import get_file_from_server
 
 LABEL_STUDIO_URL = "https://ls.berlin-united.com/"
 API_KEY = "6cb437fb6daf7deb1694670a6f00120112535687"
