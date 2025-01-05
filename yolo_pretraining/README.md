@@ -1,5 +1,5 @@
-# YOLO based pre annotations for Nao Images
-We provide a docker image and scripts for training a ultralytics YOLOv8 model on our full images. The images are are downloaded from our minio server and the annotation are downloaded from our Labelstudio instance. You need to configure access for it.
+# Create Yolo v11 Model on Nao Images
+We provide a docker image and scripts for training a ultralytics YOLOv11 model on our full images. The images are are downloaded from logs.naoth.de directly. To get the list of image URL's and the annotations the [VAT Database](https://github.com/efcy/visual_analytics) is used.
 
 ## Set up your environment
 You can either create a python virtual env or use the provided docker image. See below for instructions for both. In either case you need to configure some environment variables. The values are in our [internal wiki](https://scm.cms.hu-berlin.de/berlinunited/orga/-/wikis/team/Accounts). More information about the environment variables can be found in our [k8s repo](https://scm.cms.hu-berlin.de/berlinunited/projects/k8s-cluster).
