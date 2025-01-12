@@ -8,6 +8,43 @@ from tqdm import tqdm
 from pathlib import Path
 from ultralytics import YOLO
 import argparse
+from urllib.error import HTTPError, URLError
+from urllib.request import urlretrieve
+import json
+#specify model name, if not in local models folder it will attempt to downlaod it from models.naoth.de
+model = "2024-04-27-yolov8s-top-indecisive-snake-51.pt"
+
+# copied from tools/helper.py
+def get_file_from_server(origin, target):
+    # FIXME move to naoth python package
+    def dl_progress(count, block_size, total_size):
+        print(
+            "\r",
+            "Progress: {0:.2%}".format(min((count * block_size) / total_size, 1.0)),
+            sep="",
+            end="",
+            flush=True,
+        )
+
+    if not Path(target).exists():
+        target_folder = Path(target).parent
+        target_folder.mkdir(parents=True, exist_ok=True)
+    else:
+        return
+
+    error_msg = "URL fetch failure on {} : {} -- {}"
+    try:
+        try:
+            urlretrieve(origin, target, dl_progress)
+            print("\nFinished")
+        except HTTPError as e:
+            raise Exception(error_msg.format(origin, e.code, e.reason))
+        except URLError as e:
+            raise Exception(error_msg.format(origin, e.errno, e.reason))
+    except (Exception, KeyboardInterrupt):
+        if Path(target).exists():
+            Path(target).unlink()
+        raise
 
 
 def is_server_alive(url, timeout=2):
@@ -19,7 +56,6 @@ def is_server_alive(url, timeout=2):
     except requests.exceptions.RequestException as e:
         print(f"Server {url} is not reachable: {e}")
         return False
-
 
 if __name__ == "__main__":
     # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
@@ -40,10 +76,13 @@ if __name__ == "__main__":
     else:
         base_urlurl = "https://logs.naoth.de/"
     data = client.logs.list()
+    print(f"https://models.naoth.de/{model}")
+    if not os.path.isfile(f"./models/{model}"):
+        get_file_from_server(f"https://models.naoth.de/{model}",f"./models/{model}")
 
     #model = YOLO("yolo11n.pt")
     # TODO get the best performing model from mlflow
-    model = YOLO("2024-04-16-yolov8s-bottom-resilient-eel-775.pt")
+    model = YOLO(f"./models/{model}")
     def sort_key_fn(data):
         return data.log_path
 
@@ -51,8 +90,7 @@ if __name__ == "__main__":
         log_id = data.id
         print(data.log_path)
         # TODO figure out a way to only get images that do not have annotations
-        images = client.image.list(log=log_id, camera="TOP")
-
+        images = client.image.list(log=log_id, camera="TOP",annotation=0)
         for idx, img in enumerate(tqdm(images)):
             if args.local:
                 image_path = Path(log_root_path) / img.image_url
@@ -62,5 +100,24 @@ if __name__ == "__main__":
                 results = model.predict(url, conf=0.8, verbose=False)
 
             for result in results:
-                result.save(filename=Path(img.image_url).name) 
+                
+                # result.save(filename=Path(img.image_url).name)
+                bbox = []
+                print(result.boxes.cls)
+                for i,cls in enumerate(result.boxes.cls.tolist()):
+                    bbox.append({
+                        "x":result.boxes.xywh.tolist()[i][0],
+                        "y":result.boxes.xywh.tolist()[i][1],
+                        "id":123,
+                        "label":result.names.get(cls),
+                        "width":result.boxes.xywh.tolist()[i][2],
+                        "height":result.boxes.xywh.tolist()[i][3]
+                    })
+
+                boxes = {
+                "bbox": bbox
+                }
+                # print(boxes)
+                if idx==5:
+                    quit()
         break
