@@ -1,0 +1,5 @@
+[core]
+    analytics = false
+    remote = gruenau
+['remote "gruenau"']
+    url = ssh://naoth@gruenau4.informatik.hu-berlin.de:22/vol/repl261-vol4/naoth/datasets/dvc/referee_detection
