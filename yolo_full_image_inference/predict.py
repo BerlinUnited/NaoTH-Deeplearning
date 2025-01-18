@@ -2,7 +2,7 @@
     Run Yolo v11 Models on our full images
 """
 import os
-import requests
+import requests,uuid
 from vaapi.client import Vaapi
 from tqdm import tqdm
 from pathlib import Path
@@ -90,6 +90,7 @@ if __name__ == "__main__":
         log_id = data.id
         print(data.log_path)
         # TODO figure out a way to only get images that do not have annotations
+        # annotation 0 -> only images with no annotations (not in main api as of now)
         images = client.image.list(log=log_id, camera="TOP",annotation=0)
         for idx, img in enumerate(tqdm(images)):
             if args.local:
@@ -101,14 +102,16 @@ if __name__ == "__main__":
 
             for result in results:
                 
-                # result.save(filename=Path(img.image_url).name)
+                result.save(filename=Path(img.image_url).name)
                 bbox = []
                 print(result.boxes.cls)
+                #todo add uuid gen for id field
+                # todo 
                 for i,cls in enumerate(result.boxes.cls.tolist()):
                     bbox.append({
-                        "x":result.boxes.xywh.tolist()[i][0],
-                        "y":result.boxes.xywh.tolist()[i][1],
-                        "id":123,
+                        "x":result.boxes.xywh.tolist()[i][0]-(result.boxes.xywh.tolist()[i][2]/2),
+                        "y":result.boxes.xywh.tolist()[i][1]-(result.boxes.xywh.tolist()[i][3]/2),
+                        "id":str(uuid.uuid4()),
                         "label":result.names.get(cls),
                         "width":result.boxes.xywh.tolist()[i][2],
                         "height":result.boxes.xywh.tolist()[i][3]
@@ -117,7 +120,8 @@ if __name__ == "__main__":
                 boxes = {
                 "bbox": bbox
                 }
-                # print(boxes)
+                print(boxes)
                 if idx==5:
                     quit()
+                #TODO bulk create using sdk
         break
