@@ -121,6 +121,7 @@ if __name__ == "__main__":
                 "bbox": bbox
                 }
                 print(boxes)
+                client.annotations.create(img.id,annotation=boxes)
                 if idx==5:
                     quit()
                 #TODO bulk create using sdk
