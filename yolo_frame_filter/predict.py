@@ -2,7 +2,7 @@
     Run Yolo v11 Models on our full images
 """
 import os
-import requests,uuid
+import requests
 from vaapi.client import Vaapi
 from tqdm import tqdm
 from pathlib import Path
@@ -10,9 +10,7 @@ from ultralytics import YOLO
 import argparse
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
-import json
-#specify model name, if not in local models folder it will attempt to downlaod it from models.naoth.de
-model = "2024-04-27-yolov8s-top-indecisive-snake-51.pt"
+
 
 # copied from tools/helper.py
 def get_file_from_server(origin, target):
@@ -60,7 +58,7 @@ def is_server_alive(url, timeout=2):
 if __name__ == "__main__":
     # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model")
+    parser.add_argument("-m", "--model", default="2024-04-27-yolov8s-top-indecisive-snake-51.pt")
     parser.add_argument("-f", "--local", action="store_true", default=False)
     args = parser.parse_args()
 
@@ -74,15 +72,15 @@ if __name__ == "__main__":
     if online:
         base_url = "https://logs.berlin-united.com/"
     else:
-        base_urlurl = "https://logs.naoth.de/"
+        base_url = "https://logs.naoth.de/"
     data = client.logs.list()
-    print(f"https://models.naoth.de/{model}")
-    if not os.path.isfile(f"./models/{model}"):
-        get_file_from_server(f"https://models.naoth.de/{model}",f"./models/{model}")
+    print(f"https://models.naoth.de/{args.model}")
+    if not os.path.isfile(f"./models/{args.model}"):
+        get_file_from_server(f"https://models.naoth.de/{args.model}",f"./models/{args.model}")
 
     #model = YOLO("yolo11n.pt")
     # TODO get the best performing model from mlflow
-    model = YOLO(f"./models/{model}")
+    model = YOLO(f"./models/{args.model}")
     def sort_key_fn(data):
         return data.log_path
 
