@@ -91,7 +91,7 @@ if __name__ == "__main__":
         print(data.log_path)
         # TODO figure out a way to only get images that do not have annotations
         # annotation 0 -> only images with no annotations (not in main api as of now)
-        images = client.image.list(log=log_id, camera="TOP",annotation=0)
+        images = client.image.list(log=log_id, camera="TOP",exclude_annotated=True)
         for idx, img in enumerate(tqdm(images)):
             if args.local:
                 image_path = Path(log_root_path) / img.image_url
