@@ -6,14 +6,14 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
 
-import cv2
-import h5py
+#import cv2
+#import h5py
 import numpy as np
-import psycopg2
-from label_studio_sdk import Client
-from minio import Minio
-from PIL import Image as PIL_Image
-from sklearn.model_selection import train_test_split
+#import psycopg2
+#from label_studio_sdk import Client
+#from minio import Minio
+#from PIL import Image as PIL_Image
+#from sklearn.model_selection import train_test_split
 
 label_dict = {"ball": 0, "nao": 1, "penalty_mark": 2, "referee": 3}
 
