@@ -76,7 +76,7 @@ if __name__ == "__main__":
     else:
         base_urlurl = "https://logs.naoth.de/"
     data = client.logs.list()
-    print(f"https://models.naoth.de/{model}")
+    #print(f"https://models.naoth.de/{model}")
     if not os.path.isfile(f"./models/{model}"):
         get_file_from_server(f"https://models.naoth.de/{model}",f"./models/{model}")
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     for data in sorted(data, key=sort_key_fn, reverse=True):
         log_id = data.id
-        print(data.log_path)
+        print("log_id", log_id)
         #if exclude_annotated parameter is set all images with an existing annotation are not included in the response
         images = client.image.list(log=log_id, camera="TOP",exclude_annotated=True)
         for idx, img in enumerate(tqdm(images)):
@@ -103,23 +103,28 @@ if __name__ == "__main__":
                 
                 result.save(filename=Path(img.image_url).name)
                 bbox = []
-                print(result.boxes.cls)
+                #print(result.boxes.cls)
                 for i,cls in enumerate(result.boxes.cls.tolist()):
+                    cx = result.boxes.xywh.tolist()[i][0]
+                    cy = result.boxes.xywh.tolist()[i][1]
+                    width = result.boxes.xywh.tolist()[i][2]
+                    height = result.boxes.xywh.tolist()[i][3]
                     bbox.append({
-                        "x":result.boxes.xywh.tolist()[i][0]-(result.boxes.xywh.tolist()[i][2]/2),
-                        "y":result.boxes.xywh.tolist()[i][1]-(result.boxes.xywh.tolist()[i][3]/2),
+                        "x": cx - ( width / 2 ),
+                        "y": cy - ( height / 2 ),
                         "id":uuid.uuid4().hex[:9].upper(),
                         "label":result.names.get(cls),
-                        "width":result.boxes.xywh.tolist()[i][2],
-                        "height":result.boxes.xywh.tolist()[i][3]
+                        "width": width,
+                        "height": height
                     })
 
                 boxes = {
-                "bbox": bbox
+                    "bbox": bbox
                 }
                 print(boxes)
-                client.annotations.create(img.id,annotation=boxes)
-                if idx==5:
+                client.annotations.create(img.id, annotation=boxes)
+                print(f"\tframe_number", img.frame_number)
+                if idx==2:
                     quit()
                 #TODO bulk create using sdk
         break
