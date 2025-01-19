@@ -10,7 +10,7 @@ from ultralytics import YOLO
 import argparse
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
-import json
+
 #specify model name, if not in local models folder it will attempt to downlaod it from models.naoth.de
 model = "2024-04-27-yolov8s-top-indecisive-snake-51.pt"
 
@@ -64,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--local", action="store_true", default=False)
     args = parser.parse_args()
 
+    
     log_root_path = os.environ.get("VAT_LOG_ROOT")
     client = Vaapi(
         base_url=os.environ.get("VAT_API_URL"),
@@ -97,6 +98,7 @@ if __name__ == "__main__":
                 image_path = Path(log_root_path) / img.image_url
                 results = model.predict(image_path, conf=0.8, verbose=False)
             else:
+                # TODO load that image manually in a temp folder
                 url = base_url + img.image_url
                 results = model.predict(url, conf=0.8, verbose=False)
 
@@ -105,6 +107,7 @@ if __name__ == "__main__":
                 bbox = []
                 #print(result.boxes.cls)
                 for i,cls in enumerate(result.boxes.cls.tolist()):
+                    # TODO: maybe we can use xywhn
                     cx = result.boxes.xywh.tolist()[i][0]
                     cy = result.boxes.xywh.tolist()[i][1]
                     width = result.boxes.xywh.tolist()[i][2]
