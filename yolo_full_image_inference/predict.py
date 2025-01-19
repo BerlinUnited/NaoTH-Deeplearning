@@ -89,8 +89,7 @@ if __name__ == "__main__":
     for data in sorted(data, key=sort_key_fn, reverse=True):
         log_id = data.id
         print(data.log_path)
-        # TODO figure out a way to only get images that do not have annotations
-        # annotation 0 -> only images with no annotations (not in main api as of now)
+        #if exclude_annotated parameter is set all images with an existing annotation are not included in the response
         images = client.image.list(log=log_id, camera="TOP",exclude_annotated=True)
         for idx, img in enumerate(tqdm(images)):
             if args.local:
@@ -105,8 +104,6 @@ if __name__ == "__main__":
                 result.save(filename=Path(img.image_url).name)
                 bbox = []
                 print(result.boxes.cls)
-                #todo add uuid gen for id field
-                # todo 
                 for i,cls in enumerate(result.boxes.cls.tolist()):
                     bbox.append({
                         "x":result.boxes.xywh.tolist()[i][0]-(result.boxes.xywh.tolist()[i][2]/2),
