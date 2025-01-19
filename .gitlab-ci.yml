@@ -8,7 +8,7 @@ variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
 
-build_image:
+.build_image:
   variables:
     DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/frugally_image
   script:
@@ -16,7 +16,7 @@ build_image:
     - docker build -f images/Dockerfile -t $DOCKER_IMAGE:latest ./images
     - docker push $DOCKER_IMAGE:latest
 
-build_yolo_image:
+.build_yolo_image:
   variables:
     DOCKER_IMAGE: scm.cms.hu-berlin.de:4567/berlinunited/tools/naoth-deeplearning/yolo_image
   script:
