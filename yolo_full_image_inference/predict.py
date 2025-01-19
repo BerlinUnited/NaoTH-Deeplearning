@@ -108,7 +108,7 @@ if __name__ == "__main__":
                     bbox.append({
                         "x":result.boxes.xywh.tolist()[i][0]-(result.boxes.xywh.tolist()[i][2]/2),
                         "y":result.boxes.xywh.tolist()[i][1]-(result.boxes.xywh.tolist()[i][3]/2),
-                        "id":str(uuid.uuid4()),
+                        "id":uuid.uuid4().hex[:9].upper(),
                         "label":result.names.get(cls),
                         "width":result.boxes.xywh.tolist()[i][2],
                         "height":result.boxes.xywh.tolist()[i][3]
