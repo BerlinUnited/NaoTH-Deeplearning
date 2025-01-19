@@ -83,6 +83,7 @@ if __name__ == "__main__":
     #model = YOLO("yolo11n.pt")
     # TODO get the best performing model from mlflow
     model = YOLO(f"./models/{model}")
+
     def sort_key_fn(data):
         return data.log_path
 
@@ -100,8 +101,7 @@ if __name__ == "__main__":
                 results = model.predict(url, conf=0.8, verbose=False)
 
             for result in results:
-                
-                result.save(filename=Path(img.image_url).name)
+                #result.save(filename=Path(img.image_url).name)
                 bbox = []
                 #print(result.boxes.cls)
                 for i,cls in enumerate(result.boxes.cls.tolist()):
@@ -110,12 +110,12 @@ if __name__ == "__main__":
                     width = result.boxes.xywh.tolist()[i][2]
                     height = result.boxes.xywh.tolist()[i][3]
                     bbox.append({
-                        "x": cx - ( width / 2 ),
-                        "y": cy - ( height / 2 ),
+                        "x": ( cx - ( width / 2 ) ) / 640,
+                        "y": ( cy - ( height / 2 ) ) / 480,
                         "id":uuid.uuid4().hex[:9].upper(),
                         "label":result.names.get(cls),
-                        "width": width,
-                        "height": height
+                        "width": width / 640,
+                        "height": height / 480
                     })
 
                 boxes = {
