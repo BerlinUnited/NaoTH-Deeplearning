@@ -58,8 +58,7 @@ if __name__ == "__main__":
         log_id = data.id
         print(data.log_path)
         #if exclude_annotated parameter is set all images with an existing annotation are not included in the response
-        # limit images to 50 for testing purposes
-        images = client.image.list(log=log_id,camera="TOP",exclude_annotated=True)[0:50]
+        images = client.image.list(log=log_id,camera="TOP",exclude_annotated=True)
         interesting = []
         for idx, img in enumerate(tqdm(images)):
             if args.local:
@@ -71,9 +70,9 @@ if __name__ == "__main__":
             
             
             for result in results:
-                #an image is labeled as interesting if the model could find anything with a confidence over 70%
-                if len(result.boxes.cls)!=0:
-                    interesting.append(img.frame_number)
+                #an image is labeled as interesting if the model could find a ball with a confidence over 70%
+                if 0 in result.boxes.cls.tolist():
+                        interesting.append(img.frame_number)
             
         print()
         print(len(interesting))

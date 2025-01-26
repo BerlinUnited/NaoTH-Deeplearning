@@ -1,7 +1,7 @@
 """
     Run Yolo v11 Models on our full images
 """
-import os
+import os,sys
 import requests,uuid
 from vaapi.client import Vaapi
 from tqdm import tqdm
@@ -14,76 +14,47 @@ from urllib.request import urlretrieve
 #specify model name, if not in local models folder it will attempt to downlaod it from models.naoth.de
 model = "2024-04-27-yolov8s-top-indecisive-snake-51.pt"
 
-# copied from tools/helper.py
-def get_file_from_server(origin, target):
-    # FIXME move to naoth python package
-    def dl_progress(count, block_size, total_size):
-        print(
-            "\r",
-            "Progress: {0:.2%}".format(min((count * block_size) / total_size, 1.0)),
-            sep="",
-            end="",
-            flush=True,
-        )
+helper_path = os.path.join(os.path.dirname(__file__), "../tools")
+sys.path.append(helper_path)
 
-    if not Path(target).exists():
-        target_folder = Path(target).parent
-        target_folder.mkdir(parents=True, exist_ok=True)
-    else:
-        return
-
-    error_msg = "URL fetch failure on {} : {} -- {}"
-    try:
-        try:
-            urlretrieve(origin, target, dl_progress)
-            print("\nFinished")
-        except HTTPError as e:
-            raise Exception(error_msg.format(origin, e.code, e.reason))
-        except URLError as e:
-            raise Exception(error_msg.format(origin, e.errno, e.reason))
-    except (Exception, KeyboardInterrupt):
-        if Path(target).exists():
-            Path(target).unlink()
-        raise
+from helper import get_file_from_server
 
 
-def is_server_alive(url, timeout=2):
+def get_log_server(timeout=2):
+    url = "https://logs.berlin-united.com/"
     try:
         response = requests.get(url, timeout=timeout)
         response.raise_for_status()  # Check for HTTP errors
         print(f"Server {url} is alive.")
-        return True
+        return url
     except requests.exceptions.RequestException as e:
         print(f"Server {url} is not reachable: {e}")
-        return False
+        return "https://logs.naoth.de/"
 
 if __name__ == "__main__":
     # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
+    
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model")
+    parser.add_argument("-m", "--model", default="2024-04-27-yolov8s-top-indecisive-snake-51.pt")
     parser.add_argument("-f", "--local", action="store_true", default=False)
     args = parser.parse_args()
 
-    
     log_root_path = os.environ.get("VAT_LOG_ROOT")
     client = Vaapi(
         base_url=os.environ.get("VAT_API_URL"),
         api_key=os.environ.get("VAT_API_TOKEN"),
     )
 
-    online = is_server_alive("https://logs.berlin-united.com/")
-    if online:
-        base_url = "https://logs.berlin-united.com/"
-    else:
-        base_urlurl = "https://logs.naoth.de/"
+    log_server = get_log_server()
+
     data = client.logs.list()
-    #print(f"https://models.naoth.de/{model}")
-    if not os.path.isfile(f"./models/{model}"):
-        get_file_from_server(f"https://models.naoth.de/{model}",f"./models/{model}")
+    print(f"https://models.naoth.de/{args.model}")
+    if not os.path.isfile(f"./models/{args.model}"):
+        get_file_from_server(f"https://models.naoth.de/{args.model}",f"./models/{args.model}")
 
     #model = YOLO("yolo11n.pt")
     # TODO get the best performing model from mlflow
-    model = YOLO(f"./models/{model}")
+    model = YOLO(f"./models/{args.model}")
 
     def sort_key_fn(data):
         return data.log_path
@@ -99,7 +70,7 @@ if __name__ == "__main__":
                 results = model.predict(image_path, conf=0.8, verbose=False)
             else:
                 # TODO load that image manually in a temp folder
-                url = base_url + img.image_url
+                url = log_server + img.image_url
                 results = model.predict(url, conf=0.8, verbose=False)
 
             for result in results:
