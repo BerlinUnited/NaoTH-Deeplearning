@@ -3,26 +3,37 @@
 """
 from vaapi.client import Vaapi
 import argparse
-import os
+import os, sys
+import uuid
+from tqdm import tqdm
+from pathlib import Path
+from ultralytics import YOLO
 
+helper_path = os.path.join(os.path.dirname(__file__), "../tools")
+sys.path.append(helper_path)
 
-def get_data():
+#from helper import get_file_from_server
+
+def get_data(log_id=168):
     # TODO check which state should I get here?
-    """
     response = client.behavior_frame_option.filter(
-        log_id=168,
+        log_id=log_id,
         option_name="decide_game_state",
         state_name="standby",
     )
-    print(response)
-    """
-    pass
+
+    # TODO create a framefilter
+    resp = client.frame_filter.create(
+        log_id=log_id,
+        frames={"frame_list": response},
+    )
+    images = client.image.list(log=log_id,camera="TOP",exclude_annotated=True, use_filter=1)
+    return images
 
 if __name__ == "__main__":
     # TODO use argparse for setting the model for now, later maybe we can utilize mlflow to automatically select the best model and download it?
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model")
-    parser.add_argument("-f", "--local", action="store_true", default=False)
     args = parser.parse_args()
 
     log_root_path = os.environ.get("VAT_LOG_ROOT")
@@ -31,54 +42,37 @@ if __name__ == "__main__":
         api_key=os.environ.get("VAT_API_TOKEN"),
     )
 
-    online = is_server_alive("https://logs.berlin-united.com/")
-    if online:
-        base_url = "https://logs.berlin-united.com/"
-    else:
-        base_urlurl = "https://logs.naoth.de/"
-    data = client.logs.list()
-    print(f"https://models.naoth.de/{model}")
-    if not os.path.isfile(f"./models/{model}"):
-        get_file_from_server(f"https://models.naoth.de/{model}",f"./models/{model}")
+    
+    images = get_data(log_id=168)
+    model = YOLO("yolo11n.pt")
 
-    #model = YOLO("yolo11n.pt")
-    # TODO get the best performing model from mlflow
-    model = YOLO(f"./models/{model}")
-    def sort_key_fn(data):
-        return data.log_path
+    for idx, img in enumerate(tqdm(images)):
+        url = url = "https://logs.berlin-united.com/" + img.image_url
+        results = model.predict(url, conf=0.6, verbose=False, classes=[0])
 
-    for data in sorted(data, key=sort_key_fn, reverse=True):
-        log_id = data.id
-        print(data.log_path)
-        # TODO figure out a way to only get images that do not have annotations
-        images = client.image.list(log=log_id, camera="TOP",annotation=0)
-        for idx, img in enumerate(tqdm(images)):
-            if args.local:
-                image_path = Path(log_root_path) / img.image_url
-                results = model.predict(image_path, conf=0.8, verbose=False)
-            else:
-                url = base_url + img.image_url
-                results = model.predict(url, conf=0.8, verbose=False)
-
-            for result in results:
-                
-                # result.save(filename=Path(img.image_url).name)
-                bbox = []
-                print(result.boxes.cls)
-                for i,cls in enumerate(result.boxes.cls.tolist()):
-                    bbox.append({
-                        "x":result.boxes.xywh.tolist()[i][0],
-                        "y":result.boxes.xywh.tolist()[i][1],
-                        "id":123,
+        for result in results:
+            #result.save(filename=Path(img.image_url).name)
+            bbox = []
+            print(result.boxes.cls)
+            for i,cls in enumerate(result.boxes.cls.tolist()):
+                # TODO: maybe we can use xywhn
+                cx = result.boxes.xywh.tolist()[i][0]
+                cy = result.boxes.xywh.tolist()[i][1]
+                width = result.boxes.xywh.tolist()[i][2]
+                height = result.boxes.xywh.tolist()[i][3]
+                bbox.append({
+                        "x": ( cx - ( width / 2 ) ) / 640,
+                        "y": ( cy - ( height / 2 ) ) / 480,
+                        "id":uuid.uuid4().hex[:9].upper(),
                         "label":result.names.get(cls),
-                        "width":result.boxes.xywh.tolist()[i][2],
-                        "height":result.boxes.xywh.tolist()[i][3]
+                        "width": width / 640,
+                        "height": height / 480
                     })
 
-                boxes = {
+            boxes = {
                 "bbox": bbox
-                }
-                # print(boxes)
-                if idx==5:
-                    quit()
-        break
+            }
+            client.annotations.create(img.id, annotation=boxes)
+
+        if idx > 10:
+            quit()
