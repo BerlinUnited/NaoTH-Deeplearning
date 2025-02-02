@@ -64,6 +64,7 @@ if __name__ == "__main__":
         print("log_id", log_id)
         #if exclude_annotated parameter is set all images with an existing annotation are not included in the response
         images = client.image.list(log=log_id, camera="TOP",exclude_annotated=True)
+        images_with_ball = []
         for idx, img in enumerate(tqdm(images)):
             if args.local:
                 image_path = Path(log_root_path) / img.image_url
@@ -79,26 +80,33 @@ if __name__ == "__main__":
                 #print(result.boxes.cls)
                 for i,cls in enumerate(result.boxes.cls.tolist()):
                     # TODO: maybe we can use xywhn
-                    cx = result.boxes.xywh.tolist()[i][0]
-                    cy = result.boxes.xywh.tolist()[i][1]
-                    width = result.boxes.xywh.tolist()[i][2]
-                    height = result.boxes.xywh.tolist()[i][3]
-                    bbox.append({
-                        "x": ( cx - ( width / 2 ) ) / 640,
-                        "y": ( cy - ( height / 2 ) ) / 480,
-                        "id":uuid.uuid4().hex[:9].upper(),
-                        "label":result.names.get(cls),
-                        "width": width / 640,
-                        "height": height / 480
-                    })
+                    if result.names.get(cls) == 'ball':
+                        images_with_ball.append(img.frame_number)
+                        cx = result.boxes.xywh.tolist()[i][0]
+                        cy = result.boxes.xywh.tolist()[i][1]
+                        width = result.boxes.xywh.tolist()[i][2]
+                        height = result.boxes.xywh.tolist()[i][3]
+                        bbox.append({
+                            "x": ( cx - ( width / 2 ) ) / 640,
+                            "y": ( cy - ( height / 2 ) ) / 480,
+                            "id":uuid.uuid4().hex[:9].upper(),
+                            "label":result.names.get(cls),
+                            "width": width / 640,
+                            "height": height / 480
+                        })
+            
+            if bbox == []:
+                continue
 
-                boxes = {
-                    "bbox": bbox
-                }
-                print(boxes)
-                client.annotations.create(img.id, annotation=boxes)
-                print(f"\tframe_number", img.frame_number)
-                if idx==2:
-                    quit()
-                #TODO bulk create using sdk
+            boxes = {
+                "bbox": bbox
+            }
+            client.annotations.create(img.id, annotation=boxes)
+            if len(images_with_ball) == 50:
+                quit()
+        client.frame_filter.create(
+        log_id=log_id,
+        frames={"frame_list": images_with_ball}
+        )
+            #TODO bulk create using sdk
         break
