@@ -30,15 +30,20 @@ def create_dataset_demo(client):
         with open(f"{label_dest}/{filename.split('.')[0]}.txt","w") as f:
             annotation = annotation.annotation["bbox"][0]
             label_id = label_dict.get(annotation["label"])
-            x = annotation["x"] * 640
-            y = annotation["y"] * 480
-            cx = x + 640 / 2
-            cy = y + 480 / 2
-
-            cx = cx / 640
-            cy = cy /480
+            
+            # Get the bounding box coordinates
+            x = annotation["x"] * 640  # Top-left x
+            y = annotation["y"] * 480  # Top-left y
             width = annotation["width"]
-            height = annotation["height"]
+            height = annotation["height"] 
+            
+            # Calculate the center coordinates
+            cx = x + (640 / 2)  # Center x
+            cy = y + (480 / 2)  # Center y
+            
+            # Normalize the coordinates
+            cx = cx / 640
+            cy = cy / 480
 
             f.write(f"{label_id} {cx} {cy} {width} {height}\n")
 
