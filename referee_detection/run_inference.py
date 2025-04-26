@@ -27,7 +27,7 @@ def get_data(log_id=168):
         log_id=log_id,
         frames={"frame_list": response},
     )
-    images = client.image.list(log=log_id,camera="TOP",exclude_annotated=True, use_filter=1)
+    images = client.image.list(log_id=log_id,camera="TOP",exclude_annotated=True, use_filter=1)
     return images
 
 if __name__ == "__main__":
