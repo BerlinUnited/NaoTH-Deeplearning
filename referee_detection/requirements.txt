@@ -1,0 +1,5 @@
+vaapi==0.4.6
+dvc==3.59.0
+dvc-ssh==4.1.1
+asyncssh==2.18.0 # Hack because of a bug: https://github.com/iterative/dvc/issues/10656
+ultralytics==8.3.58
