@@ -3,6 +3,7 @@ import zipfile
 from enum import Enum
 from os import environ
 from pathlib import Path
+import requests
 from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
 
@@ -83,6 +84,27 @@ def get_labelstudio_client():
     ls = Client(url=LABEL_STUDIO_URL, api_key=API_KEY)
     ls.check_connection()
     return ls
+
+
+def get_alive_fileserver(timeout=2):
+    url = "https://logs.berlin-united.com/"
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()  # Check for HTTP errors
+        print(f"Server {url} is alive.")
+        return url
+    except requests.exceptions.RequestException as e:
+        print(e)
+        url = "https://logs.naoth.de/"
+        try:
+            response = requests.get(url, timeout=timeout)
+            response.raise_for_status()  # Check for HTTP errors
+            print(f"Server {url} is alive.")
+            return url
+        except requests.exceptions.RequestException as e:
+            print(e)
+            print("No fileserver is reachable")
+            quit()
 
 
 def get_file_from_server(origin, target):

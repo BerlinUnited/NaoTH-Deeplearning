@@ -1,0 +1,6 @@
+# ignore downloaded models
+models/
+
+# ignore python stuff
+venv/*
+.envrc
