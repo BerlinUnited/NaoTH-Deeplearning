@@ -1,7 +1,7 @@
 import sys
 import os
 
-helper_path = os.path.join(os.path.dirname(__file__), "../")
+helper_path = os.path.join(os.path.dirname(__file__), "../../tools")
 sys.path.append(helper_path)
 
 from pathlib import Path
@@ -26,6 +26,7 @@ def get_dataset(dataset_name, output="datasets"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-ds", "--dataset", required=True)
+    # FIXME always save in datasets folder
     parser.add_argument("-o", "--output", required=False)
 
     args = parser.parse_args()

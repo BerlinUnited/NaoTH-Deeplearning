@@ -15,11 +15,25 @@ sys.path.append(helper_path)
 from helper import get_alive_fileserver
 
 
+def is_maybe_done(log_id, class_name):
+    # TODO check if there are annotations for a log
+    # FIXME view does not work if you define classname ,class_name=class_name00
+    response = client.annotations.list(log=log_id, class_name="ball")
+
+    print(f"Number of annotations for {class_name} are {len(response)}")
+    if len(response) > 0:
+        return True
+    
+    # no annotation for this class
+    return False
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model", default=None)
     parser.add_argument("-l", "--local", action="store_true", default=False)
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
+    parser.add_argument("-r", "--reverse", action="store_true", default=False, help="Start from the highest log id")
     args = parser.parse_args()
 
     log_root_path = os.environ.get("VAT_LOG_ROOT")
@@ -30,14 +44,19 @@ if __name__ == "__main__":
 
     log_server = get_alive_fileserver()
     model, class_mapping = get_yolo_model(camera=args.camera, model=args.model)
-    log = client.logs.list()
+    logs = client.logs.list()
 
     def sort_key_fn(log):
         return log.id
 
     # TODO when should we skip a log???
-    for log in sorted(log, key=sort_key_fn, reverse=True):
+    for log in sorted(logs, key=sort_key_fn, reverse=args.reverse):
         print(f"{log.id}: {log.log_path}")
+
+        if is_maybe_done(log.id, "Ball"):
+            print("done")
+            continue
+
         #if exclude_annotated parameter is set all images with an existing annotation are not included in the response
         # TODO maybe we want this to be handled differently?
         # like we want to filter for validated and maybe other values
@@ -85,5 +104,3 @@ if __name__ == "__main__":
                         is_empty=False,
                         data=data,
                     )
-                    
-
