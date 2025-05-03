@@ -1,7 +1,7 @@
 from ultralytics import YOLO, settings
 from pathlib import Path
 
-
+# TODO implement a model that only detects referees, later we will implement a model that can detect all bounding box classes
 
 def start_train():
 

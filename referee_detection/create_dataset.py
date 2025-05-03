@@ -20,6 +20,8 @@ def download_images():
         base_url=os.environ.get("VAT_API_URL"),
         api_key=os.environ.get("VAT_API_TOKEN"),
     )
+    # FIXME this is outdated now
+    # TODO download all images and get all images where bounding box
     response = client.annotations.list(id=168)
     for annotation in response:
         # ignore empty annotations
@@ -50,22 +52,29 @@ def download_images():
                 print(f"{0} {cx / 640} {cy / 480} {box['width']} {box['height']}")
 
 
-client = Vaapi(
+def main():
+    client = Vaapi(
         base_url=os.environ.get("VAT_API_URL"),
         api_key=os.environ.get("VAT_API_TOKEN"),
     )
+    download_images(client)
 
-download_images()
-
-data = dict(
+    data = dict(
     # TODO why ../ ???
     path=f"{dataset_name}",
     train="autosplit_train.txt",
     val="autosplit_val.txt",
     names={0: "person"},
-)
+    )
 
-with open(f"{dataset_name}.yaml", "w") as outfile:
-    yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
+    with open(f"{dataset_name}.yaml", "w") as outfile:
+        yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
 
-ultralytics.data.utils.autosplit(f"{dataset_name}/images", weights=(0.5, 0.5, 0.0), annotated_only=False)
+    ultralytics.data.utils.autosplit(f"{dataset_name}/images", weights=(0.5, 0.5, 0.0), annotated_only=False)
+
+if __name__ == "__main__":
+    main()
+
+
+
+
