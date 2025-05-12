@@ -1,0 +1,6 @@
+From Tensorflow Binaries:
+1. Uninstall tensorflow
+2. Re-install CUDA 11.2 without VS integration - https://developer.nvidia.com/cuda-toolkit-archive
+3. Download and install CuDNN 8.1.0 (for CUDA 11.2) - https://developer.nvidia.com/rdp/cudnn-archive
+WINDOWS: 4. Check Cuda Path (control sysdm.cpl) and Version (nvcc --version)
+5. Install Tensorflow 2.10. GPU (in requirements)
