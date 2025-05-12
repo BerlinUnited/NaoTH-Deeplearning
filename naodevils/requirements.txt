@@ -1,0 +1,21 @@
+# General
+setuptools~= 65.6
+tqdm~= 4.64
+psutil~= 5.9
+netron~= 8.0
+
+# Math librarys
+numpy~= 1.23
+opencv-python~=4.6
+matplotlib~= 3.6
+
+# Protobuf-Annotations
+pypng~= 0.20220715
+
+# Augmentation
+imgaug~=0.4
+imagesize~=1.4
+
+# Tensorflow
+tensorflow-gpu == 2.10.1
+tensorflow-addons == 0.18.0
