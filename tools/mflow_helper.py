@@ -99,3 +99,16 @@ def set_tracking_url(url="https://mlflow.berlin-united.com/", fail_on_timeout=Fa
         print(f"Error connecting to mlflow. Can't upload trainings progress to {url}")
         if fail_on_timeout:
             sys.exit(1)
+
+
+def create_experiment(name, description="", tags={}):
+    client = MlflowClient(tracking_uri="https://mlflow.berlin-united.com/")
+    existing_experiments = client.search_experiments()
+
+    tags.update({"mlflow.note.content": description})
+    has_match = any(obj.name == name for obj in all_experiments)
+
+    if not has_match:
+        test_experiment = client.create_experiment(
+            name=name, tags=tags
+        )
