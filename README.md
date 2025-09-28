@@ -3,6 +3,11 @@ This repo contains tools for datasets, learning, compiling and evaluating neural
 
 Each folder corresponds to one project. A project might be whistle detection, ball detection on patches, yolo ball detection, object detection on full images, etc. Commonly used functions should go into the tools folder.
 
+You need to set: 
+MLFLOW_TRACKING_USERNAME=
+MLFLOW_TRACKING_PASSWORD=
+
+
 ## Installation
 We prepared different requirement files if you want to work with the tensorflow projects or the pytorch projects for example ultralytics. Choose the corresponding requirements file during installation. We expect python 3.12.
 
