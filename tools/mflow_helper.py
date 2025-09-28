@@ -4,6 +4,7 @@ import os
 import sys
 import requests
 from requests.auth import HTTPBasicAuth
+from mlflow import MlflowClient
 
 
 def on_pretrain_routine_end(trainer):
@@ -106,7 +107,7 @@ def create_experiment(name, description="", tags={}):
     existing_experiments = client.search_experiments()
 
     tags.update({"mlflow.note.content": description})
-    has_match = any(obj.name == name for obj in all_experiments)
+    has_match = any(obj.name == name for obj in existing_experiments)
 
     if not has_match:
         test_experiment = client.create_experiment(

@@ -7,7 +7,7 @@ import numpy as np
 
 tools_path = os.path.join(os.path.dirname(__file__), "../../")
 sys.path.append(tools_path)
-from tools.mflow_helper import set_tracking_url
+from tools.mflow_helper import set_tracking_url, create_experiment
 
 set_tracking_url()
 
@@ -48,6 +48,7 @@ def prepare_mnist_data():
 
 def main():
     # Set up MLFlow experiment
+    create_experiment("Tests")
     mlflow.set_experiment("Tests")
     
     # Start MLFlow run

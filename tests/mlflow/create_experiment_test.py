@@ -1,3 +1,6 @@
+"""
+    Creates an experiment if it does not already exist
+"""
 from mlflow import MlflowClient
 
 client = MlflowClient(tracking_uri="https://mlflow.berlin-united.com/")
