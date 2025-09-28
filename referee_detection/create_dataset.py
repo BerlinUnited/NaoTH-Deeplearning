@@ -15,11 +15,7 @@ dataset_name = Path("datasets") / Path(f"referee_{datetime.now().strftime('%Y-%m
 Path(dataset_name).mkdir(parents=True, exist_ok=True)
 
 
-def download_images():
-    client = Vaapi(
-        base_url=os.environ.get("VAT_API_URL"),
-        api_key=os.environ.get("VAT_API_TOKEN"),
-    )
+def download_images(client):
     # FIXME this is outdated now
     # TODO download all images and get all images where bounding box
     response = client.annotations.list(id=168)
@@ -57,6 +53,26 @@ def main():
         base_url=os.environ.get("VAT_API_URL"),
         api_key=os.environ.get("VAT_API_TOKEN"),
     )
+
+    response = client.logs.list(player_number=7)
+    log_ids = [log.id for log in response]
+    print(log_ids)
+
+
+    response = client.behavior_frame_option.filter(
+        log=282,
+        option_name="decide_game_state",
+        state_name="standby",
+    )
+    frame_numbers = [frame.id for frame in response]
+    print(sorted(frame_numbers))
+
+    response = client.image.list(frame=8073724, camera="TOP")
+    print(response)
+    # TODO get all frames where robot is in standby and is 3, 4, 5 or 7
+
+
+    """
     download_images(client)
 
     data = dict(
@@ -71,7 +87,7 @@ def main():
         yaml.dump(data, outfile, default_flow_style=False, sort_keys=False)
 
     ultralytics.data.utils.autosplit(f"{dataset_name}/images", weights=(0.5, 0.5, 0.0), annotated_only=False)
-
+    """
 if __name__ == "__main__":
     main()
 
