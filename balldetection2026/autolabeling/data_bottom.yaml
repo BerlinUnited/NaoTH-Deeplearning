@@ -1,0 +1,6 @@
+path: ./data/TOP  # root dir
+train: images/train
+val: images/train
+
+names:
+  0: ball

@@ -1,0 +1,1 @@
+# Train a ball model for the Nao
