@@ -3,7 +3,7 @@ name = "patch-based-training"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "label-studio-sdk>=2.0.19",
     "mlflow>=3.10.1",
