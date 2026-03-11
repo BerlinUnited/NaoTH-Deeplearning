@@ -18,11 +18,11 @@ if __name__ == "__main__":
         print("The training is not set.\nSet with option -t, --training e.g. train6")
         sys.exit()
 
-    new_model = YOLO(f"./runs/detect/{args.training}/weights/best.pt")
+    new_model = YOLO(f"../../runs/detect/yolo_runs/{args.training}/weights/best.pt")
     
     current_folder = os.path.dirname(os.path.abspath(__file__))
 
-    target_folder = Path(f"{current_folder}/data/{args.camera}/yolo")
+    target_folder = Path(f"{current_folder}/data/yolo")
     target_folder.mkdir(exist_ok=True, parents=True)
 
     results = new_model.predict(

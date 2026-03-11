@@ -56,8 +56,8 @@ if __name__ == "__main__":
 
     camera = args.camera.upper()
 
-    labels_dir = Path(f"data/{camera}/yolo/labels")
-    json_dir = Path(f"data/{camera}/yolo/annotations")
+    labels_dir = Path(f"data/yolo/{camera}/labels")
+    json_dir = Path(f"data/yolo/{camera}/annotations")
     json_dir.mkdir(parents=True, exist_ok=True)
 
     if not labels_dir.exists():
