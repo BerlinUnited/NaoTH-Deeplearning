@@ -3,7 +3,7 @@ import mlflow
 import argparse
 import os
 
-
+# uv run train.py -c BOTTOM
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     results = model.train(
         data=f"data_{args.camera.lower()}.yaml", 
-        epochs=1000, 
+        epochs=10, 
         imgsz=640, 
         optimizer="MuSGD",
         batch=-1           # Auto-determines best batch size for your GPU
