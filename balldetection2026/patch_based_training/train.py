@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import sys
 import re
 from pathlib import Path
 
@@ -91,6 +92,10 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
     args = parser.parse_args()
 
+    if args.camera is None:
+        print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
+        sys.exit()
+
     mlflow.set_experiment("Naoth_Ball_Detection")
     mlflow.tensorflow.autolog()
 
@@ -141,5 +146,5 @@ if __name__ == "__main__":
 
         model.fit(train_ds, validation_data=val_ds, epochs=10)
 
-        model_path = f"data/{args.camera}/trionda_small.keras"
+        model_path = f"data/{args.camera}/trionda_small_{args.camera}.keras"
         model.save(model_path)

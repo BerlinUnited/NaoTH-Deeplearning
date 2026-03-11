@@ -1,15 +1,26 @@
 import shutil
 from pathlib import Path
-
+import sys
+import argparse
 import tensorflow as tf
 
-model_path = "data/BOTTOM/trionda_small.keras"
 
-model = tf.keras.models.load_model(model_path)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
+    args = parser.parse_args()
 
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-tflite_model = converter.convert()
+    if args.camera is None:
+        print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
+        sys.exit()
 
-output_file = Path(model_path).with_suffix(".tflite")
-with open(output_file, "wb") as f:
-    f.write(tflite_model)
+    model_path = f"data/{args.camera}/trionda_small_{args.camera}.keras"
+
+    model = tf.keras.models.load_model(model_path)
+
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    tflite_model = converter.convert()
+
+    output_file = Path(model_path).with_suffix(".tflite")
+    with open(output_file, "wb") as f:
+        f.write(tflite_model)
