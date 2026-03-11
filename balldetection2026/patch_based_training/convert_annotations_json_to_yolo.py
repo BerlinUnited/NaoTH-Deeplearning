@@ -39,8 +39,8 @@ if __name__ == "__main__":
 
     camera = args.camera.upper()
 
-    anno_dir = Path(f"data/{camera}/annotations")
-    labels_dir = Path(f"data/{camera}/labels")    
+    anno_dir = Path(f"data/{camera}/annotations/all")
+    labels_dir = Path(f"data/{camera}/labels/all")    
     labels_dir.mkdir(exist_ok=True, parents=True)
 
     if not anno_dir.exists():
