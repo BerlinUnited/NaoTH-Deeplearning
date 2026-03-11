@@ -3,9 +3,11 @@ import json
 import os
 import sys
 import re
+import sys
 from pathlib import Path
 
 import mlflow
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import (
     BatchNormalization,
@@ -16,9 +18,69 @@ from tensorflow.keras.layers import (
     Input,
     LeakyReLU,
     MaxPool2D,
+    ReLU,
 )
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import L1L2, L2
+
+
+def build_classifier_cnn_ball_gopen24_functional():
+    input_shape = (16, 16, 1)
+    inputs = Input(shape=input_shape)
+
+    x = Conv2D(16, (5, 5), padding="same", name="Conv2D_1")(inputs)
+    x = ReLU(name="activation_1")(x)
+
+    x = Conv2D(
+        16,
+        (5, 5),
+        padding="valid",
+        strides=(2, 2),
+        kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
+        name="Conv2D_2",
+    )(x)
+    x = ReLU(name="activation_2")(x)
+
+    x = Conv2D(
+        16,
+        (3, 3),
+        padding="valid",
+        kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
+        name="Conv2D_3",
+    )(x)
+    x = ReLU(name="activation_3")(x)
+
+    x = Conv2D(
+        16,
+        (3, 3),
+        padding="valid",
+        kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
+        name="Conv2D_4",
+    )(x)
+    x = ReLU(name="activation_4")(x)
+
+    x = Flatten(name="flatten_1")(x)
+
+    x = Dense(
+        256,
+        activation="relu",
+        kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
+        bias_regularizer=L2(1e-4),
+    )(x)
+    x = Dropout(0.1)(x)
+
+    x = Dense(
+        32,
+        activation="relu",
+        kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
+        bias_regularizer=L2(1e-4),
+    )(x)
+
+    outputs = Dense(1, activation="softmax")(x)
+
+    model = Model(inputs=inputs, outputs=outputs)
+
+    return model
 
 
 def make_naoth_detector_generic_functional(
@@ -104,26 +166,17 @@ if __name__ == "__main__":
 
         seed = 42
 
-        train_ds = tf.keras.utils.image_dataset_from_directory(
+        (train_ds, val_ds) = tf.keras.utils.image_dataset_from_directory(
             f"data/{args.camera}/patches",
             validation_split=0.2,
-            subset="training",
+            subset="both",
             seed=seed,
             image_size=(16, 16),
             color_mode="grayscale",
             batch_size=32,
-            label_mode="int",
-        )
-
-        val_ds = tf.keras.utils.image_dataset_from_directory(
-            f"data/{args.camera}/patches",
-            validation_split=0.2,
-            subset="validation",
-            seed=seed,
-            image_size=(16, 16),
-            color_mode="grayscale",
-            batch_size=32,
-            label_mode="int",
+            labels="inferred",
+            label_mode="binary",
+            class_names=["noball", "ball"],
         )
 
         val_image_names = set()
