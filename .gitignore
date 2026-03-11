@@ -12,6 +12,10 @@ patch_detection/models/
 
 # ignore secrets
 .env
+.envrc
 
 # ignore config settings
 .vscode/
+
+# ignore mlflow/ultralytics stuff
+runs/
