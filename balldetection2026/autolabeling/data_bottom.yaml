@@ -1,4 +1,4 @@
-path: ./data/TOP  # root dir
+path: ./data/BOTTOM  # root dir
 train: images/train
 val: images/train
 
