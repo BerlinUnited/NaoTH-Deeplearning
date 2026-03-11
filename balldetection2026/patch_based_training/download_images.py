@@ -30,10 +30,10 @@ if __name__ == "__main__":
         print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
         sys.exit()
 
-    image_save_dir = Path(f"data/{args.camera}/images")
+    image_save_dir = Path(f"data/{args.camera}/images/all")
     image_save_dir.mkdir(exist_ok=True, parents=True)
 
-    anno_save_dir = Path(f"data/{args.camera}/annotations")
+    anno_save_dir = Path(f"data/{args.camera}/annotations/all")
     anno_save_dir.mkdir(exist_ok=True, parents=True)
 
     for log_id in log_ids:
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         
         for img_obj in image_obj_list:
             img_url = "https://logs.berlin-united.com/" + img_obj.image_url
-            img_filename = Path(img_obj.image_url).name
+            img_filename = str(log_id) + "_" + Path(img_obj.image_url).name
             
             img_path = image_save_dir / img_filename
             anno_filename = f"{Path(img_filename).stem}.json"

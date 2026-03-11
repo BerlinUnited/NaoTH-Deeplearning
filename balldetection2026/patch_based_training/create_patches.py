@@ -17,19 +17,28 @@ def check_collision(box1, box2):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
+    parser.add_argument("-p", "--predictor", type=str, help="Set human (h) or Yolo Predicted (y)")
     args = parser.parse_args()
 
     if args.camera is None:
         print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
         sys.exit()
 
-    image_save_dir = Path(f"data/{args.camera}/images")
-    anno_save_dir = Path(f"data/{args.camera}/annotations")
+    if args.predictor is None:
+        print("The predictor is not set.\nSet with option -p, --predictor h / y (Human/Yolo Predicted)")
+        sys.exit()
+
+    image_save_dir = Path(f"data/{args.camera}/images_not_annotated")
+    if args.predictor == "h":
+        anno_save_dir = Path(f"data/{args.camera}/annotations")
+    elif args.predictor == "y":
+        anno_save_dir = Path(f"data/{args.camera}/yolo/annotations")
 
     patch_dir = Path(f"data/{args.camera}/patches")
+    patch_dir.mkdir(exist_ok=True, parents=True)
+
     ball_dir = patch_dir / "ball"
     noball_dir = patch_dir / "noball"
-
     ball_dir.mkdir(exist_ok=True, parents=True)
     noball_dir.mkdir(exist_ok=True, parents=True)
 
@@ -55,6 +64,9 @@ if __name__ == "__main__":
         for item in bbox_data:
             val = item.get("value", {})
             if "rectanglelabels" not in val:
+                continue
+
+            if float(val["confidence"]) < 0.5:
                 continue
 
             x = val["x"] * w_img / 100

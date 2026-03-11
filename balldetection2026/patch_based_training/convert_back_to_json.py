@@ -11,10 +11,10 @@ def yolo_to_labelstudio(yolo_lines, image_width, image_height, class_map):
 
     for line in yolo_lines:
         parts = line.strip().split()
-        if len(parts) != 5:
+        if len(parts) != 6:
             continue
 
-        class_id, x_center, y_center, w_yolo, h_yolo = parts
+        class_id, x_center, y_center, w_yolo, h_yolo, confidence = parts
         class_id = int(class_id)
         label_name = class_map.get(class_id, "Ball")  # default label if not found
 
@@ -37,6 +37,7 @@ def yolo_to_labelstudio(yolo_lines, image_width, image_height, class_map):
                 "y": y_tl,
                 "width": w_percent,
                 "height": h_percent,
+                "confidence": confidence,
                 "rotation": 0,
                 "rectanglelabels": [label_name]
             }
@@ -50,13 +51,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Konvertiert YOLO TXT Labels in Label Studio JSON")
     parser.add_argument("-c", "--camera", type=str, required=True, help="BOTTOM oder TOP")
     parser.add_argument("--img_width", type=int, default=640, help="Breite des Bildes in Pixel")
-    parser.add_argument("--img_height", type=int, default=640, help="Höhe des Bildes in Pixel")
+    parser.add_argument("--img_height", type=int, default=480, help="Höhe des Bildes in Pixel")
     args = parser.parse_args()
 
     camera = args.camera.upper()
 
-    labels_dir = Path(f"results/{camera}/labels")
-    json_dir = Path(f"results/{camera}/annotations_from_yolo")
+    labels_dir = Path(f"data/{camera}/yolo/labels")
+    json_dir = Path(f"data/{camera}/yolo/annotations")
     json_dir.mkdir(parents=True, exist_ok=True)
 
     if not labels_dir.exists():

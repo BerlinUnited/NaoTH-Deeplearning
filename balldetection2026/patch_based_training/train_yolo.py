@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     results = model.train(
         data=f"data_{args.camera.lower()}.yaml", 
-        epochs=10, 
+        epochs=500, 
         imgsz=640, 
         optimizer="MuSGD",
         batch=-1           # Auto-determines best batch size for your GPU
