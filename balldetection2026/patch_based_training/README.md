@@ -82,11 +82,13 @@ This will split with 80/20 (Train/Validation) and still keeps the complete datas
 uv run train_yolo.py -c TOP
 ```
 ```
-uv run train_yolo.py -c BOTTOM 
+uv run train_yolo.py -c BOTTOM
 ```
 The results will be saved in 
 {your_git_folder}\runs\detect\yolo_runs\train
 naoth-deeplearning\runs\detect\yolo_runs\train
+
+In runs without github_folder, this path will be different. Check this and save for next step. 
 
 You should see a visualisation of the images including the lables as well as the prediction from yolo. 
 
@@ -95,13 +97,15 @@ You should see a visualisation of the images including the lables as well as the
 This will generate new annotated images and annotations. The results will be saved in 
 naoth-deeplearning\patch_based_training\data\yolo\{bottom\top}
 
+If running without git-folder, the path need to be set with -m 
+
 Visuale inspection can be done with the images including bounding boxes and confidence level. 
 
 ```
-uv run run_model_yolo.py -c TOP
+uv run run_model_yolo.py -c TOP -m path
 ```
 ```
-uv run run_model_yolo.py -c BOTTOM 
+uv run run_model_yolo.py -c BOTTOM  -m path
 ```
 
 7.) *Convert yolo output*(.txt) into .json
