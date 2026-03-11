@@ -5,6 +5,43 @@ uv sync
 uv pip install tensorflow==2.15.1 
 ```
 
+## All for Top
+
+```
+#Download
+uv run download_images.py -c TOP
+uv run download_images_no_annotation.py -c TOP
+#Convert for yolo
+uv run convert_annotations_json_to_yolo.py -c TOP
+#split dataset
+uv run create_train_validation_sets.py -c TOP
+#train yolo
+uv run train_yolo.py -c TOP
+#annotate with yolo
+uv run run_model_yolo.py -c TOP
+#convert yolo labels back to annotation for further training
+uv run convert_back_to_json.py -c TOP
+
+```
+## All for Bottom
+```
+#Download
+uv run download_images.py -c BOTTOM
+uv run download_images_no_annotation.py -c BOTTOM
+#Convert for yolo
+uv run convert_annotations_json_to_yolo.py -c BOTTOM
+#split dataset
+uv run create_train_validation_sets.py -c BOTTOM
+#train yolo
+uv run train_yolo.py -c BOTTOM
+#annotate with yolo
+uv run run_model_yolo.py -c BOTTOM
+#convert yolo labels back to annotation for further training
+uv run convert_back_to_json.py -c BOTTOM
+
+```
+
+## Step by Step
 1.) *Download annotated images* and annotations from labelstudio.
 ```
 uv run download_images.py -c TOP
@@ -75,6 +112,5 @@ uv run convert_back_to_json.py -c TOP
 ```
 uv run convert_back_to_json.py -c BOTTOM 
 ```
-
 
 After this you have generated new annotated data you can use to train the ball_detector. 
