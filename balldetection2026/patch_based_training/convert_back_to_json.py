@@ -2,11 +2,6 @@ import os
 import json
 import argparse
 from pathlib import Path
-import os
-import json
-import argparse
-from pathlib import Path
-from PIL import Image  # pip install pillow
 
 def yolo_to_labelstudio(yolo_lines, image_width, image_height, class_map):
     """
@@ -54,7 +49,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Konvertiert YOLO TXT Labels in Label Studio JSON")
     parser.add_argument("-c", "--camera", type=str, required=True, help="BOTTOM oder TOP")
-    parser.add_argument("--images_dir", type=str, default=None, help="Pfad zu den Bildern (optional, automatisch)")
+    parser.add_argument("--img_width", type=int, default=640, help="Breite des Bildes in Pixel")
+    parser.add_argument("--img_height", type=int, default=640, help="Höhe des Bildes in Pixel")
     args = parser.parse_args()
 
     camera = args.camera.upper()
@@ -73,23 +69,6 @@ if __name__ == "__main__":
     converted_count = 0
 
     for txt_file in labels_dir.glob("*.txt"):
-        # get corresponding image file
-        if args.images_dir:
-            images_dir = Path(args.images_dir)
-        else:
-            images_dir = labels_dir.parent / "images"
-
-        img_candidates = list(images_dir.glob(f"{txt_file.stem}.*"))
-        if not img_candidates:
-            print(f"Warnung: Keine Bilddatei gefunden für {txt_file.name}. Überspringe.")
-            continue
-        img_path = img_candidates[0]
-
-        # read image size
-        with Image.open(img_path) as im:
-            img_width, img_height = im.size
-
-        # read YOLO labels
         with open(txt_file, 'r', encoding='utf-8') as f:
             yolo_lines = f.readlines()
 
@@ -97,7 +76,7 @@ if __name__ == "__main__":
             continue
 
         # convert YOLO → Label Studio JSON
-        json_data = yolo_to_labelstudio(yolo_lines, img_width, img_height, mapping)
+        json_data = yolo_to_labelstudio(yolo_lines, args.img_width, args.img_height, mapping)
 
         # save as JSON
         out_path = json_dir / f"{txt_file.stem}.json"
