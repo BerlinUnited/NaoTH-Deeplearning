@@ -7,18 +7,14 @@ import os
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
-    parser.add_argument("-t", "--training", type=str, help="Set the train name")
+    parser.add_argument("-m", "--modelpath", type=str, default="../../runs/detect/yolo_runs/train/weights/best.pt", help="Set the model path")
     args = parser.parse_args()
  
     if args.camera is None:
         print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
         sys.exit()
 
-    if args.training is None:
-        print("The training is not set.\nSet with option -t, --training e.g. train6")
-        sys.exit()
-
-    new_model = YOLO(f"../../runs/detect/yolo_runs/{args.training}/weights/best.pt")
+    new_model = YOLO(args.modelpath)
     
     current_folder = os.path.dirname(os.path.abspath(__file__))
 
