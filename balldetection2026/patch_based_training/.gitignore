@@ -1,3 +1,9 @@
 .venv/
 .envrc
 data/
+results/
+runs/
+*.png
+*.jpg
+yolo26n.pt
+.DS_Store
