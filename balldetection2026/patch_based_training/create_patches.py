@@ -28,10 +28,12 @@ if __name__ == "__main__":
         print("The predictor is not set.\nSet with option -p, --predictor h / y (Human/Yolo Predicted)")
         sys.exit()
 
-    image_save_dir = Path(f"data/{args.camera}/images_not_annotated")
+
     if args.predictor == "h":
+        image_save_dir = Path(f"data/{args.camera}/images")
         anno_save_dir = Path(f"data/{args.camera}/annotations")
     elif args.predictor == "y":
+        image_save_dir = Path(f"data/{args.camera}/images_not_annotated")
         anno_save_dir = Path(f"data/yolo/{args.camera}/annotations")
 
     patch_dir = Path(f"data/{args.camera}/patches")
@@ -65,9 +67,10 @@ if __name__ == "__main__":
             val = item.get("value", {})
             if "rectanglelabels" not in val:
                 continue
-
-            if float(val["confidence"]) < 0.5:
-                continue
+            
+            if args.predictor == "y":
+                if float(val["confidence"]) < 0.5:
+                    continue
 
             label = val["rectanglelabels"][0]
 
