@@ -9,7 +9,7 @@ from pathlib import Path
 import mlflow
 import tensorflow
 
-from balldetection2026.patch_based_training.model import build_classifier_cnn_ball_gopen24_functional
+from model import build_classifier_cnn_ball_gopen24_functional
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
