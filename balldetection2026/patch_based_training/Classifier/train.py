@@ -41,6 +41,37 @@ if __name__ == "__main__":
             class_names=["noball", "ball"],
         )
 
+        normalization = tensorflow.keras.layers.Rescaling(1./255)
+
+        train_ds = train_ds.map(
+            lambda x, y: (normalization(x), y),
+            num_parallel_calls=tensorflow.data.AUTOTUNE
+        )
+
+        val_ds = val_ds.map(
+            lambda x, y: (normalization(x), y),
+            num_parallel_calls=tensorflow.data.AUTOTUNE
+        )
+        
+
+        data_augmentation = tensorflow.keras.Sequential([
+            tensorflow.keras.layers.RandomFlip("horizontal"),
+            tensorflow.keras.layers.RandomRotation(0.05),
+            tensorflow.keras.layers.RandomTranslation(0.1, 0.1),
+            tensorflow.keras.layers.RandomZoom(0.1),
+            tensorflow.keras.layers.RandomContrast(0.1),
+            tensorflow.keras.layers.GaussianNoise(0.02),
+        ])
+
+        train_ds = train_ds.map(
+            lambda x, y: (data_augmentation(x, training=True), y),
+            num_parallel_calls=tensorflow.data.AUTOTUNE
+        )
+
+        AUTOTUNE = tensorflow.data.AUTOTUNE
+        train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+        val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+        
         val_image_names = set()
         for path in val_ds.file_paths:
             filename = Path(path).stem
@@ -59,7 +90,20 @@ if __name__ == "__main__":
 
         mlflow.log_param("regularization", True)
 
-        model.fit(train_ds, validation_data=val_ds, epochs=2000)
+        early_stop = tensorflow.keras.callbacks.EarlyStopping(
+            monitor="val_loss",
+            patience=40,
+            restore_best_weights=True
+        )
+
+        lr_scheduler = tensorflow.keras.callbacks.ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.5,
+            patience=15,
+            min_lr=1e-6
+        )
+        
+        model.fit(train_ds, validation_data=val_ds, epochs=2000, callbacks=[early_stop, lr_scheduler])
 
         model_path = f"data/{args.camera}/trionda_small_{args.camera}.keras"
         model.save(model_path)

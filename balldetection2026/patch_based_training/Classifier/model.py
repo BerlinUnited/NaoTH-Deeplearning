@@ -46,7 +46,9 @@ def build_classifier_cnn_ball_gopen24_functional():
         kernel_regularizer=L1L2(l1=1e-5, l2=1e-4),
         bias_regularizer=L2(1e-4),
     )(x)
-    x = Dropout(0.1)(x)
+    #x = Dropout(0.1)(x)
+    #increase dropout to 0.25 to reduce overfitting
+    x = Dropout(0.25)(x)
 
     x = Dense(
         32,
