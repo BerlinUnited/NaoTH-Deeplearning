@@ -69,6 +69,12 @@ if __name__ == "__main__":
             if float(val["confidence"]) < 0.5:
                 continue
 
+            label = val["rectanglelabels"][0]
+
+            if "Ball" not in label:
+                continue
+
+
             x = val["x"] * w_img / 100
             y = val["y"] * h_img / 100
             w = val["width"] * w_img / 100
