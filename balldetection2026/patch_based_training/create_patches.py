@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if args.predictor == "h":
         anno_save_dir = Path(f"data/{args.camera}/annotations")
     elif args.predictor == "y":
-        anno_save_dir = Path(f"data/{args.camera}/yolo/annotations")
+        anno_save_dir = Path(f"data/yolo/{args.camera}/annotations")
 
     patch_dir = Path(f"data/{args.camera}/patches")
     patch_dir.mkdir(exist_ok=True, parents=True)
