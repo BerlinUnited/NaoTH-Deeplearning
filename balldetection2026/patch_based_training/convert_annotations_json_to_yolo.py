@@ -11,7 +11,9 @@ def convert_to_yolo(bbox_data, class_map):
     
     for item in bbox_data:
         val = item['value']
-        
+        label = val["rectanglelabels"][0]
+        if "Ball" not in label:
+            continue
         label_name = val['rectanglelabels'][0]
         class_id = class_map.get(label_name, 0) 
         
