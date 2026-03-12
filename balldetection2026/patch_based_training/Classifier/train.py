@@ -41,6 +41,18 @@ if __name__ == "__main__":
             class_names=["noball", "ball"],
         )
 
+        val_image_names = set()
+        for path in val_ds.file_paths:
+            filename = Path(path).stem
+
+            base_stem = re.sub(r"_(no)?ball_\d+$", "", filename)
+            val_image_names.add(f"{base_stem}.png")
+
+        list_path = f"data/{args.camera}/val_images.json"
+        with open(list_path, "w") as f:
+            json.dump(list(val_image_names), f, indent=4)
+
+
         normalization = tensorflow.keras.layers.Rescaling(1./255)
 
         train_ds = train_ds.map(
@@ -72,17 +84,7 @@ if __name__ == "__main__":
         train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
         val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
         
-        val_image_names = set()
-        for path in val_ds.file_paths:
-            filename = Path(path).stem
-
-            base_stem = re.sub(r"_(no)?ball_\d+$", "", filename)
-            val_image_names.add(f"{base_stem}.png")
-
-        list_path = f"data/{args.camera}/val_images.json"
-        with open(list_path, "w") as f:
-            json.dump(list(val_image_names), f, indent=4)
-
+        
         model = build_classifier_cnn_ball_gopen24_functional()
         model.summary()
 
