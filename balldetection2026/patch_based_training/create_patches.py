@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
 
     if args.predictor == "h":
-        image_save_dir = Path(f"data/{args.camera}/images")
-        anno_save_dir = Path(f"data/{args.camera}/annotations")
+        image_save_dir = Path(f"data/{args.camera}/images/all")
+        anno_save_dir = Path(f"data/{args.camera}/annotations/all")
     elif args.predictor == "y":
         image_save_dir = Path(f"data/{args.camera}/images_not_annotated")
         anno_save_dir = Path(f"data/yolo/{args.camera}/annotations")
