@@ -52,7 +52,12 @@ if __name__ == "__main__":
         with open(list_path, "w") as f:
             json.dump(list(val_image_names), f, indent=4)
 
+        num_train_images = len(train_ds.file_paths)
+        num_val_images = len(val_ds.file_paths)
 
+        print(f"Training images (original): {num_train_images}")
+        print(f"Validation images: {num_val_images}")
+        
         normalization = tensorflow.keras.layers.Rescaling(1./255)
 
         train_ds = train_ds.map(
@@ -75,15 +80,27 @@ if __name__ == "__main__":
             tensorflow.keras.layers.GaussianNoise(0.02),
         ])
 
-        train_ds = train_ds.map(
-            lambda x, y: (data_augmentation(x, training=True), y),
-            num_parallel_calls=tensorflow.data.AUTOTUNE
-        )
+     
+
+        train_batches = tensorflow.data.experimental.cardinality(train_ds).numpy()
+        val_batches = tensorflow.data.experimental.cardinality(val_ds).numpy()
+
+        print(f"Train batches per epoch: {train_batches}")
+        print(f"Validation batches: {val_batches}")
+
+        print(f"Images per epoch (train): {train_batches * 32}")
 
         AUTOTUNE = tensorflow.data.AUTOTUNE
         train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
         val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
         
+        
+        train_ds = train_ds.map(
+            lambda x, y: (data_augmentation(x, training=True), y),
+            num_parallel_calls=tensorflow.data.AUTOTUNE
+        )
+
+
         
         model = build_classifier_cnn_ball_gopen24_functional()
         model.summary()
@@ -105,7 +122,13 @@ if __name__ == "__main__":
             min_lr=1e-6
         )
         
-        model.fit(train_ds, validation_data=val_ds, epochs=2000, callbacks=[early_stop, lr_scheduler])
+        history = model.fit(train_ds, validation_data=val_ds, epochs=2000, callbacks=[early_stop, lr_scheduler])
 
         model_path = f"data/{args.camera}/trionda_small_{args.camera}.keras"
         model.save(model_path)
+
+        actual_epochs = history.epoch[-1] + 1
+        effective_images = num_train_images * actual_epochs
+
+        print(f"Actual epochs trained: {actual_epochs}")
+        print(f"Effective augmented samples seen during training: {effective_images}")
