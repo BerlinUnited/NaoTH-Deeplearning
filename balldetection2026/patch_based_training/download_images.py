@@ -8,7 +8,7 @@ from vaapi.client import Vaapi
 from label_studio_sdk import LabelStudio
 
 
-log_ids = [679, 678, 677, 676, 675]
+log_ids = [679, 678, 677, 676, 675, 683]
 
 v_client = Vaapi(
     base_url=os.environ.get("VAT_API_URL"),

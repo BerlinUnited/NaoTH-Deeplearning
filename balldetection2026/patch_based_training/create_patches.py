@@ -65,18 +65,21 @@ if __name__ == "__main__":
 
         for item in bbox_data:
             val = item.get("value", {})
+
+
             if "rectanglelabels" not in val:
                 continue
+
             
             if args.predictor == "y":
                 if float(val["confidence"]) < 0.5:
                     continue
 
-            label = val["rectanglelabels"][0]
+            label = val["rectanglelabels"]
+
 
             if "Ball" not in label:
                 continue
-
 
             x = val["x"] * w_img / 100
             y = val["y"] * h_img / 100
