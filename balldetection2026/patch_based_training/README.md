@@ -47,6 +47,8 @@ uv run convert_back_to_json.py -c BOTTOM
 
 ## Step by Step
 
+uv sync
+
 1.) _Download annotated images_ and annotations from labelstudio.
 
 ```
@@ -139,3 +141,21 @@ uv run convert_back_to_json.py -c BOTTOM
 ```
 
 After this you have generated new annotated data you can use to train the ball_detector.
+
+------------------------------------------
+Go into Classifier
+
+uv venv .train
+source .train/bin/activate
+uv pip install -r requirement_train.txt
+
+1.) Split data
+```
+```
+2.) Train model 
+```
+```
+3.) Test model in Log - Simulator
+- CNNBallDetector --> set classifier and classifierClose
+- adapt cnn.threshold and cnn.thresholdClose 
+
