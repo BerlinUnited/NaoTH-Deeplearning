@@ -40,7 +40,8 @@ if __name__ == "__main__":
             label_mode="categorical",
             class_names=["noball", "ball"],
         )
-
+        # for sample in train_ds: 
+        #     print(train_ds[0][0])
         val_image_names = set()
         for path in val_ds.file_paths:
             filename = Path(path).stem
@@ -58,17 +59,17 @@ if __name__ == "__main__":
         print(f"Training images (original): {num_train_images}")
         print(f"Validation images: {num_val_images}")
         
-        normalization = tensorflow.keras.layers.Rescaling(1./255)
+        # normalization = tensorflow.keras.layers.Rescaling(1./255)
 
-        train_ds = train_ds.map(
-            lambda x, y: (normalization(x), y),
-            num_parallel_calls=tensorflow.data.AUTOTUNE
-        )
+        # train_ds = train_ds.map(
+        #     lambda x, y: (normalization(x), y),
+        #     num_parallel_calls=tensorflow.data.AUTOTUNE
+        # )
 
-        val_ds = val_ds.map(
-            lambda x, y: (normalization(x), y),
-            num_parallel_calls=tensorflow.data.AUTOTUNE
-        )
+        # val_ds = val_ds.map(
+        #     lambda x, y: (normalization(x), y),
+        #     num_parallel_calls=tensorflow.data.AUTOTUNE
+        # )
         
 
         data_augmentation = tensorflow.keras.Sequential([
@@ -99,8 +100,6 @@ if __name__ == "__main__":
             lambda x, y: (data_augmentation(x, training=True), y),
             num_parallel_calls=tensorflow.data.AUTOTUNE
         )
-
-
         
         model = build_classifier_cnn_ball_gopen24_functional()
         model.summary()
