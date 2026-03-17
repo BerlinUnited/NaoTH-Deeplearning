@@ -50,32 +50,63 @@ def yolo_to_labelstudio(yolo_lines, class_map):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
-    parser.add_argument("-m", "--modelpath", type=str, default="../../runs/detect/yolo_runs/train/weights/best.pt", help="Set the model path")
+    parser.add_argument("-m", "--model", type=str, help="Set the model")
     args = parser.parse_args()
  
     if args.camera is None:
         print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
         sys.exit()
 
-    new_model = YOLO(args.modelpath)
+    if args.model is None:
+        print("Das Modell wurde nicht festgelegt. Der Inspektor schaut in seinen Spind...")
     
-    current_folder = os.path.dirname(os.path.abspath(__file__))
+        model_dir = f"./data/{args.camera}/autolabel_model"
+        
+        if not os.path.exists(model_dir):
+            print(f"Fehler: Der Ordner {model_dir} existiert noch nicht.")
+            sys.exit(1)
+        available_models = [d for d in os.listdir(model_dir) if os.path.isdir(os.path.join(model_dir, d))]
+        
+        if not available_models:
+            print(f"Fehler: Keine Modelle im Ordner {model_dir} gefunden.")
+            sys.exit(1)
+            
+        print("\nBitte wähle ein Modell aus:")
+        for i, model_name in enumerate(available_models):
+            print(f"[{i + 1}] {model_name}")
+            
+        while True:
+            try:
+                auswahl = int(input("\nGib die Nummer des gewünschten Modells ein: "))
+                if 1 <= auswahl <= len(available_models):
+                    args.model = available_models[auswahl - 1]
+                    print(f"--> Modell '{args.model}' wurde erfolgreich ausgewählt!\n")
+                    break 
+                else:
+                    print("Ungültige Nummer. Bitte wähle eine Zahl aus der Liste oben.")
+            except ValueError:
+                print("Das war keine Zahl. Bitte gib eine gültige Ziffer ein.")
 
-    target_folder = Path(f"{current_folder}/data/yolo")
-    target_folder.mkdir(exist_ok=True, parents=True)
+    modell_pfad = f"./data/{args.camera}/autolabel_model/{args.model}/weights/best.pt"
+    new_model = YOLO(modell_pfad)
+
+    ziel_projekt = os.path.abspath(f"data/{args.camera}")
+    ziel_name = "not_human_proofed"
 
     results = new_model.predict(
-        source=f"data/{args.camera}/images_not_annotated/", 
-        save=True, 
+        source=f"data/{args.camera}/not_human_proofed/images", 
+        # save=True, 
         save_txt=True,
         save_conf=True,
-        project=target_folder,        
-        name=f"{args.camera}" 
+        project=ziel_projekt,
+        name=ziel_name,       
+        exist_ok=True
     )
 
 
-    labels_dir = Path(f"{target_folder}/{args.camera}/labels")
-    json_dir = Path(f"{target_folder}/{args.camera}/annotations")
+    labels_dir = Path(f"data/{args.camera}/not_human_proofed/labels")
+    labels_dir.mkdir(parents=True, exist_ok=True)
+    json_dir = Path(f"data/{args.camera}/not_human_proofed/annotations")
     json_dir.mkdir(parents=True, exist_ok=True)
 
     if not labels_dir.exists():

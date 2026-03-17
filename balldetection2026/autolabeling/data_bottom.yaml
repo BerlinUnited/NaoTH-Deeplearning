@@ -1,4 +1,4 @@
-path: ./data/BOTTOM # root dir
+path: ./data/BOTTOM/human_proofed # root dir
 train: images/train
 val: images/val
 

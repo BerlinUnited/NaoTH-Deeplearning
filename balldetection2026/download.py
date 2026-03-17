@@ -24,6 +24,7 @@ def download_annotation(client, img_obj, anno_path):
 
         if annotations:
             bbox_data = annotations[0].get("result", [])
+            print(bbox_data)
             with open(anno_path, "w", encoding="utf-8") as f:
                 json.dump(bbox_data, f, ensure_ascii=False, indent=4)
         else:
@@ -70,14 +71,21 @@ if __name__ == "__main__":
     )
 
     base_dir = Path(f"data/{args.camera}")
+    base_dir.mkdir(parents=True, exist_ok=True)
 
-    image_all_dir = base_dir / "images/all"
-    anno_all_dir = base_dir / "annotations/all"
-    image_not_anno_dir = base_dir / "images_not_annotated"
+    human_proofed_dir = base_dir / "human_proofed"
+    human_proofed_dir.mkdir(parents=True, exist_ok=True)
 
-    image_all_dir.mkdir(parents=True, exist_ok=True)
-    anno_all_dir.mkdir(parents=True, exist_ok=True)
-    image_not_anno_dir.mkdir(parents=True, exist_ok=True)
+    human_proofed_images_all_dir = human_proofed_dir / "images/all"
+    human_proofed_images_all_dir.mkdir(parents=True, exist_ok=True)
+    human_proofed_anno_all_dir = human_proofed_dir / "annotations/all"
+    human_proofed_anno_all_dir.mkdir(parents=True, exist_ok=True)
+
+    not_human_proofed_dir = base_dir / "not_human_proofed"
+    not_human_proofed_dir.mkdir(parents=True, exist_ok=True)
+    not_human_proofed_images = not_human_proofed_dir / "images"
+    not_human_proofed_images.mkdir(parents=True, exist_ok=True)
+
 
     for log_id in args.logs:
 
@@ -87,6 +95,7 @@ if __name__ == "__main__":
                 log=log_id,
                 camera=args.camera,
                 validated=True
+
             )
 
             for img_obj in image_obj_list:
@@ -94,8 +103,8 @@ if __name__ == "__main__":
                 img_url = "https://logs.berlin-united.com/" + img_obj.image_url
                 img_filename = f"{log_id}_{Path(img_obj.image_url).name}"
 
-                img_path = image_all_dir / img_filename
-                anno_path = anno_all_dir / f"{Path(img_filename).stem}.json"
+                img_path = human_proofed_images_all_dir / img_filename
+                anno_path = human_proofed_anno_all_dir / f"{Path(img_filename).stem}.json"
 
                 if img_path.exists() and anno_path.exists():
                     print(f"Already downloaded: {img_filename}")
@@ -107,7 +116,7 @@ if __name__ == "__main__":
                 if not anno_path.exists():
                     download_annotation(client, img_obj, anno_path)
 
-                print(f"Downloaded annotated: {img_filename}")
+                print(f"Downloaded human proofed image: {img_filename}")
 
         if args.mode in ["not_annotated", "both"]:
 
@@ -121,7 +130,7 @@ if __name__ == "__main__":
                 img_url = "https://logs.berlin-united.com/" + img_obj.image_url
                 img_filename = f"{log_id}_{Path(img_obj.image_url).name}"
 
-                img_path = image_not_anno_dir / img_filename
+                img_path = not_human_proofed_images / img_filename
 
                 if img_path.exists():
                     print(f"Already downloaded: {img_filename}")
@@ -129,4 +138,4 @@ if __name__ == "__main__":
 
                 download_image(img_url, img_path)
 
-                print(f"Downloaded not annotated: {img_filename}")
+                print(f"Downloaded not human proofed image: {img_filename}")
