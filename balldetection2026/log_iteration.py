@@ -1,12 +1,10 @@
 from naoth.log import Reader as LogReader
 import argparse
-import Reader as LogReader 
 from vaapi.client import Vaapi 
 import argparse 
 import requests 
 import os
 
-log_id = '683'
 def save_frame_numbers(log_path, output_path, log_id=log_id):
     with LogReader(log_path) as reader, open(output_path, "w") as f:
 
@@ -45,7 +43,7 @@ def save_frame_numbers(log_path, output_path, log_id=log_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--log", required=True, help="Path to log file")
+    #parser.add_argument("-l", "--log", required=True, help="Path to log file")
     parser.add_argument("-o", "--output", default="ball_candidates.txt", help="Output txt file")
 
     args = parser.parse_args()
@@ -65,6 +63,5 @@ if __name__ == "__main__":
         f.write(response.content)
 
     print("Download complete!")
-
 
     save_frame_numbers(args.log, args.output)
