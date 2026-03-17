@@ -70,7 +70,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     camera = args.camera.upper()
 
-    base_data = Path(f"data/{args.camera}")
+    base_data = Path(f"data/{args.camera}/human_proofed")
     image_all_dir = base_data / "images/all"
     anno_all_dir = base_data / "annotations/all"
     
@@ -91,7 +91,6 @@ if __name__ == "__main__":
 
     split_idx = int(len(images) * 0.8)
     train_files, val_files = images[:split_idx], images[split_idx:]
-    print(train_files)
 
     c_train = process_and_split(train_files, train_img, train_lbl, label_all_dir, anno_all_dir, mapping)
     c_val = process_and_split(val_files, val_img, val_lbl, label_all_dir, anno_all_dir, mapping)
