@@ -1,9 +1,11 @@
-import os
-import json
-import argparse
 from pathlib import Path
+from ultralytics import YOLO
+import argparse
+import sys
+import os 
+import json
 
-def yolo_to_labelstudio(yolo_lines, image_width, image_height, class_map):
+def yolo_to_labelstudio(yolo_lines, class_map):
     """
     Converts YOLO bbox lines into Label Studio JSON format.
     """
@@ -45,26 +47,41 @@ def yolo_to_labelstudio(yolo_lines, image_width, image_height, class_map):
 
     return predictions
 
-
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description="Konvertiert YOLO TXT Labels in Label Studio JSON")
-    parser.add_argument("-c", "--camera", type=str, required=True, help="BOTTOM oder TOP")
-    parser.add_argument("--img_width", type=int, default=640, help="Breite des Bildes in Pixel")
-    parser.add_argument("--img_height", type=int, default=480, help="Höhe des Bildes in Pixel")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
+    parser.add_argument("-m", "--modelpath", type=str, default="../../runs/detect/yolo_runs/train/weights/best.pt", help="Set the model path")
     args = parser.parse_args()
+ 
+    if args.camera is None:
+        print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
+        sys.exit()
 
-    camera = args.camera.upper()
+    new_model = YOLO(args.modelpath)
+    
+    current_folder = os.path.dirname(os.path.abspath(__file__))
 
-    labels_dir = Path(f"data/yolo/{camera}/labels")
-    json_dir = Path(f"data/yolo/{camera}/annotations")
+    target_folder = Path(f"{current_folder}/data/yolo")
+    target_folder.mkdir(exist_ok=True, parents=True)
+
+    results = new_model.predict(
+        source=f"data/{args.camera}/images_not_annotated/", 
+        save=True, 
+        save_txt=True,
+        save_conf=True,
+        project=target_folder,        
+        name=f"{args.camera}" 
+    )
+
+
+    labels_dir = Path(f"{target_folder}/{args.camera}/labels")
+    json_dir = Path(f"{target_folder}/{args.camera}/annotations")
     json_dir.mkdir(parents=True, exist_ok=True)
 
     if not labels_dir.exists():
         print(f"Fehler: Labels-Verzeichnis {labels_dir} existiert nicht.")
         exit()
 
-    # Map class IDs to names
     mapping = {0: "Ball"}
 
     converted_count = 0
@@ -76,10 +93,8 @@ if __name__ == "__main__":
         if not yolo_lines:
             continue
 
-        # convert YOLO → Label Studio JSON
-        json_data = yolo_to_labelstudio(yolo_lines, args.img_width, args.img_height, mapping)
+        json_data = yolo_to_labelstudio(yolo_lines, mapping)
 
-        # save as JSON
         out_path = json_dir / f"{txt_file.stem}.json"
         with open(out_path, 'w', encoding='utf-8') as f:
             json.dump(json_data, f, indent=2)

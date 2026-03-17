@@ -1,17 +1,15 @@
 from naoth.log import Reader as LogReader
+from vaapi.client import Vaapi
 import argparse
-import Reader as LogReader 
-from vaapi.client import Vaapi 
-import argparse 
-import requests 
+import requests
 import os
 
-log_id = '683'
-def save_frame_numbers(log_path, output_path, log_id=log_id):
+
+def save_frame_numbers(log_path, output_path):
     with LogReader(log_path) as reader, open(output_path, "w") as f:
 
         for frame in reader.read():
-            f.write(f"Frame: {log_id}_000{frame.number}\n")
+            f.write(f"Frame: {frame.number}\n")
 
             if 'BallCandidates' in frame.get_names():
                 try: 
@@ -25,19 +23,21 @@ def save_frame_numbers(log_path, output_path, log_id=log_id):
                             f"max_x: {patch.max.x}, "
                             f"max_y: {patch.max.y}\n"
                         )
+                    # TODO: download image here
+                    # api call looks something like this: https://vat.berlin-united.com/api/images/?log=679&camera=BOTTOM&frame=12312312
                 except Exception as e:
                     f.write(f"No  BallCandidates: {e}\n")
-            
-            if 'BallCandidatesTop' in frame.get_names():
-                bc_top = frame['BallCandidatesTop']
-                for patch in bc_top.patches:
-                    f.write("BallCandidatesTop patch:\n")
-                    f.write(
-                        f"min_x: {patch.min.x}, "
-                        f"min_y: {patch.min.y}, "
-                        f"max_x: {patch.max.x}, "
-                        f"max_y: {patch.max.y}\n"
-                    )
+            # Optional: top camera
+            # if 'BallCandidatesTop' in frame.get_names():
+            #     bc_top = frame['BallCandidatesTop']
+            #     for patch in bc_top.patches:
+            #         f.write("BallCandidatesTop patch:\n")
+            #         f.write(
+            #             f"min_x: {patch.min.x}, "
+            #             f"min_y: {patch.min.y}, "
+            #             f"max_x: {patch.max.x}, "
+            #             f"max_y: {patch.max.y}\n"
+            #         )
 
             f.write("\n")
 
@@ -45,8 +45,8 @@ def save_frame_numbers(log_path, output_path, log_id=log_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--log", required=True, help="Path to log file")
-    parser.add_argument("-o", "--output", default="ball_candidates.txt", help="Output txt file")
+    #parser.add_argument("-l", "--log", required=True, help="Path to log file")
+    #parser.add_argument("-o", "--output", default="ball_candidates.txt", help="Output txt file")
 
     args = parser.parse_args()
 
@@ -65,6 +65,5 @@ if __name__ == "__main__":
         f.write(response.content)
 
     print("Download complete!")
-
-
-    save_frame_numbers(args.log, args.output)
+    
+    #save_frame_numbers(args.log, args.output)
