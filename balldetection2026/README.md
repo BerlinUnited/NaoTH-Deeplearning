@@ -1,5 +1,8 @@
 # NaoTH Deep Learning - German Open 2026 Edition
 
+---
+
+```
 balldetection2026/
 ├── autolabeling/              # YOLO pipeline for auto-generating labels
 │   ├── create_training_data_yolo.py   # Step 1
@@ -14,9 +17,9 @@ balldetection2026/
 │   ├── evaluate_classifier.py
 │   └── train.py              # Training with data augmentation + Keras → TFLite export
 └── data/                     # All data: images, annotations, and patches
-
+```
 ---
- 
+
 ## Setup
  
 Navigate to the project folder and install the environment:
