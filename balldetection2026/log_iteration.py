@@ -5,48 +5,50 @@ from vaapi.client import Vaapi
 import requests 
 import os
 from pathlib import Path
+import json
 
-def save_all_candidates(log_path, log_id):
+def save_all_candidates_jsonl(log_path, log_id):
     my_parser = Parser()
     my_parser.register("BallCandidatesTop", "BallCandidates")
 
-    with LogReader(log_path, my_parser) as reader, open(f"data/logs/{log_id}_ball_candidates.txt", "w") as f:
+    out_path = f"data/logs/{log_id}_ball_candidates.jsonl"
+    
+    with LogReader(log_path, my_parser) as reader, open(out_path, "w") as f:
 
         for frame in reader.read():
-            f.write(f"Frame: {log_id}_000{frame.number}\n")
+            frame_data = {
+                "frame_id": f"{log_id}_{frame.number:07d}",
+                "bottom_patches": [],
+                "top_patches": []
+            }
 
             if 'BallCandidates' in frame.get_names():
                 try: 
                     bc = frame['BallCandidates']
-
                     for patch in bc.patches:
-                        f.write("BallCandidateBottom patch:\n")
-                        f.write(
-                            f"min_x: {patch.min.x}, "
-                            f"min_y: {patch.min.y}, "
-                            f"max_x: {patch.max.x}, "
-                            f"max_y: {patch.max.y}\n"
-                        )
-                except Exception as e:
-                    # f.write(f"No  BallCandidates: {e}\n")
-                    continue
+                        frame_data["bottom_patches"].append({
+                            "min_x": patch.min.x,
+                            "min_y": patch.min.y,
+                            "max_x": patch.max.x,
+                            "max_y": patch.max.y
+                        })
+                except Exception:
+                    pass
             
             if 'BallCandidatesTop' in frame.get_names():
                 try: 
                     bc_top = frame['BallCandidatesTop']
                     for patch in bc_top.patches:
-                        f.write("BallCandidatesTop patch:\n")
-                        f.write(
-                            f"min_x: {patch.min.x}, "
-                            f"min_y: {patch.min.y}, "
-                            f"max_x: {patch.max.x}, "
-                            f"max_y: {patch.max.y}\n"
-                        )
-                except Exception as e:
-                    # f.write(f"No  BallCandidates: {e}\n")
-                    continue
+                        frame_data["top_patches"].append({
+                            "min_x": patch.min.x,
+                            "min_y": patch.min.y,
+                            "max_x": patch.max.x,
+                            "max_y": patch.max.y
+                        })
+                except Exception:
+                    pass
 
-            f.write("\n")
+            f.write(json.dumps(frame_data) + "\n")
 
 def download_log(log_path, log_id):
     v_client = Vaapi(
@@ -82,4 +84,4 @@ if __name__ == "__main__":
         if not log_path.exists():
             log_path = download_log(log_path, log_id)
 
-        save_all_candidates(log_path, log_id)
+        save_all_candidates_jsonl(log_path, log_id)
