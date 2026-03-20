@@ -6,12 +6,18 @@ venv/
 
 # ignore local data
 mlruns/
+runs/
 data/
 patch_detection/data/
 patch_detection/models/
+.DS_Store
 
 # ignore secrets
 .env
+.envrc
 
 # ignore config settings
 .vscode/
+
+# ignore mlflow/ultralytics stuff
+runs/
