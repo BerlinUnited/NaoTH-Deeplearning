@@ -1,5 +1,0 @@
-.envrc
-.venv/
-
-*.pt
-data/

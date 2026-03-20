@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 import mlflow
-import tensorflow
+import tensorflow 
 
 from model import build_classifier_cnn_ball_gopen24_functional
 
@@ -28,10 +28,22 @@ if __name__ == "__main__":
 
         seed = 42
 
-        (train_ds, val_ds) = tensorflow.keras.utils.image_dataset_from_directory(
-            f"data/{args.camera}/patches",
-            validation_split=0.2,
-            subset="both",
+        train_dir = f"data/{args.camera}/patches/train"
+        val_dir = f"data/{args.camera}/patches/val"
+
+        train_ds = tensorflow.keras.utils.image_dataset_from_directory(
+            train_dir,
+            seed=seed,
+            image_size=(16, 16),
+            color_mode="grayscale",
+            batch_size=32,
+            labels="inferred",
+            label_mode="categorical",
+            class_names=["noball", "ball"]
+        )
+        
+        val_ds = tensorflow.keras.utils.image_dataset_from_directory(
+            val_dir,
             seed=seed,
             image_size=(16, 16),
             color_mode="grayscale",
@@ -40,8 +52,7 @@ if __name__ == "__main__":
             label_mode="categorical",
             class_names=["noball", "ball"],
         )
-        # for sample in train_ds: 
-        #     print(train_ds[0][0])
+
         val_image_names = set()
         for path in val_ds.file_paths:
             filename = Path(path).stem
@@ -106,7 +117,11 @@ if __name__ == "__main__":
 
         model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
 
+        # focal_loss = tf.keras.losses.CategoricalFocalCrossentropy(alpha=0.25, gamma=2.0)
+        # model.compile(optimizer="adam", loss=focal_loss, metrics=["accuracy"])
+
         mlflow.log_param("regularization", True)
+        mlflow.log_param("loss", "CategoricalCrossentropy")
 
         early_stop = tensorflow.keras.callbacks.EarlyStopping(
             monitor="val_loss",
@@ -123,11 +138,21 @@ if __name__ == "__main__":
         
         history = model.fit(train_ds, validation_data=val_ds, epochs=2000, callbacks=[early_stop, lr_scheduler])
 
-        model_path = f"data/{args.camera}/trionda_small_{args.camera}.keras"
+        model_path = f"classifier_patch_based/trionda_small_{args.camera}.keras"
         model.save(model_path)
 
         actual_epochs = history.epoch[-1] + 1
         effective_images = num_train_images * actual_epochs
+
+        model = tensorflow.keras.models.load_model(model_path)
+
+        converter = tensorflow.lite.TFLiteConverter.from_keras_model(model)
+        tflite_model = converter.convert()
+
+        output_file = Path(model_path).with_suffix(".tflite")
+        with open(output_file, "wb") as f:
+            f.write(tflite_model)
+
 
         print(f"Actual epochs trained: {actual_epochs}")
         print(f"Effective augmented samples seen during training: {effective_images}")

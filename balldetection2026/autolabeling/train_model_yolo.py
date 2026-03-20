@@ -2,8 +2,9 @@ from ultralytics import YOLO
 import mlflow
 import argparse
 import os
+import datetime
 
-# uv run train.py -c BOTTOM
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
@@ -16,13 +17,21 @@ if __name__ == "__main__":
     model = YOLO("yolo26n.pt") 
 
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
+    mlflow.set_experiment(f"GO26-Autolabeling Model-{args.camera}")
+
+
+    ziel_projekt = os.path.abspath(f"data/{args.camera}/autolabel_model")
+    ziel_name=f"yolo_{args.camera}_run_{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
 
     results = model.train(
-        data=f"data_{args.camera.lower()}.yaml", 
-        epochs=10, 
+        data=f"autolabeling/data_{args.camera.lower()}.yaml", 
+        epochs=1, 
         imgsz=640, 
         optimizer="MuSGD",
-        batch=-1           # Auto-determines best batch size for your GPU
+        batch=-1, # Auto-determines best batch size for your GPU
+        project=ziel_projekt,
+        name=ziel_name, 
+        exist_ok=True         
     )
 
     model.export(format="onnx")
