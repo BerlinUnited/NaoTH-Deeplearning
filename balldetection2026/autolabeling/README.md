@@ -42,13 +42,20 @@ Train on the human-annotated images:
 
 ```
 
-uv run ball_trainings_pipeline.py -c top/bottom -
+uv run ball_trainings_pipeline.py
 
 ```
 
+| Feature                  | Example    |
+| :----------------------- | :--------- |
+| Camera (BOTTOM/TOP)      | -c BOTTOM  |
+| epochs number            | -e 200     |
+| log ids                  | -l 001,002 |
+| model size n, s, m, l, x | -s n       |
+
 The results will be saved in
 
-data/{camera}/autolabel*model/yolo*{camera}_run_{current_time}/
+runs/{camera}/{run_timestamp}/autolabel_model/
 
 The output includes visualizations of images with ground-truth labels and YOLO predictions overlaid.
 
