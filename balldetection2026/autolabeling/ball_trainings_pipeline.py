@@ -6,11 +6,22 @@ from ultralytics import YOLO
 import mlflow
 import datetime
 import os
+import argparse
 
 def log_custom_data(trainer, filename):
     mlflow.log_artifact(filename, artifact_path="dataset")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--modelsize", type=str, required=True, help="Set the yolo modelsize: n, m, l, x")
+    parser.add_argument("-c", "--camera", type=str, required=True, help="Set the camera: BOTTOM or TOP")
+    parser.add_argument("-l", "--log_ids", type=lambda s: s.split(","), required=True, help="Set the log ids: e.g. -l 678,679,683")
+    parser.add_argument("-e", "--epochs", type=int, required=True, help="Set the epochs number")
+    parser.add_argument("-r", "--split_ratio", type=float, default=0.8, help="Set the split ratio for train and val sets (Default: 0.8)")
+    args = parser.parse_args()
+
+    camera = str(args.camera).upper()
+
     """
     Init API's
     """
@@ -23,14 +34,18 @@ if __name__ == "__main__":
         base_url="https://labelstudio-api.berlin-united.com",
         api_key=os.environ.get("LABELSTUDIO_API_KEY"),
     )
+
+    run_timestamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+    run_path = f"runs/{camera}/{run_timestamp}_{args.modelsize}"
+
+    os.makedirs(run_path, exist_ok=True)
+
     """
     Create Dataset File
     """
-    log_ids = [679]
-    camera="BOTTOM"
-    dataset_file_name = f"ball_detection_ds_{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.json"
-    create_dataset_json(log_ids, camera, v_client,l_client, dataset_file_name)
-    create_local_yolo_ds(dataset_file_name, output_path=f"datasets/ball_detection_ds_{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}", split_ratio=0.8)
+    dataset_file_name = f"{run_path}/ds_{camera}_{'-'.join(map(str, args.log_ids))}_{run_timestamp}_{args.modelsize}.json"
+    create_dataset_json(args.log_ids, camera, v_client,l_client, output_path=dataset_file_name)
+    create_local_yolo_ds(dataset_file_name, run_path=run_path, camera=camera, split_ratio=args.split_ratio)
 
     """
     Train Yolo Model
@@ -39,19 +54,19 @@ if __name__ == "__main__":
     os.environ["MLFLOW_EXPERIMENT_NAME"] = f"GO26-Autolabeling Model-{camera}"
     
     # Load the YOLO26 model (n=nano, s=small, m=medium, l=large, x=extra-large)
-    model = YOLO("yolo26n.pt")
+    model = YOLO(f"yolo26{args.modelsize}.pt")
     log_callback = partial(log_custom_data, filename=dataset_file_name)
     model.add_callback("on_train_end", log_callback)
     
     mlflow.set_experiment(f"GO26-Autolabeling Model-{camera}")
 
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
-    ziel_projekt = os.path.abspath(f"data/{camera}/autolabel_model")
-    ziel_name=f"yolo_{camera}_run_{datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}"
+    ziel_projekt = os.path.abspath(f"{run_path}")
+    ziel_name=f"autolabel_model"
     
     results = model.train(
-        data=f"dataset.yaml", 
-        epochs=500, 
+        data=f"{run_path}/dataset.yaml", 
+        epochs=args.epochs, 
         imgsz=640, 
         optimizer="MuSGD",
         batch=-1, # Auto-determines best batch size for your GPU

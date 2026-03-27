@@ -1,2 +1,13 @@
+.venv/
+.envrc
+data/
+datasets/
+results/
+runs/
+*.png
+*.jpg
+yolo26n.pt
+.DS_Store
+
 *.json
 *.yaml

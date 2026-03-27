@@ -7,10 +7,12 @@ import yaml
 import json
 import os
 
-def create_dataset_json(log_ids, camera, v_client, l_client, output_name):
+def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
     dataset = list()
+
+    count = 0
     for log_id in log_ids:
-        image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
+        image_obj_list = v_client.image.list(log=log_id, camera=str(camera).upper(), validated=True)
         for img_obj in image_obj_list:
             img_url = "https://logs.berlin-united.com/" + img_obj.image_url
             
@@ -32,25 +34,31 @@ def create_dataset_json(log_ids, camera, v_client, l_client, output_name):
                     print(f"Retrieved {len(bbox_data)} annotation results for Task {task_id}")
                     
                     data = {
-                        "frame_number": img_obj.frame.frame_number, "url":img_url, "labelstudio_url":img_obj.labelstudio_url,"annotations": yolo_results,
+                        "frame_number": f"{int(img_obj.frame.frame_number):07d}", "url":img_url, "labelstudio_url":img_obj.labelstudio_url,"annotations": yolo_results,
                     }
+                    
                     dataset.append(data)
+                    count = count + 1
+                    if count == 100:
+                        break
 
                 else:
                     print(f"No annotations found for Task {task_id}")
                     
             except Exception as e:
                 print(f"Failed to fetch Task {task_id}: {e}")
-    with open(output_name, 'w', encoding='utf-8') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(dataset, f, indent=4)
 
 
-def create_local_yolo_ds(dataset_file:str,output_path="datasets/custom_data", split_ratio=0.8) -> None:
+def create_local_yolo_ds(dataset_file:str,run_path="./", camera="", split_ratio=0.8) -> None:
     """
     Converts JSON metadata with URLs into a local YOLO dataset.
     """
     with open(dataset_file) as json_data:
         dataset = json.load(json_data)
+
+    output_path = f"{run_path}/dataset"
 
     # 1. Create directory structure
     for folder in ['images/train', 'images/val', 'labels/train', 'labels/val']:
@@ -63,7 +71,7 @@ def create_local_yolo_ds(dataset_file:str,output_path="datasets/custom_data", sp
     for i, entry in enumerate(dataset):
         # Determine if this goes to train or val
         subset = 'train' if i < split_idx else 'val'
-        print(entry)
+        # print(entry)
         url = entry['url']
         annotations = entry['annotations']
         
@@ -98,7 +106,7 @@ def create_local_yolo_ds(dataset_file:str,output_path="datasets/custom_data", sp
             0: 'ball'
         }
     }
-    with open("dataset.yaml", 'w') as f:
+    with open(f"{run_path}/dataset.yaml", 'w') as f:
         yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
     print(f"Dataset created at {output_path}")
