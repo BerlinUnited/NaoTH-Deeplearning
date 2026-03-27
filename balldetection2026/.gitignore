@@ -1,6 +1,7 @@
 .venv/
 .envrc
 data/
+datasets/
 results/
 runs/
 *.png
