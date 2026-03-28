@@ -10,17 +10,30 @@ import os
 def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
     dataset = list()
 
-    count = 0
+    task_dict = {}
+    project_id = 0
+
     for log_id in log_ids:
         image_obj_list = v_client.image.list(log=log_id, camera=str(camera).upper(), validated=True)
         for img_obj in image_obj_list:
-            img_url = "https://logs.berlin-united.com/" + img_obj.image_url
+
+            new_project_id = int(img_obj.labelstudio_url.split('/projects/')[1].split('/')[0])
+            if not project_id == new_project_id:
+                project_id = new_project_id
+                all_tasks = l_client.tasks.list(project=project_id)
+                task_dict = {str(task.id): task for task in all_tasks}
             
+            img_url = "https://logs.berlin-united.com/" + img_obj.image_url
+
             task_id = img_obj.labelstudio_url.split('=')[-1]
             # download bounding box annotations from labelstudio with labelstudio sdk
+
             try:
                 # Fetch the task details from Label Studio
-                task = l_client.tasks.get(id=task_id)
+                # task = l_client.tasks.get(id=task_id)
+                task = task_dict.get(task_id)
+                if not task:
+                    continue
                 
                 # Annotations are stored in a list (usually the first one is the 'completed' one)
                 annotations = task.annotations
@@ -38,9 +51,6 @@ def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
                     }
                     
                     dataset.append(data)
-                    count = count + 1
-                    if count == 100:
-                        break
 
                 else:
                     print(f"No annotations found for Task {task_id}")
