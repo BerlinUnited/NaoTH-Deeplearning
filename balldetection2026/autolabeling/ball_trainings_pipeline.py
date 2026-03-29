@@ -7,17 +7,19 @@ import mlflow
 import datetime
 import os
 import argparse
+import random
 
 def log_custom_data(trainer, filename):
     mlflow.log_artifact(filename, artifact_path="dataset")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--modelsize", type=str, required=True, help="Set the yolo modelsize: n, m, l, x")
+    parser.add_argument("-m", "--modelsize", type=str, required=True, help="Set the yolo modelsize: n, m, l, x")
     parser.add_argument("-c", "--camera", type=str, required=True, help="Set the camera: BOTTOM or TOP")
     parser.add_argument("-l", "--log_ids", type=lambda s: s.split(","), required=True, help="Set the log ids: e.g. -l 678,679,683")
     parser.add_argument("-e", "--epochs", type=int, required=True, help="Set the epochs number")
     parser.add_argument("-r", "--split_ratio", type=float, default=0.8, help="Set the split ratio for train and val sets (Default: 0.8)")
+    parser.add_argument("-s", "--seed", type=int, default=random.randint(1, 1000000), help="Set the seed (Default: random seed)")
     args = parser.parse_args()
 
     camera = str(args.camera).upper()
@@ -44,8 +46,9 @@ if __name__ == "__main__":
     Create Dataset File
     """
     dataset_file_name = f"{run_path}/ds_{camera}_{'-'.join(map(str, args.log_ids))}_{run_timestamp}_{args.modelsize}.json"
-    create_dataset_json(args.log_ids, camera, v_client,l_client, output_path=dataset_file_name)
-    create_local_yolo_ds(dataset_file_name, run_path=run_path, camera=camera, split_ratio=args.split_ratio)
+    print(f"The seed for this run: {args.seed}")
+    create_dataset_json(args.log_ids, camera, v_client,l_client, dataset_file_name, args.split_ratio, args.seed)
+    create_local_yolo_ds(dataset_file_name, run_path)
 
     """
     Train Yolo Model
@@ -61,6 +64,8 @@ if __name__ == "__main__":
     mlflow.set_experiment(f"GO26-Autolabeling Model-{camera}")
 
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
+    mlflow.log_param("seed", args.seed)
+    mlflow.log_param("split_ratio", args.split_ratio)
     ziel_projekt = os.path.abspath(f"{run_path}")
     ziel_name=f"autolabel_model"
     

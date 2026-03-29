@@ -7,14 +7,22 @@ import yaml
 import json
 import os
 
-def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
-    dataset = list()
+def create_dataset_json(log_ids: list, camera: str, v_client, l_client, output_path: str, split_ratio: float, seed: int):
+    dataset = {
+        "metadata": {
+            "seed": seed,
+            "split_ratio": split_ratio,
+            "camera": camera,
+            "log_ids": log_ids
+        },
+        "images": []
+    }
 
     task_dict = {}
     project_id = 0
 
     for log_id in log_ids:
-        image_obj_list = v_client.image.list(log=log_id, camera=str(camera).upper(), validated=True)
+        image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
         for img_obj in image_obj_list:
 
             new_project_id = int(img_obj.labelstudio_url.split('/projects/')[1].split('/')[0])
@@ -26,10 +34,11 @@ def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
             img_url = "https://logs.berlin-united.com/" + img_obj.image_url
 
             task_id = img_obj.labelstudio_url.split('=')[-1]
-            # download bounding box annotations from labelstudio with labelstudio sdk
 
+            # download bounding box annotations from labelstudio with labelstudio sdk
             try:
                 # Fetch the task details from Label Studio
+                
                 # task = l_client.tasks.get(id=task_id)
                 task = task_dict.get(task_id)
                 if not task:
@@ -46,27 +55,41 @@ def create_dataset_json(log_ids, camera, v_client, l_client, output_path):
                     yolo_results = convert_to_yolo(bbox_data, mapping)
                     print(f"Retrieved {len(bbox_data)} annotation results for Task {task_id}")
                     
-                    data = {
-                        "frame_number": f"{int(img_obj.frame.frame_number):07d}", "url":img_url, "labelstudio_url":img_obj.labelstudio_url,"annotations": yolo_results,
+                    image = {
+                        "frame_number": f"{int(img_obj.frame.frame_number):07d}",
+                        "url":img_url, 
+                        "labelstudio_url":img_obj.labelstudio_url,
+                        "annotations": yolo_results,
                     }
                     
-                    dataset.append(data)
+                    dataset["images"].append(image)
 
                 else:
                     print(f"No annotations found for Task {task_id}")
                     
             except Exception as e:
                 print(f"Failed to fetch Task {task_id}: {e}")
+    
+    random.seed(seed)
+    random.shuffle(dataset["images"])
+    split_idx = int(len(dataset["images"]) * split_ratio)
+
+    for i, entry in enumerate(dataset["images"]):
+        # Determine if this goes to train or val
+        entry['split'] = 'train' if i < split_idx else 'val'
+
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(dataset, f, indent=4)
 
 
-def create_local_yolo_ds(dataset_file:str,run_path="./", camera="", split_ratio=0.8) -> None:
+def create_local_yolo_ds(dataset_file: str, run_path: str) -> int:
     """
     Converts JSON metadata with URLs into a local YOLO dataset.
     """
     with open(dataset_file) as json_data:
         dataset = json.load(json_data)
+
+    image_list = dataset.get("images", [])
 
     output_path = f"{run_path}/dataset"
 
@@ -74,14 +97,9 @@ def create_local_yolo_ds(dataset_file:str,run_path="./", camera="", split_ratio=
     for folder in ['images/train', 'images/val', 'labels/train', 'labels/val']:
         os.makedirs(os.path.join(output_path, folder), exist_ok=True)
 
-    # Shuffle for random split
-    random.shuffle(dataset)
-    split_idx = int(len(dataset) * split_ratio)
-
-    for i, entry in enumerate(dataset):
-        # Determine if this goes to train or val
-        subset = 'train' if i < split_idx else 'val'
-        # print(entry)
+    for entry in dataset["images"]:
+        subset = entry.get('split', 'train') # if there is no split just use train
+        
         url = entry['url']
         annotations = entry['annotations']
         
@@ -103,23 +121,22 @@ def create_local_yolo_ds(dataset_file:str,run_path="./", camera="", split_ratio=
                     for ann in annotations:
                         f.write(f"{ann}\n")
             else:
-                print(f"Failed to download: {url}")
+                print(f"Failed to download (Status {img_response.status_code}): {url}")
         except Exception as e:
             print(f"Error processing {url}: {e}")
 
-    # TODO add creation of yaml file
     data = {
-        'path': f'./{output_path}',  # dataset root dir
-        'train': 'images/train',           # train images (relative to 'path')
-        'val': 'images/val',               # val images (relative to 'path')
+        'path': os.path.abspath(output_path),           # dataset root dir (absolut!)
+        'train': 'images/train',                        # train images (relative to 'path')
+        'val': 'images/val',                            # val images (relative to 'path')
         'names': {
             0: 'ball'
         }
     }
+    
     with open(f"{run_path}/dataset.yaml", 'w') as f:
         yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
-    print(f"Dataset created at {output_path}")
 
 def convert_to_yolo(bbox_data, class_map) -> List:
     """
