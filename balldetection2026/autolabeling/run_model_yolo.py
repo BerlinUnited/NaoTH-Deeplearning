@@ -1,56 +1,20 @@
 from pathlib import Path
 from ultralytics import YOLO
+from label_studio_sdk import LabelStudio
+import requests
+from tools import predict_on_image, invert_class_map, CLASS_MAP
 import argparse
 import sys
 import os 
 import json
 
-def yolo_to_labelstudio(yolo_lines, class_map):
-    """
-    Converts YOLO bbox lines into Label Studio JSON format.
-    """
-    predictions = []
-
-    for line in yolo_lines:
-        parts = line.strip().split()
-        if len(parts) != 6:
-            continue
-
-        class_id, x_center, y_center, w_yolo, h_yolo, confidence = parts
-        class_id = int(class_id)
-        label_name = class_map.get(class_id, "Ball")  # default label if not found
-
-        # Convert normalized YOLO coords back to percentages for Label Studio
-        x_center = float(x_center) * 100
-        y_center = float(y_center) * 100
-        w_percent = float(w_yolo) * 100
-        h_percent = float(h_yolo) * 100
-
-        # Convert center → top-left
-        x_tl = x_center - w_percent / 2
-        y_tl = y_center - h_percent / 2
-
-        predictions.append({
-            "from_name": "label",
-            "to_name": "image",
-            "type": "rectanglelabels",
-            "value": {
-                "x": x_tl,
-                "y": y_tl,
-                "width": w_percent,
-                "height": h_percent,
-                "confidence": confidence,
-                "rotation": 0,
-                "rectanglelabels": [label_name]
-            }
-        })
-
-    return predictions
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
-    parser.add_argument("-m", "--model", type=str, help="Set the model")
+    parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
+    parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
+    parser.add_argument("-n", "--num_images", type=int, default=None, help="Maximum number of images to predict (default: all)")
+    
     args = parser.parse_args()
  
     if args.camera is None:
@@ -87,49 +51,80 @@ if __name__ == "__main__":
             except ValueError:
                 print("Das war keine Zahl. Bitte gib eine gültige Ziffer ein.")
 
-    modell_pfad = f"./data/{args.camera}/autolabel_model/{args.model}/weights/best.pt"
-    new_model = YOLO(modell_pfad)
-
-    ziel_projekt = os.path.abspath(f"data/{args.camera}")
-    ziel_name = "not_human_proofed"
-
-    results = new_model.predict(
-        source=f"data/{args.camera}/not_human_proofed/images", 
-        # save=True, 
-        save_txt=True,
-        save_conf=True,
-        project=ziel_projekt,
-        name=ziel_name,       
-        exist_ok=True
+    client = LabelStudio(
+    base_url="https://labelstudio-api.berlin-united.com",
+    api_key=os.environ.get("LABELSTUDIO_API_KEY"),
     )
 
+    print(f"Fetching unlabeled tasks from project {args.project}...")
+    all_tasks = list(client.tasks.list(project=args.project))
+    unlabeled_tasks = [t for t in all_tasks if not t.annotations]
+    print(f"Found {len(unlabeled_tasks)} unlabeled tasks.")
 
-    labels_dir = Path(f"data/{args.camera}/not_human_proofed/labels")
-    labels_dir.mkdir(parents=True, exist_ok=True)
-    json_dir = Path(f"data/{args.camera}/not_human_proofed/annotations")
-    json_dir.mkdir(parents=True, exist_ok=True)
+    if args.num_images is not None:
+        unlabeled_tasks = unlabeled_tasks[:args.num_images]
+        print(f"Limiting to {len(unlabeled_tasks)} tasks.")
 
-    if not labels_dir.exists():
-        print(f"Fehler: Labels-Verzeichnis {labels_dir} existiert nicht.")
-        exit()
+    image_files = sorted(Path(args.images).glob("*.*"))
+    if args.num_images is not None:
+        image_files = image_files[:args.num_images]
+    print(f"Limiting to {len(image_files)} images.")
 
-    mapping = {0: "Ball"}
 
-    converted_count = 0
+    model = YOLO(args.model)
+    results = model.predict(source=[str(f) for f in image_files])
 
-    for txt_file in labels_dir.glob("*.txt"):
-        with open(txt_file, 'r', encoding='utf-8') as f:
-            yolo_lines = f.readlines()
-
-        if not yolo_lines:
+    pushed, skipped = 0, 0
+    CLASS_MAP_INV = invert_class_map(CLASS_MAP)
+    
+    
+    for task in unlabeled_tasks:
+        image_url = task.data.get("image")
+        
+        response = requests.get(image_url, timeout=10)
+        if response.status_code != 200:
+            print(f"Warning: Could not download image for task {task.id}")
+            skipped += 1
             continue
 
-        json_data = yolo_to_labelstudio(yolo_lines, mapping)
+        # Write to temp file for YOLO
+        tmp_path = Path(f"/tmp/{task.id}.jpg")
+        tmp_path.write_bytes(response.content)
 
-        out_path = json_dir / f"{txt_file.stem}.json"
-        with open(out_path, 'w', encoding='utf-8') as f:
-            json.dump(json_data, f, indent=2)
+        results = model.predict(source=str(tmp_path))
+        tmp_path.unlink()  # cleanup
 
-        converted_count += 1
+        boxes = results[0].boxes
+        if boxes is None or len(boxes) == 0:
+            skipped += 1
+            continue
 
-    print(f"Fertig! {converted_count} YOLO-Dateien in JSON umgewandelt und gespeichert unter {json_dir}")
+        predictions = []
+        confidences = []
+
+        for box in boxes:
+            x_center, y_center, w, h = box.xywhn[0].tolist()
+            confidence = float(box.conf[0])
+            label_name = CLASS_MAP_INV.get(int(box.cls[0]), "Ball")
+            confidences.append(confidence)
+
+            predictions.append({
+                "from_name": "label",
+                "to_name": "image",
+                "type": "rectanglelabels",
+                "score": confidence,
+                "value": {
+                    "x": (x_center - w / 2) * 100,
+                    "y": (y_center - h / 2) * 100,
+                    "width": w * 100,
+                    "height": h * 100,
+                    "rotation": 0,
+                    "rectanglelabels": [label_name]
+                }
+            })
+
+        mean_score = sum(confidences) / len(confidences)
+        predict_on_image(client, task_id=task.id, predictions=predictions, score=mean_score)
+        pushed += 1
+
+    print(f"\nDone. {pushed} predictions pushed, {skipped} empty or failed.")
