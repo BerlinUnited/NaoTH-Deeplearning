@@ -67,7 +67,7 @@ if __name__ == "__main__":
     mlflow.set_experiment(f"GO26-Autolabeling Model-{camera}")
 
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
-    mlflow.log_param("seed", args.seed)
+    mlflow.log_param("split_seed", args.seed)
     mlflow.log_param("split_ratio", args.split_ratio)
     ziel_projekt = os.path.abspath(f"{run_path}")
     ziel_name=f"autolabel_model"
