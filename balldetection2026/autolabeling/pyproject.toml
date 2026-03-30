@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
     "label-studio-sdk>=2.0.19",
     "mlflow==3.10.1",
-    "naoth>=0.5.1",
     "ultralytics>=8.4.31",
     "vaapi>=0.7.26",
 ]

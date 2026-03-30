@@ -1,0 +1,50 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+variables:
+  HPC_USER: "schlotts"
+  HPC_HOST: "slurm-login.hpc-service.hu-berlin.de"
+  # Creates a unique path: e.g., /home/user/runs/janedoe-a1b2c3d4-12345
+  REMOTE_DIR: "/lustre/informatik/schlotts/pipeline_runs/${GITLAB_USER_LOGIN}-${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_ID}"
+
+stages:
+  - deploy
+
+run_training:
+  tags:
+    - ball_server
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - eval $(ssh-agent -s)
+    - chmod 400 "$HPC_SSH_KEY"
+    - ssh-add "$HPC_SSH_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $HPC_HOST >> ~/.ssh/known_hosts
+  script:
+    # 1. Create the unique directory on HPC
+    - ssh $HPC_USER@$HPC_HOST "mkdir -p $REMOTE_DIR"
+    
+    # 2. Copy code (excluding heavy/unnecessary files)
+    - rsync -avz --exclude='.git' --exclude='outputs' ./ $HPC_USER@$HPC_HOST:$REMOTE_DIR/
+    
+    # 3. Submit the job to Slurm
+    # We use 'cd' inside the ssh command so Slurm starts in the right folder
+    - |
+      ssh $HPC_USER@$HPC_HOST "cd $REMOTE_DIR && sbatch <<EOF
+      #!/bin/bash
+      #SBATCH --job-name=RL_${CI_COMMIT_SHORT_SHA}
+      #SBATCH --output=training.log
+      #SBATCH --partition=robocup
+      #SBATCH --gres=gpu:1
+      #SBATCH --cpus-per-task=4
+      #SBATCH --mem=8G
+      
+      source /lustre/informatik/schlotts/balldetection_env/.venv/bin/activate
+      uv sync --directory balldetection2026/autolabeling/ --active
+      python balldetection2026/autolabeling/ball_trainings_pipeline.py -c TOP -e 500 -l 675,679,687 -m n
+      EOF"
