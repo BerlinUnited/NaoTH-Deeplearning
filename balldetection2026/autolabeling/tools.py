@@ -215,6 +215,8 @@ def convert_to_yolo(bbox_data, class_map=CLASS_MAP) -> List:
 
         # 1. Get the class ID from the label list
         label_name = val["rectanglelabels"][0]
+        if not any(l in class_map for l in label_name):  # skip if no known label
+            continue
         class_id = class_map.get(label_name, 0)  # Defaults to 0 if not found
 
         # 2. Extract Label Studio percentages (top-left)
