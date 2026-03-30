@@ -1,7 +1,10 @@
+"""
+ball_trainings_pipeline.py
+"""
 from vaapi.client import Vaapi
 from functools import partial
 from label_studio_sdk import LabelStudio
-from tools import create_dataset_json, create_local_yolo_ds
+from tools import create_dataset_json, create_local_yolo_ds, get_project_id
 from ultralytics import YOLO
 import mlflow
 import datetime
@@ -79,3 +82,7 @@ if __name__ == "__main__":
         name=ziel_name, 
         exist_ok=True         
     )
+
+    project_id = get_project_id(v_client, args.log_ids[0], camera)
+    print(f"\nTraining complete. To autolabel new images, run:")
+    print(f"  python autolabel.py -c {camera} -m {f"{ziel_projekt}/{ziel_name}/weights/best.pt"} -p {project_id}")
