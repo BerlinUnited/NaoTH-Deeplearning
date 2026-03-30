@@ -77,7 +77,7 @@ if __name__ == "__main__":
         epochs=args.epochs, 
         imgsz=640, 
         optimizer="MuSGD",
-        batch=-1, # Auto-determines best batch size for your GPU
+        batch=16, # Auto-determines best batch size for your GPU
         project=ziel_projekt,
         name=ziel_name, 
         exist_ok=True         

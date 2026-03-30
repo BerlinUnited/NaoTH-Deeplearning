@@ -39,12 +39,13 @@ run_training:
       #!/bin/bash
       #SBATCH --job-name=RL_${CI_COMMIT_SHORT_SHA}
       #SBATCH --output=training.log
-      #SBATCH --partition=robocup
+      #SBATCH --partition=robocup 
       #SBATCH --gres=gpu:1
-      #SBATCH --cpus-per-task=4
-      #SBATCH --mem=8G
-      
+      #SBATCH --cpus-per-task=8
+      #SBATCH --mem=32G
+
       source /lustre/informatik/schlotts/balldetection_env/.venv/bin/activate
-      uv sync --directory balldetection2026/autolabeling/ --active
+      ##uv sync --directory balldetection2026/autolabeling/ --active
+      ##uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
       python balldetection2026/autolabeling/ball_trainings_pipeline.py -c TOP -e 500 -l 675,679,687 -m n
       EOF"
