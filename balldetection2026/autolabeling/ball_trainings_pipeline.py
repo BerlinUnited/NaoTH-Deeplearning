@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     project_id = get_project_id(v_client, args.log_ids[0], camera)
     print(f"\nTraining complete. To autolabel new images, run:")
-    print(f"  python autolabel.py -c {camera} -m {f"{ziel_projekt}/{ziel_name}/weights/best.pt"} -p {project_id}")
+    print(f"  python autolabel.py -c {camera} -m {ziel_projekt}/{ziel_name}/weights/best.pt -p {project_id}")
