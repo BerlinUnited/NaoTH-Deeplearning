@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
     parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
     parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
-    parser.add_argument("-n", "--num_images", type=int, default=5, help="Maximum number of images to predict (default: all)")
+    parser.add_argument("-n", "--num_images", type=int, default=50, help="Maximum number of images to predict (default: all)")
     
     args = parser.parse_args()
  
@@ -62,16 +62,6 @@ if __name__ == "__main__":
     unlabeled_tasks = [t for t in all_tasks if not t.annotations]
     print(f"Found {len(unlabeled_tasks)} unlabeled tasks.")
 
-    if args.num_images is not None:
-        unlabeled_tasks = unlabeled_tasks[:args.num_images]
-        print(f"Limiting to {len(unlabeled_tasks)} tasks.")
-
-    # image_files = sorted(Path(args.images).glob("*.*"))
-    # if args.num_images is not None:
-    #     image_files = image_files[:args.num_images]
-    # print(f"Limiting to {len(image_files)} images.")
-
-
     model = YOLO(args.model)
 
     pushed, skipped = 0, 0
@@ -79,6 +69,9 @@ if __name__ == "__main__":
     
     
     for task in unlabeled_tasks:
+        # break after maximum number of images are annotated
+        if pushed >= args.num_images:
+            break
         image_url = task.data.get("image")
         
         response = requests.get(image_url, timeout=10)
@@ -104,8 +97,8 @@ if __name__ == "__main__":
         boxes = results[0].boxes
         if boxes is None or len(boxes) == 0:
             # Push empty prediction so task is marked as processed in Label Studio
-            predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
-            pushed += 1
+            #predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
+            #pushed += 1
             continue
 
         predictions = []
@@ -132,8 +125,9 @@ if __name__ == "__main__":
                 }
             })
 
-        mean_score = sum(confidences) / len(confidences)
-        predict_on_image(client, task_id=task.id, predictions=predictions, score=mean_score)
-        pushed += 1
+        if len(predictions) > 0:
+            mean_score = sum(confidences) / len(confidences)
+            predict_on_image(client, task_id=task.id, predictions=predictions, score=mean_score)
+            pushed += 1
 
     print(f"\nDone. {pushed} predictions pushed, {skipped} empty or failed.")

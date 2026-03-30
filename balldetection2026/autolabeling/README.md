@@ -1,7 +1,5 @@
 # NaoTH Deep Learning - German Open 2026 Edition
 
----
-
 ```
 autolabeling/
 ├── README.md
