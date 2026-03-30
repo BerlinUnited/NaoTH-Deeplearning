@@ -11,3 +11,5 @@ yolo26n.pt
 
 *.json
 *.yaml
+
+*.pt
