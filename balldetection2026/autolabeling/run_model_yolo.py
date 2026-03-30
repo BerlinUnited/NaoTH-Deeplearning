@@ -7,13 +7,14 @@ import argparse
 import sys
 import os 
 import json
+import shutil 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
     parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
     parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
-    parser.add_argument("-n", "--num_images", type=int, default=None, help="Maximum number of images to predict (default: all)")
+    parser.add_argument("-n", "--num_images", type=int, default=5, help="Maximum number of images to predict (default: all)")
     
     args = parser.parse_args()
  
@@ -65,14 +66,13 @@ if __name__ == "__main__":
         unlabeled_tasks = unlabeled_tasks[:args.num_images]
         print(f"Limiting to {len(unlabeled_tasks)} tasks.")
 
-    image_files = sorted(Path(args.images).glob("*.*"))
-    if args.num_images is not None:
-        image_files = image_files[:args.num_images]
-    print(f"Limiting to {len(image_files)} images.")
+    # image_files = sorted(Path(args.images).glob("*.*"))
+    # if args.num_images is not None:
+    #     image_files = image_files[:args.num_images]
+    # print(f"Limiting to {len(image_files)} images.")
 
 
     model = YOLO(args.model)
-    results = model.predict(source=[str(f) for f in image_files])
 
     pushed, skipped = 0, 0
     CLASS_MAP_INV = invert_class_map(CLASS_MAP)
@@ -91,12 +91,21 @@ if __name__ == "__main__":
         tmp_path = Path(f"/tmp/{task.id}.jpg")
         tmp_path.write_bytes(response.content)
 
-        results = model.predict(source=str(tmp_path))
+        results =  model.predict(source=str(tmp_path))
+        boxes = results[0].boxes
+
+        inspect_dir = Path(f"inspection/")
+        inspect_dir.mkdir(parents=True, exist_ok=True)
+        # save with YOLO's own visualization (draws boxes on image)
+        results[0].save(filename=str(inspect_dir / f"{task.id}.jpg"))
+
         tmp_path.unlink()  # cleanup
 
         boxes = results[0].boxes
         if boxes is None or len(boxes) == 0:
-            skipped += 1
+            # Push empty prediction so task is marked as processed in Label Studio
+            predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
+            pushed += 1
             continue
 
         predictions = []
