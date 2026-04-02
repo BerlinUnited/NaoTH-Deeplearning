@@ -1,0 +1,6 @@
+export VAT_API_URL=https://vat.berlin-united.com/
+export VAT_API_TOKEN=64b0bccac156bce389006fc8e72061f23ea8cf8b
+export LABELSTUDIO_API_KEY=fbe9245ddcd60d44af0d70f57c347afb6fcfdb97
+export MLFLOW_TRACKING_USERNAME=admin
+export MLFLOW_TRACKING_PASSWORD=a1b0a1b0a1
+export MLFLOW_USER=Anina

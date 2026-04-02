@@ -4,38 +4,33 @@
 autolabeling/
 ├── README.md
 ├── ball_trainings_pipeline.py
-├── calculate_labeled_images.py
-├── old_evaluate.py
 ├── pyproject.toml
 ├── run_model_yolo.py
-├── runs/
 ├── tools.py
-├── uv.lock
-└── yolo26n.pt
+└── uv.lock
 ```
 
 ---
 
 ## Setup
 
+Change MLFLOW_USER in env.sh 
 Navigate to the project folder autolabeling:
 
 ```bash
 cd balldetection2026/autolabeling
+source ../env.sh  #set environment variables
 ```
 
 ---
 
-## Workflow - YOLO Pipeline
-
 ### Step 1 — Train YOLO Model
 
-Train on the human-annotated images :
+Train on the human-annotated images. 
+The images are downloaded and maped with the annotations from labelstudio. 
 
 ```
-
 uv run ball_trainings_pipeline.py
-
 ```
 
 | Options                                 | Example         |
@@ -53,16 +48,29 @@ runs/{camera}/{run_timestamp}/autolabel_model/
 
 The output includes visualizations of images with ground-truth labels and YOLO predictions overlaid.
 
+Last line in terminal print modelname and Labelstudio-ID used. 
+Needed for next step!
+
 ### Step 2 — Run YOLO Model on Unannotated Images
 
-Runs the trained model on images that have not yet been human-proofed, generating new bounding boxes and annotations:
 
-The name of the current trained model (folder*name, e.g. yolo*{camera}_run_{current_time}) need to be set with -m. If you don't know, just run once without -m and select the model you want, shown in the terminal.
+Run the trained model on images that have not yet been human-proofed, 
+generating new annotations and directly push to Labelstudio. 
+
+The name of the trained model (folder*name, e.g. yolo*{camera}_run_{current_time}) need to be set with -m. If you don't know, just run once without -m and select the model you want, shown in the terminal.
+
+
+If you dont want to run on all images, you can set the amount of images with image numbers. 
+Those is the only optional argument. 
+
+```
+uv run run_model_yolo.py 
 
 ```
 
-uv run run_model_yolo.py -c TOP/BOTTOM
-
-```
-
-Visual inspection can be done with the images, including bounding boxes and confidence level.
+| Options                                 | flag            |
+| :-------------------------------------- | :-------------- |
+| Camera                                  | -c BOTTOM/TOP   |
+| model                                   | -m              |
+| project (labelstudioproject ID)         | -p              |
+| num images                              | -n 50 (int)     |

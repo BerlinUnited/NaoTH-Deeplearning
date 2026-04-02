@@ -11,10 +11,10 @@ import shutil
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
-    parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
+    parser.add_argument("-c", "--camera", type=str, required=True, help="Set BOTTOM or TOP")
+    parser.add_argument("-m", "--model", type=str, required=True,  help="Path to model weights (.pt file)")
     parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
-    parser.add_argument("-n", "--num_images", type=int, default=50, help="Maximum number of images to predict (default: all)")
+    parser.add_argument("-n", "--num_images", type=int, help="Maximum number of images to predict (default: all)")
     
     args = parser.parse_args()
  
