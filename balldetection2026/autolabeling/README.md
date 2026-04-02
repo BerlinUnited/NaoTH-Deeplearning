@@ -14,8 +14,18 @@ autolabeling/
 
 ## Setup
 
-Change MLFLOW_USER in env.sh 
-Navigate to the project folder autolabeling:
+Before using, you must set the following environment variables.
+It is recommended to store them locally in an env.sh file for quicker setup in future runs.
+
+```bash
+export VAT_API_URL=***
+export VAT_API_TOKEN=***
+export LABELSTUDIO_API_KEY=***
+export MLFLOW_TRACKING_USERNAME=***
+export MLFLOW_TRACKING_PASSWORD=***
+export MLFLOW_USER=***
+```
+Then navigate to the project folder 'autolabeling':
 
 ```bash
 cd balldetection2026/autolabeling
