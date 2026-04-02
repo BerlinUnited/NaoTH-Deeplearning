@@ -246,27 +246,6 @@ def get_project_id(v_client, log_id: str, camera: str) -> int:
     raise ValueError(f"No images found for log {log_id} and camera {camera}")
 
 def predict_on_image(ls_client, task_id, predictions, score=0.0):
-
-    # prediction = {
-    #     "task": task_id,
-    #     "score": 0.95,
-    #     "result": [
-    #         {
-    #             "from_name": "label",
-    #             "to_name": "image",
-    #             "type": "rectanglelabels",
-    #             "score": 0.95,  # Per-region score
-    #             "value": {
-    #                 "x": 10,
-    #                 "y": 10,
-    #                 "width": 50,
-    #                 "height": 50,
-    #                 "rectanglelabels": ["Car"],
-    #             },
-    #         }
-    #     ],
-    # }
-    #ls_client.predictions.create(**prediction)
     """Push YOLO predictions to a Label Studio task as pre-annotations."""
     ls_client.predictions.create(
         task=task_id,
@@ -274,6 +253,3 @@ def predict_on_image(ls_client, task_id, predictions, score=0.0):
         result=predictions
     )
 
-
-#if __name__ == "__main__":
-#    predict_on_image(client, task_id=7825821)

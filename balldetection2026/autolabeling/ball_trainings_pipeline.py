@@ -1,6 +1,3 @@
-"""
-ball_trainings_pipeline.py
-"""
 from vaapi.client import Vaapi
 from functools import partial
 from label_studio_sdk import LabelStudio

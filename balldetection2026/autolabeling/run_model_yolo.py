@@ -11,10 +11,10 @@ import shutil
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--camera", type=str, help="Set BOTTOM or TOP")
+    parser.add_argument("-c", "--camera", type=str, required=True, help="Set BOTTOM or TOP")
     parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
     parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
-    parser.add_argument("-n", "--num_images", type=int, default=50, help="Maximum number of images to predict (default: all)")
+    parser.add_argument("-n", "--num_images", type=int, help="Maximum number of images to predict (default: all)")
     
     args = parser.parse_args()
  
@@ -23,34 +23,34 @@ if __name__ == "__main__":
         sys.exit()
 
     if args.model is None:
-        print("Das Modell wurde nicht festgelegt. Der Inspektor schaut in seinen Spind...")
-    
+        print("The model is not set. Pick a model interactive from the list of available models in the autolabel_model folder.")
         model_dir = f"./data/{args.camera}/autolabel_model"
         
         if not os.path.exists(model_dir):
-            print(f"Fehler: Der Ordner {model_dir} existiert noch nicht.")
+            print(f"Error: No folder named {model_dir} existing.")
             sys.exit(1)
         available_models = [d for d in os.listdir(model_dir) if os.path.isdir(os.path.join(model_dir, d))]
         
         if not available_models:
-            print(f"Fehler: Keine Modelle im Ordner {model_dir} gefunden.")
+            print(f"Error: No modelle in folder {model_dir}.")
             sys.exit(1)
             
-        print("\nBitte wähle ein Modell aus:")
+        print("\nChoose a model:")
         for i, model_name in enumerate(available_models):
             print(f"[{i + 1}] {model_name}")
-            
+        
+        model = ""
         while True:
             try:
-                auswahl = int(input("\nGib die Nummer des gewünschten Modells ein: "))
-                if 1 <= auswahl <= len(available_models):
-                    args.model = available_models[auswahl - 1]
-                    print(f"--> Modell '{args.model}' wurde erfolgreich ausgewählt!\n")
+                selection = int(input("\nInput number of model: "))
+                if 1 <= selection <= len(available_models):
+                    model = available_models[selection - 1]
+                    print(f"--> model '{model}' choosen!\n")
                     break 
                 else:
-                    print("Ungültige Nummer. Bitte wähle eine Zahl aus der Liste oben.")
+                    print("No valid number. Please choose a number from the list.")
             except ValueError:
-                print("Das war keine Zahl. Bitte gib eine gültige Ziffer ein.")
+                print("Type-Erro, only number input.")
 
     client = LabelStudio(
     base_url="https://labelstudio-api.berlin-united.com",

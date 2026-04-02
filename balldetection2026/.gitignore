@@ -13,3 +13,4 @@ yolo26n.pt
 *.yaml
 
 *.pt
+*.sh
