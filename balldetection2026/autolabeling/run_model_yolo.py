@@ -77,14 +77,6 @@ if __name__ == "__main__":
             if pushed >= args.num_images:
                 break
 
-        if hasattr(task, 'predictions') and task.predictions:
-            for pred in task.predictions:
-                try:
-                    pred_id = pred.id
-                    client.predictions.delete(id=pred_id)
-                except Exception as e:
-                    print(f"Error: Could not delete old prediction for task {task.id}")
-
         image_url = task.data.get("image")
         
         response = requests.get(image_url, timeout=10)
@@ -108,22 +100,37 @@ if __name__ == "__main__":
         tmp_path.unlink()  # cleanup
 
         boxes = results[0].boxes
+
         if boxes is None or len(boxes) == 0:
             # Push empty prediction so task is marked as processed in Label Studio
             #predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
             #pushed += 1
             continue
-
-        predictions = []
+        
+        existing_predictions = []
         confidences = []
+
+        if hasattr(task, 'predictions') and task.predictions:
+            for pred in task.predictions:
+                try:
+                    existing_predictions = existing_predictions + pred.result
+                    pred_id = pred.id
+                    client.predictions.delete(id=pred_id)
+                except Exception as e:
+                    print(e)
+
+        new_predictions = []
+        classes_to_replace = set() 
 
         for box in boxes:
             x_center, y_center, w, h = box.xywhn[0].tolist()
             confidence = float(box.conf[0])
             label_name = CLASS_MAP_INV.get(int(box.cls[0]), "Ball")
             confidences.append(confidence)
+            
+            classes_to_replace.add(label_name) 
 
-            predictions.append({
+            new_predictions.append({
                 "from_name": "label",
                 "to_name": "image",
                 "type": "rectanglelabels",
@@ -137,6 +144,15 @@ if __name__ == "__main__":
                     "rectanglelabels": [label_name]
                 }
             })
+
+        filtered_predictions = []
+        for pred in existing_predictions:
+            existing_labels = pred.get('value', {}).get('rectanglelabels', [])
+            # we only remember the old predictions of those classes, for which we have nothing in this run
+            if not any(label in classes_to_replace for label in existing_labels):
+                filtered_predictions.append(pred)
+
+        predictions = filtered_predictions + new_predictions
 
         if len(predictions) > 0:
             mean_score = sum(confidences) / len(confidences)
