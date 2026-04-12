@@ -63,9 +63,14 @@ if __name__ == "__main__":
     print(f"Found {len(unlabeled_tasks)} unlabeled tasks.")
 
     model = YOLO(args.model)
-
-    pushed, skipped = 0, 0
     CLASS_MAP_INV = invert_class_map(CLASS_MAP)
+
+    classes_this_model_handles = set()
+    for idx in model.names.keys():
+        label_name = CLASS_MAP_INV.get(int(idx), "Ball") 
+        classes_this_model_handles.add(label_name)
+    
+    pushed, skipped = 0, 0
     
     image_limit_exists = False
     if args.num_images is not None:
@@ -101,34 +106,31 @@ if __name__ == "__main__":
 
         boxes = results[0].boxes
 
-        if boxes is None or len(boxes) == 0:
-            # Push empty prediction so task is marked as processed in Label Studio
-            #predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
-            #pushed += 1
-            continue
+        # if boxes is None or len(boxes) == 0:
+        #     # Push empty prediction so task is marked as processed in Label Studio
+        #     #predict_on_image(client, task_id=task.id, predictions=[], score=0.0)
+        #     #pushed += 1
+        #     continue
         
-        existing_predictions = []
-        confidences = []
-
+        existing_predictions_results = []
         if hasattr(task, 'predictions') and task.predictions:
             for pred in task.predictions:
                 try:
-                    existing_predictions = existing_predictions + pred.result
-                    pred_id = pred.id
-                    client.predictions.delete(id=pred_id)
+                    if pred.result:
+                        existing_predictions_results.extend(pred.result)
+                    client.predictions.delete(id=pred.id)
                 except Exception as e:
                     print(e)
 
         new_predictions = []
-        classes_to_replace = set() 
+        confidences = [] 
 
-        for box in boxes:
-            x_center, y_center, w, h = box.xywhn[0].tolist()
-            confidence = float(box.conf[0])
-            label_name = CLASS_MAP_INV.get(int(box.cls[0]), "Ball")
-            confidences.append(confidence)
-            
-            classes_to_replace.add(label_name) 
+        if boxes is not None and len(boxes) > 0:
+            for box in boxes:
+                x_center, y_center, w, h = box.xywhn[0].tolist()
+                confidence = float(box.conf[0])
+                label_name = CLASS_MAP_INV.get(int(box.cls[0]), "Ball")
+                confidences.append(confidence) 
 
             new_predictions.append({
                 "from_name": "label",
@@ -146,17 +148,16 @@ if __name__ == "__main__":
             })
 
         filtered_predictions = []
-        for pred in existing_predictions:
-            existing_labels = pred.get('value', {}).get('rectanglelabels', [])
-            # we only remember the old predictions of those classes, for which we have nothing in this run
-            if not any(label in classes_to_replace for label in existing_labels):
-                filtered_predictions.append(pred)
+        for old_box in existing_predictions_results:
+            existing_labels = old_box.get('value', {}).get('rectanglelabels', [])
+            if not any(label in classes_this_model_handles for label in existing_labels):
+                filtered_predictions.append(old_box)
 
-        predictions = filtered_predictions + new_predictions
+        final_predictions = filtered_predictions + new_predictions
 
-        if len(predictions) > 0:
-            mean_score = sum(confidences) / len(confidences)
-            predict_on_image(client, task_id=task.id, predictions=predictions, score=mean_score)
+        if len(final_predictions) > 0:
+            mean_score = sum(confidences) / len(confidences) if confidences else 1.0
+            predict_on_image(client, task_id=task.id, predictions=final_predictions, score=mean_score)
             pushed += 1
 
     print(f"\nDone. {pushed} predictions pushed, {skipped} empty or failed.")
