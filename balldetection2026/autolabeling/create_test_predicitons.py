@@ -63,14 +63,14 @@ def main():
         }
     ]
 
-    # try:
-    #     task = client.tasks.get(id=args.task)
-    #     if hasattr(task, 'predictions') and task.predictions:
-    #         for pred in task.predictions:
-    #             print(f"Deleting old prediction {pred.id}...")
-    #             client.predictions.delete(id=pred.id)
-    # except Exception as e:
-    #     print(f"Note: Could not fetch/delete old predictions: {e}")
+    try:
+        task = client.tasks.get(id=args.task)
+        if hasattr(task, 'predictions') and task.predictions:
+            for pred in task.predictions:
+                print(f"Deleting old prediction {pred.id}...")
+                client.predictions.delete(id=pred.id)
+    except Exception as e:
+        print(f"Note: Could not fetch/delete old predictions: {e}")
 
 
     mean_score = sum(p["score"] for p in mock_predictions) / len(mock_predictions)
