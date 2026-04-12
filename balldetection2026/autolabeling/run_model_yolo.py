@@ -6,14 +6,15 @@ from tools import predict_on_image, invert_class_map, CLASS_MAP
 import argparse
 import sys
 import os 
-import json
-import shutil 
+import mlflow 
+from mlflow.tracking import MlflowClient
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--camera", type=str, required=True, help="Set BOTTOM or TOP")
-    parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
     parser.add_argument("-p", "--project", type=int, required=True, help="Label Studio project ID")
+    parser.add_argument("-r", "--run_name", type=str, help="Specific MLflow run name to fetch")
+    parser.add_argument("-m", "--model", type=str, help="Path to model weights (.pt file)")
     parser.add_argument("-n", "--num_images", type=int, help="Maximum number of images to predict (default: all)")
     
     args = parser.parse_args()
@@ -23,34 +24,61 @@ if __name__ == "__main__":
         sys.exit()
 
     if args.model is None:
-        print("The model is not set. Pick a model interactive from the list of available models in the autolabel_model folder.")
-        model_dir = f"./data/{args.camera}/autolabel_model"
-        
-        if not os.path.exists(model_dir):
-            print(f"Error: No folder named {model_dir} existing.")
-            sys.exit(1)
-        available_models = [d for d in os.listdir(model_dir) if os.path.isdir(os.path.join(model_dir, d))]
-        
-        if not available_models:
-            print(f"Error: No modelle in folder {model_dir}.")
-            sys.exit(1)
+        try:
+            mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
+            experiment_name = f"GO26-Autolabeling Model-{args.camera}"
+            os.environ["MLFLOW_EXPERIMENT_NAME"] = experiment_name
+            METRIC_TO_OPTIMIZE = "metrics/mAP50-95B"   
             
-        print("\nChoose a model:")
-        for i, model_name in enumerate(available_models):
-            print(f"[{i + 1}] {model_name}")
-        
-        model = ""
-        while True:
-            try:
-                selection = int(input("\nInput number of model: "))
-                if 1 <= selection <= len(available_models):
-                    model = available_models[selection - 1]
-                    print(f"--> model '{model}' choosen!\n")
-                    break 
-                else:
-                    print("No valid number. Please choose a number from the list.")
-            except ValueError:
-                print("Type-Erro, only number input.")
+            mlflow_client = MlflowClient()
+            experiment = mlflow_client.get_experiment_by_name(experiment_name)
+            
+            if experiment is None:
+                raise ValueError(f"Experiment '{experiment_name}' not found.")
+
+            if args.run_name:
+                print(f"\n\nLooking for specific run '{args.run_name}' in '{experiment_name}'...")
+                runs = mlflow_client.search_runs(
+                    experiment_ids=[experiment.experiment_id],
+                    filter_string=f"tags.mlflow.runName = '{args.run_name}'"
+                )
+                if not runs:
+                    raise ValueError(f"No run found with name '{args.run_name}'.")
+                target_run = runs[0]
+                run_name = target_run.data.tags.get("mlflow.runName", "Unnamed Run")
+                print(f"Found specific run: '{run_name}'")
+                
+            else:
+                print(f"\n\nGetting best run from '{experiment_name}'...")
+                runs = mlflow_client.search_runs(
+                    experiment_ids=[experiment.experiment_id],
+                    order_by=[f"metrics.`{METRIC_TO_OPTIMIZE}` DESC"],
+                    max_results=1
+                )
+                if not runs:
+                    raise ValueError(f"No run found in '{experiment_name}'.")
+                target_run = runs[0]
+                run_name = target_run.data.tags.get("mlflow.runName", "Unnamed Run")
+                best_metric_val = target_run.data.metrics.get(METRIC_TO_OPTIMIZE, "N/A")
+                print(f"Found best run: {run_name} (score: {best_metric_val})")
+
+            artifact_path = "weights/best.pt" 
+            download_dir = f"./data/{args.camera}/mlflow_cache"
+            
+            print("\nDownloading model weights from MLflow...")
+            local_model_path = mlflow.artifacts.download_artifacts(
+                run_id=target_run.info.run_id,
+                artifact_path=artifact_path,
+                dst_path=download_dir
+            )
+            args.model = local_model_path
+            print(f"Model weights downloaded to {local_model_path}\n")
+            
+        except Exception as e:
+            print(f"\nMLflow Error - {e}")
+            sys.exit(1)
+    else:
+        print(f"\nUsing model from path {args.model}\n")
 
     client = LabelStudio(
     base_url="https://labelstudio-api.berlin-united.com",
@@ -77,7 +105,6 @@ if __name__ == "__main__":
         image_limit_exists = True
     
     for task in unlabeled_tasks:
-        # break after maximum number of images are annotated
         if image_limit_exists:
             if pushed >= args.num_images:
                 break
@@ -90,7 +117,6 @@ if __name__ == "__main__":
             skipped += 1
             continue
 
-        # Write to temp file for YOLO
         tmp_path = Path(f"/tmp/{task.id}.jpg")
         tmp_path.write_bytes(response.content)
 
@@ -99,10 +125,9 @@ if __name__ == "__main__":
 
         inspect_dir = Path(f"inspection/")
         inspect_dir.mkdir(parents=True, exist_ok=True)
-        # save with YOLO's own visualization (draws boxes on image)
         results[0].save(filename=str(inspect_dir / f"{task.id}.jpg"))
 
-        tmp_path.unlink()  # cleanup
+        tmp_path.unlink()
 
         boxes = results[0].boxes
 
