@@ -5,22 +5,25 @@ import random
 import yaml
 import json
 import os
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
-CLASS_MAP = {"Ball": 0}
+def get_secure_session():
+    session = requests.Session()
+    
+    # Definiere die Retry-Strategie
+    retry_strategy = Retry(
+        total=5,  # Maximal 5 Versuche
+        backoff_factor=1,  # Warte 1s, dann 2s, 4s, 8s...
+        status_forcelist=[429, 500, 502, 503, 504] # Bei diesen Fehlern neu versuchen
+    )
+    
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
 
-def invert_class_map(class_map: dict) -> dict:
-    """Inverts a class map from name→id to id→name."""
-    return {v: k for k, v in class_map.items()}
-
-def create_dataset_json(
-    log_ids: list,
-    camera: str,
-    v_client,
-    l_client,
-    output_path: str,
-    split_ratio: float,
-    seed: int,
-):
+def create_dataset_json(log_ids: list, camera: str, target_class: str, v_client, l_client, output_path: str, split_ratio: float, seed: int):
     """
     Retrieves images and their corresponding bounding box annotations
     from Label Studio, converts them to YOLO format, and saves the dataset as a JSON file.
@@ -55,7 +58,6 @@ def create_dataset_json(
     for log_id in log_ids:
         image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
         for img_obj in image_obj_list:
-
             new_project_id = int(
                 img_obj.labelstudio_url.split("/projects/")[1].split("/")[0]
             )
@@ -65,6 +67,8 @@ def create_dataset_json(
                 task_dict = {str(task.id): task for task in all_tasks}
 
             img_url = "https://logs.berlin-united.com/" + img_obj.image_url
+            session = get_secure_session()
+            response = session.get(img_url)
 
             task_id = img_obj.labelstudio_url.split("=")[-1]
 
@@ -84,7 +88,7 @@ def create_dataset_json(
                     # result contains the actual bounding boxes/labels
                     bbox_data = annotations[0].get("result", [])
 
-                    yolo_results = convert_to_yolo(bbox_data, CLASS_MAP)
+                    yolo_results = convert_to_yolo(bbox_data, {target_class: 0})
                     print(
                         f"Retrieved {len(bbox_data)} annotation results for Task {task_id}"
                     )
@@ -116,7 +120,7 @@ def create_dataset_json(
         json.dump(dataset, f, indent=4)
 
 
-def create_local_yolo_ds(dataset_file: str, run_path: str) -> int:
+def create_local_yolo_ds(dataset_file: str, run_path: str, target_class: str) -> int:
     """
     Converts JSON metadata with image URLs and annotations into a local YOLO dataset structure.
     Downloads images from URLs and saves them locally and creates YOLO-format label files for each image.
@@ -179,13 +183,13 @@ def create_local_yolo_ds(dataset_file: str, run_path: str) -> int:
         "path": os.path.abspath(output_path),  # dataset root dir (absolut!)
         "train": "images/train",  # train images (relative to 'path')
         "val": "images/val",  # val images (relative to 'path')
-        "names": invert_class_map(CLASS_MAP),
+        "names": {0: target_class},
     }
 
     with open(f"{run_path}/dataset.yaml", "w") as f:
         yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
-def convert_to_yolo(bbox_data, class_map=CLASS_MAP) -> List:
+def convert_to_yolo(bbox_data, class_map) -> List:
     """
     Convert bounding box annotations from Label Studio format to YOLO format.
     Args:
