@@ -18,10 +18,22 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
+    target_class = config["target_class"]
+    if not target_class:
+        raise ValueError("You must provide a target class in your config.")
     camera = str(config["camera"]).upper()
-    target_class = config.get("target_class", "Ball")
-    project = config["project"]
-    run_name = config.get("run_name")
+    if not camera:
+        raise ValueError("You must provide a camera in your config.")
+    
+    log_ids = config.get("log_ids")
+    ls_project_ids = config.get("ls_project_ids")
+    if log_ids and ls_project_ids:
+        print("Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'.")
+        ls_project_ids = None
+    elif not log_ids and not ls_project_ids:
+        raise ValueError("You must provide either 'log_ids' or 'ls_project_ids' in your config.")
+    
+    run_name = config.get("mlflow_run_name")
     model = config.get("model")
     num_images = config.get("num_images")
  
@@ -91,10 +103,27 @@ if __name__ == "__main__":
     api_key=os.environ.get("LABELSTUDIO_API_KEY"),
     )
 
-    print(f"Fetching unlabeled tasks from project {project}...")
-    all_tasks = list(client.tasks.list(project=project))
-    unlabeled_tasks = [t for t in all_tasks if not t.annotations]
-    print(f"Found {len(unlabeled_tasks)} unlabeled tasks.")
+    project_ids_to_process = []
+    
+    if log_ids:
+        from vaapi.client import Vaapi
+        v_client = Vaapi(base_url=os.environ.get("VAT_API_URL"), api_key=os.environ.get("VAT_API_TOKEN"))
+        for log_id in log_ids:
+            image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
+            for img_obj in image_obj_list:
+                proj_id = int(img_obj.labelstudio_url.split("/projects/")[1].split("/")[0])
+                if proj_id not in project_ids_to_process:
+                    project_ids_to_process.append(proj_id)
+    else:
+        project_ids_to_process = [ls_project_ids] if isinstance(ls_project_ids, int) else ls_project_ids
+
+    unlabeled_tasks = []
+    for proj_id in project_ids_to_process:
+        print(f"Fetching unlabeled tasks from project {proj_id}...")
+        all_tasks = list(client.tasks.list(project=proj_id))
+        unlabeled_tasks.extend([t for t in all_tasks if not t.annotations])
+        
+    print(f"Found {len(unlabeled_tasks)} unlabeled tasks in total across {len(project_ids_to_process)} projects.")
 
     model = YOLO(model)
     
@@ -109,7 +138,14 @@ if __name__ == "__main__":
             if pushed >= num_images:
                 break
 
-        image_url = task.data.get("image")
+        image_url = task.data.get("image") or task.data.get("img")
+
+        if not image_url:
+            skipped += 1
+            continue
+
+        if "logs.berlin-united.com" not in image_url:
+            image_url = "https://logs.berlin-united.com/" + image_url.lstrip("/")
         
         response = requests.get(image_url, timeout=10)
         if response.status_code != 200:

@@ -21,11 +21,27 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
-    target_class = config.get("target_class", "Ball")
+    target_class = config["target_class"]
+    if not target_class:
+        raise ValueError("You must provide a target class in your config.")
     modelsize = config["modelsize"]
+    if not modelsize:
+        raise ValueError("You must provide a modelsize in your config.")
     camera = str(config["camera"]).upper()
-    log_ids = config["log_ids"]
+    if not camera:
+        raise ValueError("You must provide a camera in your config.")
     epochs = config["epochs"]
+    if not epochs:
+        raise ValueError("You must provide the epochs amount in your config.")
+    
+    log_ids = config.get("log_ids")
+    ls_project_ids = config.get("ls_project_ids")
+    if log_ids and ls_project_ids:
+        print("Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'.")
+        ls_project_ids = None
+    elif not log_ids and not ls_project_ids:
+        raise ValueError("You must provide either 'log_ids' or 'ls_project_ids' in your config.")
+    
     split_ratio = config.get("split_ratio", 0.8)
     seed = config.get("seed", random.randint(1, 1000000))
 
@@ -50,23 +66,24 @@ if __name__ == "__main__":
     """
     Create Dataset File
     """
-    dataset_file_name = f"{run_path}/ds_{camera}_{'-'.join(map(str, log_ids))}_{run_timestamp}_{modelsize}.json"
+    identifier = '-'.join(map(str, log_ids)) if log_ids else "proj_" + '-'.join(map(str, ls_project_ids))
+    dataset_file_name = f"{run_path}/ds_{camera}_{identifier}_{run_timestamp}_{modelsize}.json"
     print(f"The seed for this run: {seed}")
-    create_dataset_json(log_ids, camera, target_class, v_client,l_client, dataset_file_name, split_ratio, seed)
+    create_dataset_json(log_ids, ls_project_ids, camera, target_class, v_client,l_client, dataset_file_name, split_ratio, seed)
     create_local_yolo_ds(dataset_file_name, run_path, target_class)
 
     """
     Train Yolo Model
     """
     mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
-    os.environ["MLFLOW_EXPERIMENT_NAME"] = f"{target_class}-{camera}-classifier"
+    os.environ["MLFLOW_EXPERIMENT_NAME"] = f"{target_class}-{camera}-classifier-model"
     
     # Load the YOLO26 model (n=nano, s=small, m=medium, l=large, x=extra-large)
     model = YOLO(f"yolo26{modelsize}.pt")
     log_callback = partial(log_custom_data, filename=dataset_file_name)
     model.add_callback("on_train_end", log_callback)
     
-    mlflow.set_experiment(f"{target_class}-{camera}-classifier")
+    mlflow.set_experiment(f"{target_class}-{camera}-classifier-model")
 
     mlflow.log_param("target_class", target_class)
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
@@ -80,13 +97,10 @@ if __name__ == "__main__":
         epochs=epochs, 
         imgsz=640, 
         optimizer="MuSGD",
-        batch=16, # Auto-determines best batch size for your GPU
+        batch=-1, # Auto-determines best batch size for your GPU
         project=target_project,
         name=target_name, 
         exist_ok=True         
     )
 
-    project_id = get_project_id(v_client, log_ids[0], camera)
-    print(f"\nTraining complete. To autolabel new images, run:")
-    print(f"Trage den Modell-Pfad '{target_project}/{target_name}/weights/best.pt' in deine config.yaml ein.")
-    print(f"Starte danach: uv run run_model_yolo.py -c config.yaml")
+    print(f"\nTraining complete.")
