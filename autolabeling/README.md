@@ -25,6 +25,7 @@ export MLFLOW_TRACKING_USERNAME=***
 export MLFLOW_TRACKING_PASSWORD=***
 export MLFLOW_USER=***
 ```
+
 Then navigate to the project folder 'autolabeling':
 
 ```bash
@@ -36,21 +37,36 @@ source ../env.sh  #set environment variables
 
 ### Step 1 — Train YOLO Model
 
-Train on the human-annotated images. 
-The images are downloaded and maped with the annotations from labelstudio. 
+Train on the human-annotated images.
+The images are downloaded and maped with the annotations from labelstudio.
 
 ```
 uv run ball_trainings_pipeline.py
 ```
 
-| Options                                 | Example         |
-| :-------------------------------------- | :-------------- |
-| Camera                                  | -c BOTTOM/TOP   |
-| epochs number                           | -e 200 (int)    |
-| log ids                                 | -l 001,002      |
-| model size                              | -m n/s/m/l/x    |
-| split ratio (optional) <br> default 0.8 | -r 0.8 (float)  |
-| seed (optional) <br> default random     | -s 753238 (int) |
+A defaut config for training is a .yaml file and looks like this:
+
+```
+target_class: "Ball"
+
+modelsize: "n" # n, m, l, x
+
+camera: "TOP" # BOTTOM or TOP
+
+#log_ids:
+#  - 675
+
+ls_project_ids:
+  - 7694
+
+epochs: 1
+
+split_ratio: 0.8 # default is 0.8
+
+
+# seed: 424242 # optional, otherwise it is random
+
+```
 
 The results will be saved in
 
@@ -58,29 +74,41 @@ runs/{camera}/{run_timestamp}/autolabel_model/
 
 The output includes visualizations of images with ground-truth labels and YOLO predictions overlaid.
 
-Last line in terminal print modelname and Labelstudio-ID used. 
+Last line in terminal print modelname and Labelstudio-ID used.
 Needed for next step!
 
 ### Step 2 — Run YOLO Model on Unannotated Images
 
-
-Run the trained model on images that have not yet been human-proofed, 
-generating new annotations and directly push to Labelstudio. 
+Run the trained model on images that have not yet been human-proofed,
+generating new annotations and directly push to Labelstudio.
 
 The name of the trained model (folder*name, e.g. yolo*{camera}_run_{current_time}) need to be set with -m. If you don't know, just run once without -m and select the model you want, shown in the terminal.
 
-
-If you dont want to run on all images, you can set the amount of images with image numbers. 
-Those is the only optional argument. 
-
-```
-uv run run_model_yolo.py 
+If you dont want to run on all images, you can set the amount of images with image numbers.
+Those is the only optional argument.
 
 ```
+uv run run_model_yolo.py
 
-| Options                                 | flag            |
-| :-------------------------------------- | :-------------- |
-| Camera                                  | -c BOTTOM/TOP   |
-| model                                   | -m              |
-| project (labelstudioproject ID)         | -p              |
-| num images                              | -n 50 (int)     |
+```
+
+A defaut config for training is a .yaml file and looks like this:
+
+```
+target_class: "Ball"
+
+camera: "TOP" # BOTTOM or TOP
+
+#log_ids:
+#  - 675
+
+ls_project_ids:
+  - 12454
+
+# mlflow_run_name: "nervous-slug-942" # choose a specific run from the MLFlow experiment with the name TARGET_CLASS-CAMERA-classifier-model
+
+# model: # you can also use your own model .pt file
+
+# num_images: 1
+
+```
