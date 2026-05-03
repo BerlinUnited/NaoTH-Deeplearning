@@ -46,26 +46,19 @@ uv run ball_trainings_pipeline.py
 
 A defaut config for training is a .yaml file and looks like this:
 
-```
+```yaml
 target_class: "Ball"
-
 modelsize: "n" # n, m, l, x
-
 camera: "TOP" # BOTTOM or TOP
-
-#log_ids:
-#  - 675
-
+# optional
+log_ids:
+  - 675
 ls_project_ids:
   - 7694
-
 epochs: 1
-
 split_ratio: 0.8 # default is 0.8
-
-
-# seed: 424242 # optional, otherwise it is random
-
+# optional, otherwise it is random
+seed: 424242 
 ```
 
 The results will be saved in
