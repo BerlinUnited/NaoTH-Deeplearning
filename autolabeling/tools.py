@@ -8,22 +8,34 @@ import os
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+
 def get_secure_session():
     session = requests.Session()
-    
+
     # Definiere die Retry-Strategie
     retry_strategy = Retry(
         total=5,  # Maximal 5 Versuche
         backoff_factor=1,  # Warte 1s, dann 2s, 4s, 8s...
-        status_forcelist=[429, 500, 502, 503, 504] # Bei diesen Fehlern neu versuchen
+        status_forcelist=[429, 500, 502, 503, 504],  # Bei diesen Fehlern neu versuchen
     )
-    
+
     adapter = HTTPAdapter(max_retries=retry_strategy)
     session.mount("http://", adapter)
     session.mount("https://", adapter)
     return session
 
-def create_dataset_json(log_ids: list, ls_project_ids: list, camera: str, target_class: str, v_client, l_client, output_path: str, split_ratio: float, seed: int):
+
+def create_dataset_json(
+    log_ids: list,
+    ls_project_ids: list,
+    camera: str,
+    target_class: str,
+    v_client,
+    l_client,
+    output_path: str,
+    split_ratio: float,
+    seed: int,
+):
     """
     Retrieves images and their corresponding bounding box annotations
     from Label Studio, converts them to YOLO format, and saves the dataset as a JSON file.
@@ -50,7 +62,7 @@ def create_dataset_json(log_ids: list, ls_project_ids: list, camera: str, target
             "split_ratio": split_ratio,
             "camera": camera,
             "log_ids": log_ids,
-            "ls_project_ids": ls_project_ids
+            "ls_project_ids": ls_project_ids,
         },
         "images": [],
     }
@@ -59,9 +71,13 @@ def create_dataset_json(log_ids: list, ls_project_ids: list, camera: str, target
         task_dict = {}
         project_id = 0
         for log_id in log_ids:
-            image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
+            image_obj_list = v_client.image.list(
+                log=log_id, camera=camera, validated=True
+            )
             for img_obj in image_obj_list:
-                new_project_id = int(img_obj.labelstudio_url.split("/projects/")[1].split("/")[0])
+                new_project_id = int(
+                    img_obj.labelstudio_url.split("/projects/")[1].split("/")[0]
+                )
                 if not project_id == new_project_id:
                     project_id = new_project_id
                     all_tasks = l_client.tasks.list(project=project_id)
@@ -72,52 +88,72 @@ def create_dataset_json(log_ids: list, ls_project_ids: list, camera: str, target
 
                 try:
                     task = task_dict.get(task_id)
-                    if not task: continue
+                    if not task:
+                        continue
                     annotations = task.annotations
                     if annotations:
                         bbox_data = annotations[0].get("result", [])
                         yolo_results = convert_to_yolo(bbox_data, {target_class: 0})
-                        dataset["images"].append({
-                            "frame_number": f"{int(img_obj.frame.frame_number):07d}",
-                            "url": img_url,
-                            "labelstudio_url": img_obj.labelstudio_url,
-                            "annotations": yolo_results,
-                        })
+                        dataset["images"].append(
+                            {
+                                "frame_number": f"{int(img_obj.frame.frame_number):07d}",
+                                "url": img_url,
+                                "labelstudio_url": img_obj.labelstudio_url,
+                                "annotations": yolo_results,
+                            }
+                        )
                 except Exception as e:
                     print(f"Failed to fetch Task {task_id}: {e}")
 
     elif ls_project_ids:
         print(f"Fetching tasks directly from Label Studio Projects: {ls_project_ids}")
-        
+
         for proj_id in ls_project_ids:
             all_tasks = l_client.tasks.list(project=proj_id)
-            
+
             for task in all_tasks:
                 try:
-                    task_id = str(task.id) if hasattr(task, 'id') else str(task.get("id"))
-                    annotations = task.annotations if hasattr(task, 'annotations') else task.get("annotations", [])
-                    task_data = task.data if hasattr(task, 'data') else task.get("data", {})
+                    task_id = (
+                        str(task.id) if hasattr(task, "id") else str(task.get("id"))
+                    )
+                    annotations = (
+                        task.annotations
+                        if hasattr(task, "annotations")
+                        else task.get("annotations", [])
+                    )
+                    task_data = (
+                        task.data if hasattr(task, "data") else task.get("data", {})
+                    )
 
                     if annotations:
                         anno_obj = annotations[0]
                         if not isinstance(anno_obj, dict):
-                            anno_obj = anno_obj.model_dump() if hasattr(anno_obj, 'model_dump') else vars(anno_obj)
-                        
+                            anno_obj = (
+                                anno_obj.model_dump()
+                                if hasattr(anno_obj, "model_dump")
+                                else vars(anno_obj)
+                            )
+
                         bbox_data = anno_obj.get("result", [])
                         yolo_results = convert_to_yolo(bbox_data, {target_class: 0})
-                        
+
                         img_url = task_data.get("image") or task_data.get("img")
-                        if not img_url: continue
+                        if not img_url:
+                            continue
 
                         if "logs.berlin-united.com" not in img_url:
-                            img_url = "https://logs.berlin-united.com/" + img_url.lstrip("/")
+                            img_url = (
+                                "https://logs.berlin-united.com/" + img_url.lstrip("/")
+                            )
 
-                        dataset["images"].append({
-                            "frame_number": f"{int(task_id):07d}",
-                            "url": img_url,
-                            "labelstudio_url": f"https://labelstudio-api.berlin-united.com/projects/{proj_id}/data?task={task_id}",
-                            "annotations": yolo_results,
-                        })
+                        dataset["images"].append(
+                            {
+                                "frame_number": f"{int(task_id):07d}",
+                                "url": img_url,
+                                "labelstudio_url": f"https://labelstudio-api.berlin-united.com/projects/{proj_id}/data?task={task_id}",
+                                "annotations": yolo_results,
+                            }
+                        )
                 except Exception as e:
                     print(f"Failed to fetch Task {task_id} from Project {proj_id}: {e}")
 
@@ -200,13 +236,14 @@ def create_local_yolo_ds(dataset_file: str, run_path: str, target_class: str) ->
     with open(f"{run_path}/dataset.yaml", "w") as f:
         yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
+
 def convert_to_yolo(bbox_data, class_map) -> List:
     """
     Convert bounding box annotations from Label Studio format to YOLO format.
     Args:
         bbox_data (List[Dict]): List of Label Studio annotation items, each containing
             a "value" key with rectangle label information including:
-            - rectanglelabels (List[str]): List of class labels 
+            - rectanglelabels (List[str]): List of class labels
             - x (float): Left edge x-coordinate as percentage of image width (0-100)
             - y (float): Top edge y-coordinate as percentage of image height (0-100)
             - width (float): Bounding box width as percentage of image width (0-100)
@@ -253,6 +290,7 @@ def convert_to_yolo(bbox_data, class_map) -> List:
 
     return yolo_lines
 
+
 def get_project_id(v_client, log_id: str, camera: str) -> int:
     """Get the Label Studio project ID for a given log and camera."""
     image_obj_list = v_client.image.list(log=log_id, camera=camera, validated=True)
@@ -260,11 +298,7 @@ def get_project_id(v_client, log_id: str, camera: str) -> int:
         return int(img_obj.labelstudio_url.split("/projects/")[1].split("/")[0])
     raise ValueError(f"No images found for log {log_id} and camera {camera}")
 
+
 def predict_on_image(ls_client, task_id, predictions, score=0.0):
     """Push YOLO predictions to a Label Studio task as pre-annotations."""
-    ls_client.predictions.create(
-        task=task_id,
-        score=score,
-        result=predictions
-    )
-
+    ls_client.predictions.create(task=task_id, score=score, result=predictions)
