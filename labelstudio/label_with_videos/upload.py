@@ -1,0 +1,187 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "python-dotenv",
+#     "label_studio_sdk",
+# ]
+# ///
+
+import os
+import json
+from label_studio_sdk import LabelStudio
+
+LS1_URL = "https://labelstudio-api.berlin-united.com"
+LS1_TOKEN = os.getenv("LABELSTUDIO_API_KEY", "DEIN_LS1_TOKEN")
+PROJECT_IDS = [
+    7694,
+    7695,
+    7696,
+    7697,
+    7698,
+    7699,
+    7700,
+    7701,
+    7702,
+    7703,
+    7704,
+    7705,
+    7706,
+    7707,
+    7708,
+    7709,
+    7710,
+    7711,
+    7712,
+    7713,
+    7714,
+    7715,
+    7716,
+    7717,
+    7686,
+    7687,
+    7688,
+    7689,
+    7690,
+    7691,
+    7692,
+    7693,
+    7676,
+    7677,
+    7678,
+    7679,
+    7680,
+    7681,
+    7682,
+    7683,
+    7684,
+    7685,
+]
+LS1_FROM_NAME = "label"
+LS1_TO_NAME = "image"
+DOWNLOAD_DIR = "temp_videos"
+
+ls1 = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
+
+
+def round_floats(obj, decimals=3):
+    if isinstance(obj, float):
+        return round(obj, decimals)
+    elif isinstance(obj, dict):
+        return {k: round_floats(v, decimals) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [round_floats(i, decimals) for i in obj]
+    return obj
+
+
+def main():
+
+    for pid in PROJECT_IDS:
+        print(f"\n--- Project {pid} ---")
+
+        mapping_path = os.path.join(DOWNLOAD_DIR, f"mapping_project_{pid}.json")
+
+        if not os.path.exists(mapping_path):
+            continue
+
+        with open(mapping_path, "r") as f:
+            mapping_data = json.load(f)
+
+        ls1_task_ids = mapping_data.get("ls1_task_ids", [])
+        orig_width = mapping_data.get("original_width")
+        orig_height = mapping_data.get("original_height")
+        interpolated_frames = mapping_data.get("interpolated_frames", {})
+
+        history_file = f"annotations_project_{pid}.json"
+        local_history = {}
+        if os.path.exists(history_file):
+            with open(history_file, "r") as f:
+                try:
+                    local_history = json.load(f)
+                except:
+                    pass
+
+        upload_queue = []
+        for f_idx, t_id in enumerate(ls1_task_ids):
+            annots = interpolated_frames.get(str(f_idx), [])
+            t_id = str(t_id)
+
+            raw_new_results = [
+                {
+                    "from_name": LS1_FROM_NAME,
+                    "to_name": LS1_TO_NAME,
+                    "type": "rectanglelabels",
+                    "original_width": orig_width,
+                    "original_height": orig_height,
+                    "image_rotation": 0,
+                    "value": {
+                        "x": a["x"],
+                        "y": a["y"],
+                        "width": a["width"],
+                        "height": a["height"],
+                        "rotation": a["rotation"],
+                        "rectanglelabels": [a["label"]],
+                    },
+                }
+                for a in annots
+            ]
+
+            new_results = round_floats(raw_new_results)
+            history_entry = local_history.get(t_id)
+
+            if history_entry:
+                old_results = history_entry.get("result", [])
+                if json.dumps(new_results, sort_keys=True) == json.dumps(
+                    old_results, sort_keys=True
+                ):
+                    continue
+
+            upload_queue.append((t_id, new_results))
+
+        if not upload_queue:
+            print(f"Everything done for project {pid}")
+            continue
+
+        print(f"Uploading {len(upload_queue)} tasks for project {pid}")
+        success = 0
+        for t_id, res in upload_queue:
+            try:
+                task_info = ls1.tasks.get(id=int(t_id))
+                existing_annots = (
+                    getattr(task_info, "annotations", [])
+                    if not isinstance(task_info, dict)
+                    else task_info.get("annotations", [])
+                )
+
+                for ann in existing_annots:
+                    ann_id = (
+                        getattr(ann, "id", None)
+                        if not isinstance(ann, dict)
+                        else ann.get("id")
+                    )
+                    if ann_id:
+                        ls1.annotations.delete(id=ann_id)
+
+                created_annot = ls1.annotations.create(id=int(t_id), result=res)
+                annot_id = (
+                    getattr(created_annot, "id", None)
+                    if not isinstance(created_annot, dict)
+                    else created_annot.get("id")
+                )
+
+                local_history[t_id] = {"annotation_id": annot_id, "result": res}
+
+                success += 1
+                if success % 10 == 0:
+                    with open(history_file, "w") as f:
+                        json.dump(local_history, f)
+                print(f"   ... {success} / {len(upload_queue)}", end="\r")
+            except Exception as e:
+                print(f"\Error with task {t_id}: {e}")
+
+        with open(history_file, "w") as f:
+            json.dump(local_history, f)
+        print(f"\Project {pid} finished")
+
+
+if __name__ == "__main__":
+    main()

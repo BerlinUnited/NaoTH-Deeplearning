@@ -1,0 +1,13 @@
+[project]
+name = "annotationen-suchen"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "label-studio-sdk>=2.0.20",
+    "mlflow>=3.11.1",
+    "pillow>=12.2.0",
+    "requests>=2.33.1",
+    "ultralytics>=8.4.41",
+]
