@@ -51,6 +51,10 @@ target_class: "Ball"
 modelsize: "n" # n, m, l, x
 camera: "TOP" # BOTTOM or TOP
 # optional
+event_ids:
+  - 10
+game_ids:
+  - 154
 log_ids:
   - 675
 ls_project_ids:

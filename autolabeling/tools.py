@@ -1,12 +1,14 @@
-from typing import List
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from vaapi.client import Vaapi
 from pathlib import Path
+from typing import List
 import requests
 import random
 import yaml
 import json
 import os
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+
 
 
 def get_secure_session():
@@ -302,3 +304,22 @@ def get_project_id(v_client, log_id: str, camera: str) -> int:
 def predict_on_image(ls_client, task_id, predictions, score=0.0):
     """Push YOLO predictions to a Label Studio task as pre-annotations."""
     ls_client.predictions.create(task=task_id, score=score, result=predictions)
+
+
+def get_log_ids_per_game(game_id):
+    v_client = Vaapi(
+        base_url=os.environ.get("VAT_API_URL"),
+        api_key=os.environ.get("VAT_API_TOKEN"),
+    )
+    logs = v_client.logs.list(game=game_id)
+    return [log.id for log in logs]
+
+
+def get_log_ids_per_event(event_id):
+    v_client = Vaapi(
+        base_url=os.environ.get("VAT_API_URL"),
+        api_key=os.environ.get("VAT_API_TOKEN"),
+    )
+    logs = v_client.logs.list(event=event_id)
+    return [log.id for log in logs]
+

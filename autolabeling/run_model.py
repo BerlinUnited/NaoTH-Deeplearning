@@ -2,7 +2,7 @@ from pathlib import Path
 from ultralytics import YOLO
 from label_studio_sdk import LabelStudio
 import requests
-from tools import predict_on_image
+from tools import predict_on_image, get_log_ids_per_game, get_log_ids_per_event
 import argparse
 import sys
 import os
@@ -27,6 +27,9 @@ if __name__ == "__main__":
     if not camera:
         raise ValueError("You must provide a camera in your config.")
 
+    event_ids = config.get("event_ids")
+    game_ids = config.get("game_ids")
+
     log_ids = config.get("log_ids")
     ls_project_ids = config.get("ls_project_ids")
     if log_ids and ls_project_ids:
@@ -34,10 +37,21 @@ if __name__ == "__main__":
             "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
         )
         ls_project_ids = None
-    elif not log_ids and not ls_project_ids:
+    elif not log_ids and not ls_project_ids and not event_ids and not game_ids:
         raise ValueError(
-            "You must provide either 'log_ids' or 'ls_project_ids' in your config."
+            "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
         )
+    
+    if game_ids:
+        log_ids = []
+        for game_id in game_ids:
+            log_ids += get_log_ids_per_game(game_id) 
+
+    if event_ids:
+        log_ids = []
+        for event_id in event_ids:
+            log_ids += get_log_ids_per_event(event_id) 
+
 
     run_name = config.get("mlflow_run_name")
     model = config.get("model")
