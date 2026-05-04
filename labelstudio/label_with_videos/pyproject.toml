@@ -1,13 +1,12 @@
 [project]
-name = "annotationen-suchen"
+name = "label-with-videos"
 version = "0.1.0"
-description = "Add your description here"
+description = "Toolchain to label images via video annotation in LabelStudio"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "label-studio-sdk>=2.0.20",
-    "mlflow>=3.11.1",
-    "pillow>=12.2.0",
-    "requests>=2.33.1",
-    "ultralytics>=8.4.41",
+    "numpy>=1.26.0",
+    "opencv-python>=4.8.0",
+    "requests>=2.31.0",
 ]

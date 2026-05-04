@@ -1,88 +1,11 @@
 import os
-import re
-import cv2
-from label_studio_sdk import LabelStudio
 import json
-import requests
-import numpy as np
-
-LS1_URL = "https://labelstudio-api.berlin-united.com"
-LS1_TOKEN = os.getenv("LABELSTUDIO_API_KEY", "DEIN_LS1_TOKEN")
-PROJECT_IDS = [
-    7694,
-    7695,
-    7696,
-    7697,
-    7698,
-    7699,
-    7700,
-    7701,
-    7702,
-    7703,
-    7704,
-    7705,
-    7706,
-    7707,
-    7708,
-    7709,
-    7710,
-    7711,
-    7712,
-    7713,
-    7714,
-    7715,
-    7716,
-    7717,
-    7686,
-    7687,
-    7688,
-    7689,
-    7690,
-    7691,
-    7692,
-    7693,
-    7676,
-    7677,
-    7678,
-    7679,
-    7680,
-    7681,
-    7682,
-    7683,
-    7684,
-    7685,
-]
-LS_TARGET_PROJECT_ID = 4  # Project on LS1 for video labeling
-
-DOWNLOAD_DIR = "temp_videos"
-
-ls = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
-HEADERS = {"Authorization": f"Token {LS1_TOKEN}"}
-
-
-def get_value(obj, key, default=None):
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    return getattr(obj, key, default)
-
-
-def get_image_dimensions_from_ram(url):
-    if url.startswith("/"):
-        url = LS1_URL + url
-    try:
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        if res.status_code == 200:
-            img = cv2.imdecode(
-                np.asarray(bytearray(res.content), dtype=np.uint8), cv2.IMREAD_COLOR
-            )
-            if img is not None:
-                return img.shape[1], img.shape[0]
-    except:
-        pass
-    return None, None
+from config import LS_URL, LS_TARGET_PROJECT_ID, PROJECT_IDS, DOWNLOAD_DIR, get_ls_client, get_headers
+from utils import get_value, get_image_dimensions_from_url
 
 
 def main():
+    ls = get_ls_client()
     ls_tasks = ls.tasks.list(project=LS_TARGET_PROJECT_ID)
 
     for pid in PROJECT_IDS:
@@ -97,12 +20,12 @@ def main():
         target_video_name = mapping_data.get(
             "target_video_name", f"video_project_{pid}_web.mp4"
         )
-        ls1_task_ids = mapping_data.get("ls1_task_ids", [])
-        total_images = len(ls1_task_ids)
+        task_ids = mapping_data.get("task_ids", mapping_data.get("ls1_task_ids", []))
+        total_images = len(task_ids)
         if total_images == 0:
             continue
 
-        ls2_task_id = None
+        video_task_id = None
         for task in ls_tasks:
             file_url = (
                 get_value(get_value(task, "data", {}), "video")
@@ -110,21 +33,21 @@ def main():
                 or ""
             )
             if target_video_name in str(file_url):
-                ls2_task_id = get_value(task, "id")
+                video_task_id = get_value(task, "id")
                 break
 
-        if not ls2_task_id:
+        if not video_task_id:
             print(f"Video was not found in LS. Skipping it...")
             continue
 
-        full_task = ls.tasks.get(id=ls2_task_id)
+        full_task = ls.tasks.get(id=video_task_id)
         annotations = get_value(full_task, "annotations", [])
         if not annotations:
             print(f"No boxes are drawn yet")
             continue
 
-        first_ls1_task_id = ls1_task_ids[0]
-        first_task_info = ls.tasks.get(id=first_ls1_task_id)
+        first_task_id = task_ids[0]
+        first_task_info = ls.tasks.get(id=first_task_id)
         img_url = get_value(
             (
                 first_task_info.data
@@ -133,12 +56,12 @@ def main():
             ),
             "image",
         )
-        orig_width, orig_height = get_image_dimensions_from_ram(img_url)
+        orig_width, orig_height = get_image_dimensions_from_url(img_url)
 
-        raw_ls2_results = get_value(annotations[0], "result", [])
+        raw_results = get_value(annotations[0], "result", [])
         frame_annotations = {i: [] for i in range(total_images)}
 
-        for result in raw_ls2_results:
+        for result in raw_results:
             if get_value(result, "type") == "videorectangle":
                 val = get_value(result, "value", {})
                 sequence = sorted(
@@ -198,7 +121,7 @@ def main():
 
         mapping_data["original_width"] = orig_width
         mapping_data["original_height"] = orig_height
-        mapping_data["raw_ls2_results"] = raw_ls2_results
+        mapping_data["raw_results"] = raw_results
         mapping_data["interpolated_frames"] = frame_annotations
 
         with open(mapping_path, "w", encoding="utf-8") as f:

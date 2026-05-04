@@ -1,79 +1,11 @@
-# /// script
-# requires-python = ">=3.10"
-# dependencies = [
-#     "python-dotenv",
-#     "label_studio_sdk",
-# ]
-# ///
-
 import os
 import json
-from label_studio_sdk import LabelStudio
-
-LS1_URL = "https://labelstudio-api.berlin-united.com"
-LS1_TOKEN = os.getenv("LABELSTUDIO_API_KEY", "DEIN_LS1_TOKEN")
-PROJECT_IDS = [
-    7694,
-    7695,
-    7696,
-    7697,
-    7698,
-    7699,
-    7700,
-    7701,
-    7702,
-    7703,
-    7704,
-    7705,
-    7706,
-    7707,
-    7708,
-    7709,
-    7710,
-    7711,
-    7712,
-    7713,
-    7714,
-    7715,
-    7716,
-    7717,
-    7686,
-    7687,
-    7688,
-    7689,
-    7690,
-    7691,
-    7692,
-    7693,
-    7676,
-    7677,
-    7678,
-    7679,
-    7680,
-    7681,
-    7682,
-    7683,
-    7684,
-    7685,
-]
-LS1_FROM_NAME = "label"
-LS1_TO_NAME = "image"
-DOWNLOAD_DIR = "temp_videos"
-
-ls1 = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
-
-
-def round_floats(obj, decimals=3):
-    if isinstance(obj, float):
-        return round(obj, decimals)
-    elif isinstance(obj, dict):
-        return {k: round_floats(v, decimals) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [round_floats(i, decimals) for i in obj]
-    return obj
+from config import LS_TARGET_PROJECT_ID, PROJECT_IDS, DOWNLOAD_DIR, LS_FROM_NAME, LS_TO_NAME, get_ls_client
+from utils import round_floats
 
 
 def main():
+    ls = get_ls_client()
 
     for pid in PROJECT_IDS:
         print(f"\n--- Project {pid} ---")
@@ -86,7 +18,7 @@ def main():
         with open(mapping_path, "r") as f:
             mapping_data = json.load(f)
 
-        ls1_task_ids = mapping_data.get("ls1_task_ids", [])
+        task_ids = mapping_data.get("task_ids", mapping_data.get("ls1_task_ids", []))
         orig_width = mapping_data.get("original_width")
         orig_height = mapping_data.get("original_height")
         interpolated_frames = mapping_data.get("interpolated_frames", {})
@@ -97,18 +29,18 @@ def main():
             with open(history_file, "r") as f:
                 try:
                     local_history = json.load(f)
-                except:
+                except Exception:
                     pass
 
         upload_queue = []
-        for f_idx, t_id in enumerate(ls1_task_ids):
+        for f_idx, t_id in enumerate(task_ids):
             annots = interpolated_frames.get(str(f_idx), [])
             t_id = str(t_id)
 
             raw_new_results = [
                 {
-                    "from_name": LS1_FROM_NAME,
-                    "to_name": LS1_TO_NAME,
+                    "from_name": LS_FROM_NAME,
+                    "to_name": LS_TO_NAME,
                     "type": "rectanglelabels",
                     "original_width": orig_width,
                     "original_height": orig_height,
@@ -145,7 +77,7 @@ def main():
         success = 0
         for t_id, res in upload_queue:
             try:
-                task_info = ls1.tasks.get(id=int(t_id))
+                task_info = ls.tasks.get(id=int(t_id))
                 existing_annots = (
                     getattr(task_info, "annotations", [])
                     if not isinstance(task_info, dict)
@@ -159,9 +91,9 @@ def main():
                         else ann.get("id")
                     )
                     if ann_id:
-                        ls1.annotations.delete(id=ann_id)
+                        ls.annotations.delete(id=ann_id)
 
-                created_annot = ls1.annotations.create(id=int(t_id), result=res)
+                created_annot = ls.annotations.create(id=int(t_id), result=res)
                 annot_id = (
                     getattr(created_annot, "id", None)
                     if not isinstance(created_annot, dict)
@@ -176,11 +108,11 @@ def main():
                         json.dump(local_history, f)
                 print(f"   ... {success} / {len(upload_queue)}", end="\r")
             except Exception as e:
-                print(f"\Error with task {t_id}: {e}")
+                print(f"\nError with task {t_id}: {e}")
 
         with open(history_file, "w") as f:
             json.dump(local_history, f)
-        print(f"\Project {pid} finished")
+        print(f"\nProject {pid} finished")
 
 
 if __name__ == "__main__":
