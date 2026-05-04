@@ -52,15 +52,12 @@ PROJECT_IDS = [
     7684,
     7685,
 ]
-LS2_URL = "http://localhost:8080"
-LS2_TOKEN = "34db6a8a93ad9446a946adc234577a3f2587dc96"
-LS2_TARGET_PROJECT_ID = 4
+LS_TARGET_PROJECT_ID = 4  # Project on LS1 for video labeling
 
 DOWNLOAD_DIR = "temp_videos"
 
-ls1 = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
-ls2 = LabelStudio(base_url=LS2_URL, api_key=LS2_TOKEN)
-HEADERS_LS1 = {"Authorization": f"Token {LS1_TOKEN}"}
+ls = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
+HEADERS = {"Authorization": f"Token {LS1_TOKEN}"}
 
 
 def get_value(obj, key, default=None):
@@ -73,7 +70,7 @@ def get_image_dimensions_from_ram(url):
     if url.startswith("/"):
         url = LS1_URL + url
     try:
-        res = requests.get(url, headers=HEADERS_LS1, timeout=10)
+        res = requests.get(url, headers=HEADERS, timeout=10)
         if res.status_code == 200:
             img = cv2.imdecode(
                 np.asarray(bytearray(res.content), dtype=np.uint8), cv2.IMREAD_COLOR
@@ -86,7 +83,7 @@ def get_image_dimensions_from_ram(url):
 
 
 def main():
-    ls2_tasks = ls2.tasks.list(project=LS2_TARGET_PROJECT_ID)
+    ls_tasks = ls.tasks.list(project=LS_TARGET_PROJECT_ID)
 
     for pid in PROJECT_IDS:
         print(f"\n--- READING PROJECT {pid} ---")
@@ -106,7 +103,7 @@ def main():
             continue
 
         ls2_task_id = None
-        for task in ls2_tasks:
+        for task in ls_tasks:
             file_url = (
                 get_value(get_value(task, "data", {}), "video")
                 or get_value(get_value(task, "data", {}), "file_upload")
@@ -117,17 +114,17 @@ def main():
                 break
 
         if not ls2_task_id:
-            print(f"Video was not found in LS2. Skipping it...")
+            print(f"Video was not found in LS. Skipping it...")
             continue
 
-        full_task = ls2.tasks.get(id=ls2_task_id)
+        full_task = ls.tasks.get(id=ls2_task_id)
         annotations = get_value(full_task, "annotations", [])
         if not annotations:
             print(f"No boxes are drawn yet")
             continue
 
         first_ls1_task_id = ls1_task_ids[0]
-        first_task_info = ls1.tasks.get(id=first_ls1_task_id)
+        first_task_info = ls.tasks.get(id=first_ls1_task_id)
         img_url = get_value(
             (
                 first_task_info.data

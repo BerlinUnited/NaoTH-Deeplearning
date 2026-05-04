@@ -59,13 +59,10 @@ PROJECT_IDS = [
     7684,
     7685,
 ]
-LS2_URL = "http://localhost:8080"
-LS2_TOKEN = "34db6a8a93ad9446a946adc234577a3f2587dc96"
-LS2_TARGET_PROJECT_ID = 4
+LS_TARGET_PROJECT_ID = 4  # Project on LS1 for video labeling
 
-ls1 = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
-HEADERS_LS1 = {"Authorization": f"Token {LS1_TOKEN}"}
-HEADERS_LS2 = {"Authorization": f"Token {LS2_TOKEN}"}
+ls = LabelStudio(base_url=LS1_URL, api_key=LS1_TOKEN)
+HEADERS = {"Authorization": f"Token {LS1_TOKEN}"}
 
 DOWNLOAD_DIR = "temp_videos"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -75,7 +72,7 @@ def get_image_from_ram(url):
     if url.startswith("/"):
         url = LS1_URL + url
     try:
-        response = requests.get(url, headers=HEADERS_LS1, timeout=15)
+        response = requests.get(url, headers=HEADERS, timeout=15)
         if response.status_code == 200:
             image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
             return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
@@ -84,10 +81,10 @@ def get_image_from_ram(url):
     return None
 
 
-def is_video_in_ls2(filename):
-    url = f"{LS2_URL}/api/projects/{LS2_TARGET_PROJECT_ID}/tasks?page_size=1000"
+def is_video_in_ls(filename):
+    url = f"{LS1_URL}/api/projects/{LS_TARGET_PROJECT_ID}/tasks?page_size=1000"
     try:
-        response = requests.get(url, headers=HEADERS_LS2, timeout=10)
+        response = requests.get(url, headers=HEADERS, timeout=10)
         return filename in response.text
     except:
         return False
@@ -101,10 +98,10 @@ def main():
         json_mapping_filename = f"mapping_project_{pid}.json"
         json_mapping_path = os.path.join(DOWNLOAD_DIR, json_mapping_filename)
 
-        video_already_in_ls2 = is_video_in_ls2(web_video_filename)
+        video_already_in_ls = is_video_in_ls(web_video_filename)
         json_exists = os.path.exists(json_mapping_path)
 
-        if video_already_in_ls2 and json_exists:
+        if video_already_in_ls and json_exists:
             print(f"Everything done for project {pid}")
             continue
 
@@ -124,13 +121,13 @@ def main():
         mapping_data["ls1_task_ids"] = []
 
         print("Getting tasks with LabelStudioSDK...")
-        raw_tasks = list(ls1.tasks.list(project=pid))
+        raw_tasks = list(ls.tasks.list(project=pid))
         raw_tasks.sort(key=lambda t: t.id if hasattr(t, "id") else t.get("id", 0))
 
         video_writer = None
 
-        if video_already_in_ls2:
-            print("Video is already in LS2.")
+        if video_already_in_ls:
+            print("Video is already uploaded.")
             for task in raw_tasks:
                 task_data = task.data if hasattr(task, "data") else task.get("data", {})
                 if not (task_data.get("image") or task_data.get("img")):
@@ -168,12 +165,12 @@ def main():
             json.dump(mapping_data, f)
         print(f"JSON was saved: {len(mapping_data['ls1_task_ids'])} frames mapped.")
 
-        if not video_already_in_ls2 and os.path.exists(web_video_path):
+        if not video_already_in_ls and os.path.exists(web_video_path):
             print(f"Uploading video...")
             with open(web_video_path, "rb") as f:
                 res = requests.post(
-                    f"{LS2_URL}/api/projects/{LS2_TARGET_PROJECT_ID}/import",
-                    headers=HEADERS_LS2,
+                    f"{LS1_URL}/api/projects/{LS_TARGET_PROJECT_ID}/import",
+                    headers=HEADERS,
                     files={"file": (web_video_filename, f, "video/mp4")},
                 )
             if res.status_code in [200, 201]:
