@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 import requests
-from config import LS_URL, get_headers
+from config import LS1_URL, get_ls1_headers
 
 
 def get_value(obj, key, default=None):
@@ -13,9 +13,9 @@ def get_value(obj, key, default=None):
 
 def get_image_from_url(url):
     if url.startswith("/"):
-        url = LS_URL + url
+        url = LS1_URL + url
     try:
-        response = requests.get(url, headers=get_headers(), timeout=15)
+        response = requests.get(url, headers=get_ls1_headers(), timeout=15)
         if response.status_code == 200:
             image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
             return cv2.imdecode(image_array, cv2.IMREAD_COLOR)

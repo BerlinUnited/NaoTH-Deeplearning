@@ -1,12 +1,20 @@
 import os
 import json
-from config import LS_URL, LS_TARGET_PROJECT_ID, PROJECT_IDS, DOWNLOAD_DIR, get_ls_client, get_headers
+from config import (
+    LS_TARGET_PROJECT_ID,
+    PROJECT_IDS,
+    DOWNLOAD_DIR,
+    get_ls1_client,
+    get_video_client,
+)
 from utils import get_value, get_image_dimensions_from_url
 
 
 def main():
-    ls = get_ls_client()
-    ls_tasks = ls.tasks.list(project=LS_TARGET_PROJECT_ID)
+    ls1 = get_ls1_client()
+    video_ls = get_video_client()
+
+    video_tasks = video_ls.tasks.list(project=LS_TARGET_PROJECT_ID)
 
     for pid in PROJECT_IDS:
         print(f"\n--- READING PROJECT {pid} ---")
@@ -26,7 +34,7 @@ def main():
             continue
 
         video_task_id = None
-        for task in ls_tasks:
+        for task in video_tasks:
             file_url = (
                 get_value(get_value(task, "data", {}), "video")
                 or get_value(get_value(task, "data", {}), "file_upload")
@@ -37,17 +45,17 @@ def main():
                 break
 
         if not video_task_id:
-            print(f"Video was not found in LS. Skipping it...")
+            print(f"Video was not found in video LS. Skipping it...")
             continue
 
-        full_task = ls.tasks.get(id=video_task_id)
+        full_task = video_ls.tasks.get(id=video_task_id)
         annotations = get_value(full_task, "annotations", [])
         if not annotations:
             print(f"No boxes are drawn yet")
             continue
 
         first_task_id = task_ids[0]
-        first_task_info = ls.tasks.get(id=first_task_id)
+        first_task_info = ls1.tasks.get(id=first_task_id)
         img_url = get_value(
             (
                 first_task_info.data
@@ -59,7 +67,14 @@ def main():
         orig_width, orig_height = get_image_dimensions_from_url(img_url)
 
         raw_results = get_value(annotations[0], "result", [])
-        frame_annotations = {i: [] for i in range(total_images)}
+        stored_frame_count = mapping_data.get("frame_count")
+        if stored_frame_count and stored_frame_count != total_images:
+            print(
+                f"WARNING: Stored frame count ({stored_frame_count}) doesn't match "
+                f"task IDs ({total_images}). Annotations may be misaligned!"
+            )
+        effective_frames = total_images
+        frame_annotations = {i: [] for i in range(effective_frames)}
 
         for result in raw_results:
             if get_value(result, "type") == "videorectangle":
@@ -76,19 +91,27 @@ def main():
 
                 for i in range(len(sequence)):
                     kf_start = sequence[i]
-                    f_start = max(0, int(get_value(kf_start, "frame")) - 1)
+                    f_start = max(
+                        0,
+                        min(
+                            int(get_value(kf_start, "frame")) - 1, effective_frames - 1
+                        ),
+                    )
                     if not get_value(kf_start, "enabled"):
                         continue
 
                     if i + 1 < len(sequence):
                         kf_end = sequence[i + 1]
-                        f_end = max(0, int(get_value(kf_end, "frame")) - 1)
+                        f_end = max(
+                            f_start + 1,
+                            min(int(get_value(kf_end, "frame")) - 1, effective_frames),
+                        )
                     else:
                         kf_end = kf_start
-                        f_end = total_images
+                        f_end = effective_frames
 
                     for f in range(f_start, f_end):
-                        if f >= total_images:
+                        if f >= effective_frames:
                             break
                         ratio = (
                             0

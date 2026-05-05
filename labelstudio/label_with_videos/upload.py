@@ -1,11 +1,18 @@
 import os
 import json
-from config import LS_TARGET_PROJECT_ID, PROJECT_IDS, DOWNLOAD_DIR, LS_FROM_NAME, LS_TO_NAME, get_ls_client
+from config import (
+    LS_TARGET_PROJECT_ID,
+    PROJECT_IDS,
+    DOWNLOAD_DIR,
+    LS_FROM_NAME,
+    LS_TO_NAME,
+    get_ls1_client,
+)
 from utils import round_floats
 
 
 def main():
-    ls = get_ls_client()
+    ls = get_ls1_client()
 
     for pid in PROJECT_IDS:
         print(f"\n--- Project {pid} ---")
@@ -77,7 +84,7 @@ def main():
         success = 0
         for t_id, res in upload_queue:
             try:
-                task_info = ls.tasks.get(id=int(t_id))
+                task_info = ls.tasks.get(task_id=int(t_id))
                 existing_annots = (
                     getattr(task_info, "annotations", [])
                     if not isinstance(task_info, dict)
@@ -91,9 +98,9 @@ def main():
                         else ann.get("id")
                     )
                     if ann_id:
-                        ls.annotations.delete(id=ann_id)
+                        ls.annotations.delete(task_id=ann_id)
 
-                created_annot = ls.annotations.create(id=int(t_id), result=res)
+                created_annot = ls.annotations.create(task_id=int(t_id), result=res)
                 annot_id = (
                     getattr(created_annot, "id", None)
                     if not isinstance(created_annot, dict)
