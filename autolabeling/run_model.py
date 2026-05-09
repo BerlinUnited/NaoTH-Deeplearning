@@ -41,17 +41,16 @@ if __name__ == "__main__":
         raise ValueError(
             "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
         )
-    
+
     if game_ids:
         log_ids = []
         for game_id in game_ids:
-            log_ids += get_log_ids_per_game(game_id) 
+            log_ids += get_log_ids_per_game(game_id)
 
     if event_ids:
         log_ids = []
         for event_id in event_ids:
-            log_ids += get_log_ids_per_event(event_id) 
-
+            log_ids += get_log_ids_per_event(event_id)
 
     run_name = config.get("mlflow_run_name")
     model = config.get("model")

@@ -1,7 +1,12 @@
 from vaapi.client import Vaapi
 from functools import partial
 from label_studio_sdk import LabelStudio
-from tools import create_dataset_json, create_local_yolo_ds, get_log_ids_per_game, get_log_ids_per_event
+from tools import (
+    create_dataset_json,
+    create_local_yolo_ds,
+    get_log_ids_per_game,
+    get_log_ids_per_event,
+)
 from ultralytics import YOLO
 import mlflow
 import datetime
@@ -16,6 +21,7 @@ def log_custom_data(trainer, filename):
     Implemented as callback here so that the artifact is attached to the run started by ultralytics
     """
     mlflow.log_artifact(filename, artifact_path="dataset")
+
 
 def validate_config(config):
     if not config["target_class"]:
@@ -64,12 +70,12 @@ if __name__ == "__main__":
     if game_ids:
         log_ids = []
         for game_id in game_ids:
-            log_ids += get_log_ids_per_game(game_id) 
+            log_ids += get_log_ids_per_game(game_id)
 
     if event_ids:
         log_ids = []
         for event_id in event_ids:
-            log_ids += get_log_ids_per_event(event_id) 
+            log_ids += get_log_ids_per_event(event_id)
 
     """
     Init API's

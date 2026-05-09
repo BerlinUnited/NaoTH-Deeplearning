@@ -67,6 +67,7 @@ def create_dataset_json(
         },
         "images": [],
     }
+
     def sort_key_fn(image):
         return image.frame.frame_number
 
@@ -322,4 +323,3 @@ def get_log_ids_per_event(event_id):
     )
     logs = v_client.logs.list(event=event_id)
     return [log.id for log in logs]
-
