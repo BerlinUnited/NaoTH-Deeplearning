@@ -1,7 +1,7 @@
 from vaapi.client import Vaapi
 from functools import partial
 from label_studio_sdk import LabelStudio
-from tools import create_dataset_json, create_local_yolo_ds
+from tools import create_dataset_json, create_local_yolo_ds, get_log_ids_per_game, get_log_ids_per_event
 from ultralytics import YOLO
 import mlflow
 import datetime
@@ -38,6 +38,9 @@ if __name__ == "__main__":
     if not epochs:
         raise ValueError("You must provide the epochs amount in your config.")
 
+    event_ids = config.get("event_ids")
+    game_ids = config.get("game_ids")
+
     log_ids = config.get("log_ids")
     ls_project_ids = config.get("ls_project_ids")
     if log_ids and ls_project_ids:
@@ -45,10 +48,20 @@ if __name__ == "__main__":
             "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
         )
         ls_project_ids = None
-    elif not log_ids and not ls_project_ids:
+    elif not log_ids and not ls_project_ids and not event_ids and not game_ids:
         raise ValueError(
-            "You must provide either 'log_ids' or 'ls_project_ids' in your config."
+            "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
         )
+    
+    if game_ids:
+        log_ids = []
+        for game_id in game_ids:
+            log_ids += get_log_ids_per_game(game_id) 
+
+    if event_ids:
+        log_ids = []
+        for event_id in event_ids:
+            log_ids += get_log_ids_per_event(event_id) 
 
     split_ratio = config.get("split_ratio", 0.8)
     seed = config.get("seed", random.randint(1, 1000000))
@@ -114,7 +127,7 @@ if __name__ == "__main__":
     mlflow.log_param("split_seed", seed)
     mlflow.log_param("split_ratio", split_ratio)
     target_project = os.path.abspath(f"{run_path}")
-    target_name = f"autolabel_model"
+    target_name = "autolabel_model"
 
     results = model.train(
         data=f"{run_path}/dataset.yaml",
@@ -127,4 +140,4 @@ if __name__ == "__main__":
         exist_ok=True,
     )
 
-    print(f"\nTraining complete.")
+    print("\nTraining complete.")
