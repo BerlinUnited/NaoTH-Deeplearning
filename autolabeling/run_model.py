@@ -193,7 +193,7 @@ if __name__ == "__main__":
         results = model.predict(source=str(tmp_path))
         boxes = results[0].boxes
 
-        inspect_dir = Path(f"inspection/")
+        inspect_dir = Path("inspection/")
         inspect_dir.mkdir(parents=True, exist_ok=True)
         results[0].save(filename=str(inspect_dir / f"{task.id}.jpg"))
 

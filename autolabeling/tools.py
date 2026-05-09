@@ -10,7 +10,6 @@ import json
 import os
 
 
-
 def get_secure_session():
     session = requests.Session()
 
@@ -187,8 +186,6 @@ def create_local_yolo_ds(dataset_file: str, run_path: str, target_class: str) ->
     """
     with open(dataset_file) as json_data:
         dataset = json.load(json_data)
-
-    image_list = dataset.get("images", [])
 
     output_path = f"{run_path}/dataset"
 

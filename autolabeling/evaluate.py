@@ -172,7 +172,11 @@ if __name__ == "__main__":
             f"GT: {dict(true_classes)} | Model: {dict(predicted_classes)}"
         )
 
-    avg = lambda lst: sum(lst) / len(lst) if lst else float("nan")
+    def mean(data):
+        if len(data) == 0:
+            return float("nan")
+        else:
+            return sum(data) / len(data)
 
     print("-" * 50)
     print(f"Checked: {images_checked} images")
@@ -181,10 +185,10 @@ if __name__ == "__main__":
     print(f"  Both    : {stats['both']}")
     print(f"  Total errors: {sum(stats.values())}")
     print(
-        f"  Avg conf all predictions: {avg(all_conf):.2f} | "
-        f"FP: {avg(fp_conf):.2f} | "
-        f"FN: {avg(fn_conf):.2f} | "
-        f"Both: {avg(both_conf):.2f}"
+        f"  Avg conf all predictions: {mean(all_conf):.2f} | "
+        f"FP: {mean(fp_conf):.2f} | "
+        f"FN: {mean(fn_conf):.2f} | "
+        f"Both: {mean(both_conf):.2f}"
     )
 
     if images_checked == 0:
