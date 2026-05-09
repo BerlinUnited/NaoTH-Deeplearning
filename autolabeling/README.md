@@ -1,16 +1,4 @@
-# NaoTH Deep Learning - German Open 2026 Edition
-
-```
-autolabeling/
-├── README.md
-├── ball_trainings_pipeline.py
-├── pyproject.toml
-├── run_model_yolo.py
-├── tools.py
-└── uv.lock
-```
-
----
+# Autolabeling Code - 2026 Edition
 
 ## Setup
 
@@ -26,10 +14,7 @@ export MLFLOW_TRACKING_PASSWORD=***
 export MLFLOW_USER=***
 ```
 
-Then navigate to the project folder 'autolabeling':
-
 ```bash
-cd balldetection2026/autolabeling
 source ../env.sh  #set environment variables
 ```
 

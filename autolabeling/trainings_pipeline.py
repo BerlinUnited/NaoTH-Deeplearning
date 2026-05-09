@@ -12,7 +12,24 @@ import yaml
 
 
 def log_custom_data(trainer, filename):
+    """
+    Implemented as callback here so that the artifact is attached to the run started by ultralytics
+    """
     mlflow.log_artifact(filename, artifact_path="dataset")
+
+def validate_config(config):
+    if not config["target_class"]:
+        raise ValueError("You must provide a target class in your config.")
+    if not config["modelsize"]:
+        raise ValueError("You must provide a modelsize in your config.")
+    if not str(config["camera"]).upper():
+        raise ValueError("You must provide a camera in your config.")
+    if not config["epochs"]:
+        raise ValueError("You must provide the epochs amount in your config.")
+    if not log_ids and not ls_project_ids and not event_ids and not game_ids:
+        raise ValueError(
+            "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
+        )
 
 
 if __name__ == "__main__":
@@ -25,34 +42,25 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
 
-    target_class = config["target_class"]
-    if not target_class:
-        raise ValueError("You must provide a target class in your config.")
-    modelsize = config["modelsize"]
-    if not modelsize:
-        raise ValueError("You must provide a modelsize in your config.")
-    camera = str(config["camera"]).upper()
-    if not camera:
-        raise ValueError("You must provide a camera in your config.")
-    epochs = config["epochs"]
-    if not epochs:
-        raise ValueError("You must provide the epochs amount in your config.")
+    validate_config(config)
 
+    target_class = config["target_class"]
+    modelsize = config["modelsize"]
+    camera = str(config["camera"]).upper()
+    epochs = config["epochs"]
     event_ids = config.get("event_ids")
     game_ids = config.get("game_ids")
-
     log_ids = config.get("log_ids")
     ls_project_ids = config.get("ls_project_ids")
+    split_ratio = config.get("split_ratio", 0.8)
+    seed = config.get("seed", random.randint(1, 1000000))
+
     if log_ids and ls_project_ids:
         print(
             "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
         )
         ls_project_ids = None
-    elif not log_ids and not ls_project_ids and not event_ids and not game_ids:
-        raise ValueError(
-            "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
-        )
-    
+
     if game_ids:
         log_ids = []
         for game_id in game_ids:
@@ -62,9 +70,6 @@ if __name__ == "__main__":
         log_ids = []
         for event_id in event_ids:
             log_ids += get_log_ids_per_event(event_id) 
-
-    split_ratio = config.get("split_ratio", 0.8)
-    seed = config.get("seed", random.randint(1, 1000000))
 
     """
     Init API's
@@ -95,7 +100,7 @@ if __name__ == "__main__":
     dataset_file_name = (
         f"{run_path}/ds_{camera}_{identifier}_{run_timestamp}_{modelsize}.json"
     )
-    print(f"The seed for this run: {seed}")
+
     create_dataset_json(
         log_ids,
         ls_project_ids,

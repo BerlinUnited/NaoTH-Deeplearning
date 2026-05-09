@@ -67,6 +67,8 @@ def create_dataset_json(
         },
         "images": [],
     }
+    def sort_key_fn(image):
+        return image.frame.frame_number
 
     if log_ids:
         task_dict = {}
@@ -75,10 +77,11 @@ def create_dataset_json(
             image_obj_list = v_client.image.list(
                 log=log_id, camera=camera, validated=True
             )
-            for img_obj in image_obj_list:
+            for img_obj in sorted(image_obj_list, key=sort_key_fn):
                 new_project_id = int(
                     img_obj.labelstudio_url.split("/projects/")[1].split("/")[0]
                 )
+                # only fetch the list of tasks the first time its needed
                 if not project_id == new_project_id:
                     project_id = new_project_id
                     all_tasks = l_client.tasks.list(project=project_id)
