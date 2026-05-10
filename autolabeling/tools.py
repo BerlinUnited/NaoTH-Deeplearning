@@ -76,7 +76,7 @@ def create_dataset_json(
         project_id = 0
         for log_id in log_ids:
             image_obj_list = v_client.image.list(
-                log=log_id, camera=camera, validated=True
+                log=log_id, camera=camera, has_annotations=True
             )
             for img_obj in sorted(image_obj_list, key=sort_key_fn):
                 new_project_id = int(
