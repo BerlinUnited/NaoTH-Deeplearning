@@ -115,7 +115,7 @@ if __name__ == "__main__":
         seed,
     )
     create_local_yolo_ds(dataset_file_name, run_path, target_class)
-    quit()
+
     """
     Train Yolo Model
     """

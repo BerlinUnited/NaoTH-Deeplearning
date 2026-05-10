@@ -208,7 +208,7 @@ requires-dist = [
     { name = "label-studio-sdk", specifier = ">=2.0.21" },
     { name = "mlflow", specifier = "==3.12.0" },
     { name = "ultralytics", specifier = ">=8.4.48" },
-    { name = "vaapi", specifier = ">=0.7.41" },
+    { name = "vaapi", specifier = ">=0.7.42" },
 ]
 
 [package.metadata.requires-dev]
@@ -3506,7 +3506,7 @@ wheels = [
 
 [[package]]
 name = "vaapi"
-version = "0.7.41"
+version = "0.7.42"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -3514,9 +3514,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/b8/f3c4bf3fcba871372acee45982a8057a9a782650e09ae8f07a2d1c5ba74d/vaapi-0.7.41.tar.gz", hash = "sha256:787e830ef2f4713361157f122c0e407d4a39736dc8d34e1cbca2bd2eba519e3d", size = 28312, upload-time = "2026-05-10T15:54:54.076Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/5e/a5ce90d61e40221001deb54f5ac7c2a55ac1348ceddeea1bdfd0a0538322/vaapi-0.7.42.tar.gz", hash = "sha256:87237b5f52cebdde0944ed8cce2afa097a7f4b5e4a4c7650653bf84f5c0833a6", size = 28294, upload-time = "2026-05-10T16:26:57.451Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/82/b7cb976e5d5123fb815e2066a55a7c1b25cca83fe4fcd0694318d40f0dc5/vaapi-0.7.41-py3-none-any.whl", hash = "sha256:6835ef522b4975151ebbe68e2671c809cd993608c10c0951f4afaa515ea3b2ca", size = 61114, upload-time = "2026-05-10T15:54:53.144Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/3b/49e7b7c749e106698d793c824328245d995e7ec9f98ace8e0c60cb2072a3/vaapi-0.7.42-py3-none-any.whl", hash = "sha256:5f07b433f2a779d8216b332c4bd10240845c44a9e0cb2b3708d9bf420f69a044", size = 61104, upload-time = "2026-05-10T16:26:56.457Z" },
 ]
 
 [[package]]
