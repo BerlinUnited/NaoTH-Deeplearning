@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     my_sum = 0
     for log_id in log_ids:
-        image_obj_list = list(v_client.image.list(log=log_id, camera=args.camera, validated=True))
-        print(f"number of validated images: {len(image_obj_list)}")
+        image_obj_list = list(v_client.image.list(log=log_id, camera=args.camera, has_annotations=True))
+        print(f"number of images with annotations: {len(image_obj_list)}")
         my_sum += len(image_obj_list)
 
     print()
