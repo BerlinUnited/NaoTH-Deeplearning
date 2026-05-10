@@ -307,19 +307,11 @@ def predict_on_image(ls_client, task_id, predictions, score=0.0):
     ls_client.predictions.create(task=task_id, score=score, result=predictions)
 
 
-def get_log_ids_per_game(game_id):
-    v_client = Vaapi(
-        base_url=os.environ.get("VAT_API_URL"),
-        api_key=os.environ.get("VAT_API_TOKEN"),
-    )
+def get_log_ids_per_game(v_client, game_id):
     logs = v_client.logs.list(game=game_id)
     return [log.id for log in logs]
 
 
-def get_log_ids_per_event(event_id):
-    v_client = Vaapi(
-        base_url=os.environ.get("VAT_API_URL"),
-        api_key=os.environ.get("VAT_API_TOKEN"),
-    )
+def get_log_ids_per_event(v_client, event_id):
     logs = v_client.logs.list(event=event_id)
     return [log.id for log in logs]

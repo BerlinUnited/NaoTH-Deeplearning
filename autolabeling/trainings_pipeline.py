@@ -8,6 +8,7 @@ from tools import (
     get_log_ids_per_event,
 )
 from ultralytics import YOLO
+from pathlib import Path
 import mlflow
 import datetime
 import os
@@ -32,7 +33,7 @@ def validate_config(config):
         raise ValueError("You must provide a camera in your config.")
     if not config["epochs"]:
         raise ValueError("You must provide the epochs amount in your config.")
-    if not log_ids and not ls_project_ids and not event_ids and not game_ids:
+    if not config.get("log_ids") and not config.get("ls_project_ids") and not config.get("event_ids") and not config.get("game_ids"):
         raise ValueError(
             "You must provide either 'log_ids', 'game_ids', 'event_ids' or 'ls_project_ids' in your config."
         )
@@ -41,7 +42,7 @@ def validate_config(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c", "--config", type=str, required=True, help="Pfad zur config.yaml"
+        "-c", "--config", type=str, required=True, help="config.yaml"
     )
     args = parser.parse_args()
 
@@ -61,22 +62,6 @@ if __name__ == "__main__":
     split_ratio = config.get("split_ratio", 0.8)
     seed = config.get("seed", random.randint(1, 1000000))
 
-    if log_ids and ls_project_ids:
-        print(
-            "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
-        )
-        ls_project_ids = None
-
-    if game_ids:
-        log_ids = []
-        for game_id in game_ids:
-            log_ids += get_log_ids_per_game(game_id)
-
-    if event_ids:
-        log_ids = []
-        for event_id in event_ids:
-            log_ids += get_log_ids_per_event(event_id)
-
     """
     Init API's
     """
@@ -90,21 +75,32 @@ if __name__ == "__main__":
         api_key=os.environ.get("LABELSTUDIO_API_KEY"),
     )
 
-    run_timestamp = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    if log_ids and ls_project_ids:
+        print(
+            "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
+        )
+        ls_project_ids = None
+
+    if game_ids:
+        log_ids = []
+        for game_id in game_ids:
+            log_ids += get_log_ids_per_game(v_client, game_id)
+
+    if event_ids:
+        log_ids = []
+        for event_id in event_ids:
+            log_ids += get_log_ids_per_event(v_client, event_id)
+
+    run_timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     run_path = f"runs/{target_class}/{camera}/{run_timestamp}_{modelsize}"
 
-    os.makedirs(run_path, exist_ok=True)
+    Path(run_path).mkdir(parents=True, exist_ok=True)
 
     """
     Create Dataset File
     """
-    identifier = (
-        "-".join(map(str, log_ids))
-        if log_ids
-        else "proj_" + "-".join(map(str, ls_project_ids))
-    )
     dataset_file_name = (
-        f"{run_path}/ds_{camera}_{identifier}_{run_timestamp}_{modelsize}.json"
+        f"{run_path}/ds_{camera}_{run_timestamp}_{modelsize}.json"
     )
 
     create_dataset_json(
@@ -119,7 +115,7 @@ if __name__ == "__main__":
         seed,
     )
     create_local_yolo_ds(dataset_file_name, run_path, target_class)
-
+    quit()
     """
     Train Yolo Model
     """

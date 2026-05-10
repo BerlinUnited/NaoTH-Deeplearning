@@ -23,7 +23,7 @@ source ../env.sh  #set environment variables
 ### Step 1 — Train YOLO Model
 
 Train on the human-annotated images.
-The images are downloaded and maped with the annotations from labelstudio.
+The images are downloaded and mapped with the annotations from labelstudio.
 
 ```
 uv run ball_trainings_pipeline.py
