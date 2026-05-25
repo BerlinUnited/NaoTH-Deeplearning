@@ -1,0 +1,10 @@
+# we use yolo2026 model in different sizes
+modelsize: "n" # n, m, l, x
+target_class: "Ball"
+camera: "TOP" # BOTTOM or TOP
+# optional
+event_ids:
+  - 10 # go26
+
+epochs: 8000
+split_ratio: 0.8 # default is 0.8

@@ -1,0 +1,11 @@
+target_class: "Ball"
+modelsize: "n" # n, m, l, x
+camera: "BOTTOM" # BOTTOM or TOP
+
+# optional
+event_ids:
+  - 10
+
+epochs: 8000
+split_ratio: 0.8 # default is 0.8
+
