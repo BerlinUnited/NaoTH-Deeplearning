@@ -9,7 +9,7 @@ variables:
   # Creates a unique path: e.g., /home/user/runs/janedoe-a1b2c3d4-12345
   REMOTE_DIR: "/lustre/informatik/schlotts/pipeline_runs/${GITLAB_USER_LOGIN}-${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_ID}"
   # This creates a dropdown menu in the GitLab "Run pipeline" UI
-  BALL_CONFIG:
+  TRAIN_CONFIG:
     value: "autolabeling/ball_config_bottom.yaml"
     options:
       - "autolabeling/ball_config_bottom.yaml"
@@ -52,7 +52,8 @@ run_training:
       #SBATCH --mem=32G
 
       source /lustre/informatik/schlotts/balldetection_env/.venv/bin/activate
-      
-      python autolabeling/trainings_pipeline.py -c $BALL_CONFIG
+      ##uv sync --directory autolabeling/ --active
+      ##uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
+      python autolabeling/trainings_pipeline.py -c $TRAIN_CONFIG
       EOF"
