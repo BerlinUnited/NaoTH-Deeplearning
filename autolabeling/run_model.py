@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     log_ids = config.get("log_ids")
     ls_project_ids = config.get("ls_project_ids")
+    """
     if log_ids and ls_project_ids:
         print(
             "Both 'log_ids' and 'ls_project_id' are present in the config. Defaulting to 'log_ids'."
@@ -52,13 +53,9 @@ if __name__ == "__main__":
         for event_id in event_ids:
             log_ids += get_log_ids_per_event(event_id)
 
-    run_name = config.get("mlflow_run_name")
-    model = config.get("model")
-    num_images = config.get("num_images")
-
-    if camera is None:
-        print("The camera is not set.\nSet with option -c, --camera TOP/BOTTOM")
-        sys.exit()
+    """
+    model = "/home/stella/robocup/naoth-deeplearning/autolabeling/runs/Nao/TOP/2026-05-25_20-37-34_n/autolabel_model/weights/best.pt"
+    num_images = 50
 
     if model is None:
         try:
@@ -147,11 +144,16 @@ if __name__ == "__main__":
         project_ids_to_process = (
             [ls_project_ids] if isinstance(ls_project_ids, int) else ls_project_ids
         )
-
+    
+    #FIXME improve logic, auto annotations should only ever be run on either videos or projects
+    # FIXME its wrong to query unlabeled tasks first, we first need to filter image, then we can have a blur filter
+    # we also need to filter for classes
+    # TODO: what should we do if there images where one robot is labeled but others are not. We could not filter that out
     unlabeled_tasks = []
     for proj_id in project_ids_to_process:
         print(f"Fetching unlabeled tasks from project {proj_id}...")
         all_tasks = list(client.tasks.list(project=proj_id))
+        # FIXME only works if no annotation of other classes exist already
         unlabeled_tasks.extend([t for t in all_tasks if not t.annotations])
 
     print(
@@ -180,6 +182,7 @@ if __name__ == "__main__":
         if "logs.berlin-united.com" not in image_url:
             image_url = "https://logs.berlin-united.com/" + image_url.lstrip("/")
 
+        # FIXME use download function from tools
         response = requests.get(image_url, timeout=10)
         if response.status_code != 200:
             print(f"Warning: Could not download image for task {task.id}")
