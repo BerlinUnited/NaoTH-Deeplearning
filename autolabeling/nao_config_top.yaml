@@ -1,0 +1,16 @@
+# we use yolo2026 model in different sizes
+mlflow_experiment_name: "Nao-TOP"
+modelsize: "n" # n, m, l, x
+target_class: "Nao"
+camera: "TOP" # BOTTOM or TOP
+
+# check event ids at https://vat.berlin-united.com/api/events/
+event_ids:
+  - 1 # RC24
+  - 2 # GO25
+  - 4 # RC25
+  - 6 # 2026_lab-tests
+  - 10 # GO26
+
+epochs: 8000
+split_ratio: 0.8 # default is 0.8

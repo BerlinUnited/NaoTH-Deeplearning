@@ -14,6 +14,7 @@ variables:
     options:
       - "autolabeling/ball_config_bottom.yaml"
       - "autolabeling/ball_config_top.yaml"
+      - "autolabeling/nao_config_top.yaml"
     description: "Select the configuration file for the training pipeline"
 
 stages:
