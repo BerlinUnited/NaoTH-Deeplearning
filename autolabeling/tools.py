@@ -315,3 +315,33 @@ def get_log_ids_per_game(v_client, game_id):
 def get_log_ids_per_event(v_client, event_id):
     logs = v_client.logs.list(event=event_id)
     return [log.id for log in logs]
+
+def get_image_from_video_timestamp():
+    """
+    TODO implement a function that can get the correct frame for a given timestamp from a log video
+    """
+    pass
+
+def get_labelstudio_users():
+    # TODO implement a function that gets all the users and their id
+    pass
+
+def get_annotations_by_user(l_client, user_id):
+    user_annotations = []
+    existing_projects = l_client.projects.list(title="log")
+    for project in existing_projects:
+        tasks = l_client.tasks.list(project=project.id)
+        for task in tasks:
+            # Check if the task has annotations
+            if 'annotations' in task:
+                for annotation in task['annotations']:
+                    # Check if this specific user was the last one to update it
+                    if annotation.get('updated_by') == user_id:
+                        user_annotations.append({
+                            'task_id': task['id'],
+                            'annotation_id': annotation['id'],
+                            'last_modified': annotation['updated_at'],
+                            'result': annotation['result']  # The actual labels/data
+                        })
+        print(f"Found {len(user_annotations)} annotations last modified by User {user_id}:")
+        user_annotations.clear()
