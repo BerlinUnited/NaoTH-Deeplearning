@@ -1,4 +1,5 @@
 # we use yolo2026 model in different sizes
+mlflow_experiment_name: "FIFA-Mini-Ball-BOTTOM"
 modelsize: "n" # n, m, l, x
 target_class: "Ball"
 camera: "TOP" # BOTTOM or TOP

@@ -1,3 +1,4 @@
+mlflow_experiment_name: "FIFA-Mini-Ball-BOTTOM"
 target_class: "Ball"
 modelsize: "n" # n, m, l, x
 camera: "BOTTOM" # BOTTOM or TOP

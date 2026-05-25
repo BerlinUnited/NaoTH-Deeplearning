@@ -61,6 +61,7 @@ if __name__ == "__main__":
     ls_project_ids = config.get("ls_project_ids")
     split_ratio = config.get("split_ratio", 0.8)
     seed = config.get("seed", random.randint(1, 1000000))
+    mlflow_experiment_name = config.get("mlflow_experiment_name")
 
     """
     Init API's
@@ -120,14 +121,14 @@ if __name__ == "__main__":
     Train Yolo Model
     """
     mlflow.set_tracking_uri("https://mlflow.berlin-united.com/")
-    os.environ["MLFLOW_EXPERIMENT_NAME"] = f"{target_class}-{camera}-classifier-model"
+    os.environ["MLFLOW_EXPERIMENT_NAME"] = mlflow_experiment_name
 
     # Load the YOLO26 model (n=nano, s=small, m=medium, l=large, x=extra-large)
     model = YOLO(f"yolo26{modelsize}.pt")
     log_callback = partial(log_custom_data, filename=dataset_file_name)
     model.add_callback("on_train_end", log_callback)
 
-    mlflow.set_experiment(f"{target_class}-{camera}-classifier-model")
+    mlflow.set_experiment(mlflow_experiment_name)
 
     mlflow.log_param("target_class", target_class)
     mlflow.log_param("user", os.environ.get("MLFLOW_USER"))
