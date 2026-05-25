@@ -1,6 +1,5 @@
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-from vaapi.client import Vaapi
+from urllib3.util import Retry
 from pathlib import Path
 from typing import List
 import requests
@@ -10,20 +9,40 @@ import json
 import os
 
 
-def get_secure_session():
+def download_image(url):
     session = requests.Session()
-
-    # Definiere die Retry-Strategie
-    retry_strategy = Retry(
-        total=5,  # Maximal 5 Versuche
-        backoff_factor=1,  # Warte 1s, dann 2s, 4s, 8s...
-        status_forcelist=[429, 500, 502, 503, 504],  # Bei diesen Fehlern neu versuchen
+    
+    # 1. Define your retry strategy
+    retries = Retry(
+        total=5,                # Total number of retries before giving up
+        backoff_factor=1,       # Wait: 1s, 2s, 4s, 8s, 16s between retries
+        status_forcelist=[429, 500, 502, 503, 504], # Trigger retry on these codes
+        raise_on_status=False   # Returns the response instead of raising an exception after final failure
     )
-
-    adapter = HTTPAdapter(max_retries=retry_strategy)
+    
+    # 2. Mount the adapter to the session
+    adapter = HTTPAdapter(max_retries=retries)
     session.mount("http://", adapter)
     session.mount("https://", adapter)
-    return session
+    
+    # 3. Add a User-Agent header (Crucial to avoid 403/429 errors)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    try:
+        # 4. Make the request
+        img_response = session.get(url, headers=headers, timeout=10)
+        
+        if img_response.status_code == 200:
+            return img_response
+        else:
+            print(f"Failed to download. Status code: {img_response.status_code}")
+            return None
+            
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
 
 
 def create_dataset_json(
@@ -108,7 +127,7 @@ def create_dataset_json(
                             }
                         )
                 except Exception as e:
-                    print(f"Failed to fetch Task {task_id}: {e}")
+                    print(f"Failed to fetch Annotations for {img_url}: {e}")
 
     elif ls_project_ids:
         print(f"Fetching tasks directly from Label Studio Projects: {ls_project_ids}")
@@ -209,8 +228,8 @@ def create_local_yolo_ds(dataset_file: str, run_path: str, target_class: str) ->
 
         try:
             # 2. Download the image
-            img_response = requests.get(url, timeout=10)
-            if img_response.status_code == 200:
+            img_response = download_image(url)
+            if img_response:
                 img_path = os.path.join(
                     output_path, f"images/{subset}/{filename}{img_ext}"
                 )
