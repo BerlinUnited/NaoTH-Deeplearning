@@ -91,33 +91,17 @@ def create_dataset_json(
         return image.frame.frame_number
 
     if log_ids:
-        task_dict = {}
-        project_id = 0
         for log_id in log_ids:
             image_obj_list = v_client.image.list(
                 log=log_id, camera=camera, has_annotations=True
             )
             for img_obj in sorted(image_obj_list, key=sort_key_fn):
-                new_project_id = int(
-                    img_obj.labelstudio_url.split("/projects/")[1].split("/")[0]
-                )
-                # only fetch the list of tasks the first time its needed
-                if not project_id == new_project_id:
-                    project_id = new_project_id
-                    all_tasks = l_client.tasks.list(project=project_id)
-                    task_dict = {str(task.id): task for task in all_tasks}
-
                 img_url = "https://logs.berlin-united.com/" + img_obj.image_url
-                task_id = img_obj.labelstudio_url.split("=")[-1]
 
-                try:
-                    task = task_dict.get(task_id)
-                    if not task:
-                        continue
-                    annotations = task.annotations
-                    if annotations:
-                        bbox_data = annotations[0].get("result", [])
-                        yolo_results = convert_to_yolo(bbox_data, {target_class: 0})
+                if img_obj.annotation:
+                    yolo_results = convert_to_yolo(img_obj.annotation, {target_class: 0})
+                    # FIXME that includes all images that do have labels regardless of class
+                    if yolo_results:
                         dataset["images"].append(
                             {
                                 "frame_number": f"{int(img_obj.frame.frame_number):07d}",
@@ -126,8 +110,6 @@ def create_dataset_json(
                                 "annotations": yolo_results,
                             }
                         )
-                except Exception as e:
-                    print(f"Failed to fetch Annotations for {img_url}: {e}")
 
     elif ls_project_ids:
         print(f"Fetching tasks directly from Label Studio Projects: {ls_project_ids}")
@@ -285,11 +267,17 @@ def convert_to_yolo(bbox_data, class_map) -> List:
     yolo_lines = []
 
     for item in bbox_data:
+        # ignore non bounding box style annotations for now
+        # FIXME build something better that can deal with polygons and keypoints
+        if item["type"] != "rectanglelabels":
+            continue
         val = item["value"]
 
         # 1. Get the class ID from the label list
         label_name = val["rectanglelabels"][0]
+
         if label_name not in class_map:  # skip if no known label
+
             continue
         class_id = class_map.get(label_name, 0)  # Defaults to 0 if not found
 
