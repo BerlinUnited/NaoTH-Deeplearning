@@ -141,6 +141,7 @@ if __name__ == "__main__":
                 if proj_id not in project_ids_to_process:
                     project_ids_to_process.append(proj_id)
     else:
+        # FIXME we need to differentiate between data for training and what we use for labeling
         project_ids_to_process = (
             [ls_project_ids] if isinstance(ls_project_ids, int) else ls_project_ids
         )
