@@ -1,0 +1,12 @@
+mlflow_experiment_name: "FIFA-Mini-Ball-Booster"
+target_class: "Ball"
+modelsize: "n" # n, m, l, x
+camera: "Booster" # BOTTOM or TOP
+
+# optional
+ls_project_ids:
+  - 13066 # https://labelstudio.berlin-united.com/projects/13066/data?tab=13067
+  - 13067 # https://labelstudio.berlin-united.com/projects/13067/data?tab=13068
+
+epochs: 8000
+split_ratio: 0.8 # default is 0.8
