@@ -140,12 +140,15 @@ if __name__ == "__main__":
     results = model.train(
         data=f"{run_path}/dataset.yaml",
         epochs=epochs,
-        imgsz=640,
+        # FIXME make this a config var
+        imgsz=[544, 448], # super important to get this right
         optimizer="MuSGD",
         batch=-1,  # Auto-determines best batch size for your GPU
         project=target_project,
         name=target_name,
         exist_ok=True,
+        scale=0.2, degrees=0.0,
+        box=10,
     )
 
     print("\nTraining complete.")
