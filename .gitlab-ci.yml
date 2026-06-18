@@ -22,8 +22,6 @@ stages:
   - deploy
 
 run_training:
-  tags:
-    - ball_server
   stage: deploy
   image: alpine:latest
   before_script:
