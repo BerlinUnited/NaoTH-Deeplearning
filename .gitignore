@@ -10006,3 +10006,15 @@ patchGeneration_GO26/non_ball_patches_TOP_GO26/687_28772660_neg2.jpg
 patchGeneration_GO26/non_ball_patches_TOP_GO26/687_28772661_neg0.jpg
 patchGeneration_GO26/non_ball_patches_TOP_GO26/687_28772661_neg1.jpg
 patchGeneration_GO26/non_ball_patches_TOP_GO26/687_28772661_neg2.jpg
+labelstudio/tools/env.sh
+nao-balldetection/config.toml
+nao-balldetection/history_mbc_36ksm_finetuned_crop_BOTTOM_GO26_brigth1.3.pkl
+nao-balldetection/history_mbc_36ksm_finetuned_crop_BOTTOM_GO26_notlimited_brigth1.3.pkl
+nao-balldetection/history_mbc_36ksm_finetuned_crop_BOTTOM_GO26.pkl
+nao-balldetection/mbc_36ksm_finetuned_crop_BOTTOM_GO26_brigth1.3_bright1.3.h5
+nao-balldetection/mbc_36ksm_finetuned_crop_BOTTOM_GO26_notlimited_brigth1.3_notlimited_brigth1.3.h5
+nao-balldetection/mbc_36ksm_finetuned_crop_BOTTOM_GO26.h5
+nao-balldetection/plots.py
+nao-balldetection/pyproject.toml
+nao-balldetection/test.sh
+nao-balldetection/uv.lock
