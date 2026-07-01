@@ -16,13 +16,21 @@ variables:
       - "autolabeling/ball_config_top.yaml"
       - "autolabeling/nao_config_top.yaml"
       - "autolabeling/ball_config_booster.yaml"
+      - "nao_ball_bottom"
+      - "nao_ball_top"
     description: "Select the configuration file for the training pipeline"
 
 stages:
   - deploy
+  - train
 
 run_training:
-  stage: deploy
+  stage: train
+  rules:
+    - if: $TRAIN_CONFIG == "autolabeling/ball_config_bottom.yaml"
+    - if: $TRAIN_CONFIG == "autolabeling/ball_config_top.yaml"
+    - if: $TRAIN_CONFIG == "autolabeling/nao_config_top.yaml"
+    - if: $TRAIN_CONFIG == "autolabeling/ball_config_booster.yaml"
   image: alpine:latest
   before_script:
     - apk add --no-cache openssh-client rsync
@@ -57,3 +65,15 @@ run_training:
 
       python autolabeling/trainings_pipeline.py -c $TRAIN_CONFIG
       EOF"
+
+run_nao_ball_training:
+  stage: train
+  rules:
+    - if: $TRAIN_CONFIG == "nao_ball_bottom"
+  script:
+    - apt-get update && apt-get install -y --no-install-recommends wget curl ca-certificates
+    - wget https://astral.sh/uv/install.sh
+    - sh install.sh && rm install.sh
+    - source $HOME/.local/bin/env
+    - cd nao-balldetection
+    - uv sync
