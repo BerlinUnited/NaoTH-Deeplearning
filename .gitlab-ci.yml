@@ -71,4 +71,9 @@ run_nao_ball_training:
   rules:
     - if: $TRAIN_CONFIG == "nao_ball_bottom"
   script:
-    - echo "Hello World"
+    - apt-get update && apt-get install -y --no-install-recommends wget curl ca-certificates
+    - wget https://astral.sh/uv/install.sh
+    - sh install.sh && rm install.sh
+    - source $HOME/.local/bin/env
+    - cd nao-balldetection
+    - uv sync
