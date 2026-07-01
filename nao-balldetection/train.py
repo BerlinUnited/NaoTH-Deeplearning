@@ -94,6 +94,7 @@ def main(config_name):
         loss=WeightedBinaryCrossentropy(
             weights=[1.0, 10.0],
         ),
+        #loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
     data_file = str(DATA_DIR / "BOTTOM_GO2026.pkl")
@@ -102,6 +103,10 @@ def main(config_name):
         x = pickle.load(f)  # x are all input images
         y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
 
+    print(y[:10])
+    y_one_hot = keras.utils.to_categorical(y, num_classes=2)
+    print(y_one_hot[:10])
+    #quit()
     """ 
         The save callback will overwrite the previous models if the new model is better then the last. Restarting the 
         training will always overwrite the models.
@@ -121,7 +126,7 @@ def main(config_name):
     # history = model.fit(x, y, batch_size=args.batch_size, epochs=args.epochs, verbose=1,
     # validation_data=(X_test, Y_test),callbacks=callbacks)
 
-    history = model.fit(x, y, batch_size=batch_size, epochs=epochs, verbose=1,
+    history = model.fit(x, y_one_hot, batch_size=batch_size, epochs=epochs, verbose=1,
                         validation_split=0.1,
                         callbacks=callbacks)
     history_filename = "history_" + model.name + "_" + Path(data_file).stem + ".pkl"
