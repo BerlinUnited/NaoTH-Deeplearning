@@ -16,10 +16,13 @@ variables:
       - "autolabeling/ball_config_top.yaml"
       - "autolabeling/nao_config_top.yaml"
       - "autolabeling/ball_config_booster.yaml"
+      - "nao_ball_bottom"
+      - "nao_ball_top"
     description: "Select the configuration file for the training pipeline"
 
 stages:
   - deploy
+  - train
 
 run_training:
   stage: deploy
@@ -57,3 +60,10 @@ run_training:
 
       python autolabeling/trainings_pipeline.py -c $TRAIN_CONFIG
       EOF"
+
+run_nao_ball_training:
+  stage: train
+  rules:
+    - if: $TRAIN_CONFIG == "nao_ball_bottom"
+  script:
+    - echo "Hello World"
