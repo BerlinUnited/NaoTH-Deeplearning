@@ -17,7 +17,6 @@ def adjust_gamma(image, gamma=1.0):
                       for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(image, table)
 
-
 def create_natural_classification_dataset(path, res):
     print("Loading images from " + path + " ...")
     db_balls = []
@@ -32,7 +31,10 @@ def create_natural_classification_dataset(path, res):
             #print(image_path)
             img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
             img = cv2.resize(img, (res["x"], res["y"]))
-            img = img * 1.3
+            
+            # make the image a bit brighter to compensate for the dark images in the dataset
+            #img = img * 1.3
+
             img_normalized = img.astype(float) / 255.0
 
             target = np.array([0.0])
@@ -44,13 +46,16 @@ def create_natural_classification_dataset(path, res):
             #print(image_path)
             img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
             img = cv2.resize(img, (res["x"], res["y"]))
+
+            # make the image a bit brighter to compensate for the dark images in the dataset
+            #img = img * 1.3
+
             img_normalized = img.astype(float) / 255.0
 
             target = np.array([1.0])
             db_balls.append((img_normalized, target, image_path))
 
     return db_balls, db_noballs
-
 
 def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detection"):
     #print("Looking for csv files in: ", root_path)
@@ -103,10 +108,8 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
 
     return input_images, targets, file_paths
 
-
 def calculate_mean(images):
     return np.mean(images)
-
 
 def subtract_mean(images, mean):
     return images - mean

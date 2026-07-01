@@ -86,7 +86,7 @@ class WeightedBinaryCrossentropy:
     def from_config(cls, config):
         return cls(**config)
 
-def main(config_name):
+def main(pkl_data_file, output_path):
 
     model = mbc_36ksm_finetuned_crop()
     model.compile(
@@ -97,7 +97,7 @@ def main(config_name):
         #loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-    data_file = str(DATA_DIR / "BOTTOM_GO2026.pkl")
+    data_file = str(DATA_DIR /pkl_data_file)
     with open(data_file, "rb") as f:
         pickle.load(f)  # skip mean
         x = pickle.load(f)  # x are all input images
@@ -112,7 +112,7 @@ def main(config_name):
         training will always overwrite the models.
     """
     output_path= "./"
-    filepath = Path(output_path) / (model.name + "_" + Path(data_file).stem + ".h5")
+    filepath = Path(output_path) / (model.name + "_" + Path(data_file).stem + "_notlimited_brigth1.3.h5")
     save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='loss', verbose=1,
                                                        save_best_only=True, mode='max')
 
@@ -140,5 +140,5 @@ def main(config_name):
 
 
 if __name__ == '__main__':
-    main("stella_config")
+    main(pkl_data_file="BOTTOM_GO26_notlimited_brigth1.3.pkl", output_path="./")
 
