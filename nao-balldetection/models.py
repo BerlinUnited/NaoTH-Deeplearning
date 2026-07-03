@@ -56,7 +56,7 @@ def rc26_classification_color_32():
 
     model.add(layers.Conv2D(
         filters=16, kernel_size=(5, 5), strides=(1, 1), 
-        padding='same', activation='relu', input_shape=(32, 32, 2), name="layer_1"
+        padding='same', activation='relu', input_shape=(32, 32, 3), name="layer_1"
     ))
 
     model.add(layers.Conv2D(

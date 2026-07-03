@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "classification")
     mean = calculate_mean(x)
-    x = subtract_mean(x, mean)
+    
 
     print("save classification dataset with natural images")
     output_name = str(DATA_DIR / f'{Path(args.img_path).name}.pkl')

@@ -31,16 +31,17 @@ def yuv888_bytes_to_yuv422_array(yuv888_bytes, width, height):
 def load_image_as_yuv422_pil(image_filename) -> np.ndarray:
     im = PIL_Image.open(image_filename)
     ycbcr = im.convert("YCbCr")
-    width, height = ycbcr.size
+    #width, height = ycbcr.size
 
-    yuv422 = yuv888_bytes_to_yuv422_array(ycbcr.tobytes(), width=width, height=height)
+    #yuv422 = yuv888_bytes_to_yuv422_array(ycbcr.tobytes(), width=width, height=height)
 
     # cv2 size is (height, width)
     # Pillow size is (width, height)
     # we need to ensure consistent output shapes for all image loading functions
-    yuv422 = yuv422.reshape(height, width, 2)
-
-    return yuv422
+    #test = ycbcr.reshape(height, width, 3)
+    #print(np.asarray(ycbcr).shape)
+    #quit()
+    return np.asarray(ycbcr)
 
 
 def create_natural_classification_dataset(path, res):
@@ -126,7 +127,7 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
     input_images, targets, file_paths = list(map(np.array, list(zip(*db))))
 
     # expand dimensions of the input images for use with tensorflow
-    input_images = input_images.reshape(*input_images.shape, 1)
+    #input_images = input_images.reshape(*input_images.shape, 1)
 
     print("Loading finished")
     print("\nStatistic:")
@@ -137,6 +138,10 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
 
 
 def calculate_mean(images):
+    print(images.shape)
+    if images.shape[3] == 3:
+        return np.mean(images, axis=(0, 1, 2))
+
     return np.mean(images)
 
 

@@ -3,6 +3,7 @@ from datetime import datetime
 from inspect import isclass, isfunction
 from pathlib import Path
 from sys import exit
+from loader import subtract_mean
 
 # TODO encode dataset into output model name
 import tensorflow as tf
@@ -99,7 +100,7 @@ def main(config_name):
     )
     data_file = str(DATA_DIR / "training.pkl")
     with open(data_file, "rb") as f:
-        pickle.load(f)  # skip mean
+        mean = pickle.load(f) 
         x = pickle.load(f)  # x are all input images
         y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
 
@@ -112,6 +113,9 @@ def main(config_name):
         val_x = pickle.load(f)  # x are all input images
         val_y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
     val_y_one_hot = keras.utils.to_categorical(val_y, num_classes=2)
+
+    x = subtract_mean(x, mean)
+    val_x = subtract_mean(val_x, mean)
 
     """ 
         The save callback will overwrite the previous models if the new model is better then the last. Restarting the 
