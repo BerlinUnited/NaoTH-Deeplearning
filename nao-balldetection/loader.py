@@ -6,7 +6,7 @@ import sys
 from glob import glob
 from os.path import relpath
 from pathlib import Path
-
+from PIL import Image as PIL_Image
 import cv2
 import numpy as np
 
@@ -17,6 +17,31 @@ def adjust_gamma(image, gamma=1.0):
                       for i in np.arange(0, 256)]).astype("uint8")
     return cv2.LUT(image, table)
 
+def yuv888_bytes_to_yuv422_array(yuv888_bytes, width, height):
+    yuv422 = np.ndarray(width * height * 2, np.uint8)
+
+    for i in range(0, width * height, 2):
+        yuv422[i * 2] = yuv888_bytes[i * 3]
+        yuv422[i * 2 + 1] = (yuv888_bytes[i * 3 + 1] + yuv888_bytes[i * 3 + 4]) / 2.0
+        yuv422[i * 2 + 2] = yuv888_bytes[i * 3 + 3]
+        yuv422[i * 2 + 3] = (yuv888_bytes[i * 3 + 2] + yuv888_bytes[i * 3 + 5]) / 2.0
+
+    return yuv422
+
+def load_image_as_yuv422_pil(image_filename) -> np.ndarray:
+    im = PIL_Image.open(image_filename)
+    ycbcr = im.convert("YCbCr")
+    width, height = ycbcr.size
+
+    yuv422 = yuv888_bytes_to_yuv422_array(ycbcr.tobytes(), width=width, height=height)
+
+    # cv2 size is (height, width)
+    # Pillow size is (width, height)
+    # we need to ensure consistent output shapes for all image loading functions
+    yuv422 = yuv422.reshape(height, width, 2)
+
+    return yuv422
+
 
 def create_natural_classification_dataset(path, res):
     print("Loading images from " + path + " ...")
@@ -26,30 +51,37 @@ def create_natural_classification_dataset(path, res):
     image_extensions = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff"}
     
     # load non ball images
-    image_dir = Path(path) / "0"
+    image_dir = Path(path) / "0.00"
     for image_path in image_dir.iterdir():
         if image_path.is_file() and image_path.suffix.lower() in image_extensions:
             #print(image_path)
-            img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-            img = cv2.resize(img, (res["x"], res["y"]))
-            img = img * 1.3
+            img = load_image_as_yuv422_pil(image_path)
             img_normalized = img.astype(float) / 255.0
+    
+            #img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            #img = cv2.resize(img, (res["x"], res["y"]))
+            #img = img * 1.3
+            #img_normalized = img.astype(float) / 255.0
 
             target = np.array([0.0])
             db_noballs.append((img_normalized, target, image_path))
     
-    image_dir = Path(path) / "1"
+    image_dir = Path(path) / "1.00"
     for image_path in image_dir.iterdir():
         if image_path.is_file() and image_path.suffix.lower() in image_extensions:
             #print(image_path)
-            img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-            img = cv2.resize(img, (res["x"], res["y"]))
+            img = load_image_as_yuv422_pil(image_path)
             img_normalized = img.astype(float) / 255.0
+            #img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            #img = cv2.resize(img, (res["x"], res["y"]))
+            #img_normalized = img.astype(float) / 255.0
 
             target = np.array([1.0])
             db_balls.append((img_normalized, target, image_path))
 
     return db_balls, db_noballs
+
+
 
 
 def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detection"):

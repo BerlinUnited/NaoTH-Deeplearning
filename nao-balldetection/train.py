@@ -10,7 +10,7 @@ import tensorflow as tf
 from tensorflow import keras as keras
 
 
-from models import mbc_36ksm_finetuned_crop
+from models import mbc_36ksm_finetuned_crop, rc26_classification_color_32
 
 DATA_DIR = Path(Path(__file__).parent.absolute() / "data").resolve()
 batch_size = 256
@@ -88,7 +88,7 @@ class WeightedBinaryCrossentropy:
 
 def main(config_name):
 
-    model = mbc_36ksm_finetuned_crop()
+    model = rc26_classification_color_32()
     model.compile(
         optimizer=keras.optimizers.Adam(learning_rate=0.0001),
         loss=WeightedBinaryCrossentropy(
@@ -97,37 +97,48 @@ def main(config_name):
         #loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-    data_file = str(DATA_DIR / "BOTTOM_GO2026.pkl")
+    data_file = str(DATA_DIR / "training.pkl")
     with open(data_file, "rb") as f:
         pickle.load(f)  # skip mean
         x = pickle.load(f)  # x are all input images
         y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
 
-    print(y[:10])
     y_one_hot = keras.utils.to_categorical(y, num_classes=2)
-    print(y_one_hot[:10])
-    #quit()
+
+    # load validation data
+    val_data_file = str(DATA_DIR / "validation.pkl")
+    with open(val_data_file, "rb") as f:
+        pickle.load(f)  # skip mean
+        val_x = pickle.load(f)  # x are all input images
+        val_y = pickle.load(f)  # y are the trainings target: [r, x,y,1]
+    val_y_one_hot = keras.utils.to_categorical(val_y, num_classes=2)
+
     """ 
         The save callback will overwrite the previous models if the new model is better then the last. Restarting the 
         training will always overwrite the models.
     """
     output_path= "./"
     filepath = Path(output_path) / (model.name + "_" + Path(data_file).stem + ".h5")
-    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='loss', verbose=1,
-                                                       save_best_only=True, mode='max')
+    save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(filepath), monitor='val_loss', verbose=1, save_best_only=True)
 
     log_path = Path(output_path) / "logs" / (
             model.name + "_" + str(datetime.now()).replace(" ", "_").replace(":", "-"))
     log_callback = keras.callbacks.TensorBoard(log_dir=log_path, profile_batch=0)
+    early_stop_callback = tf.keras.callbacks.EarlyStopping(
+        monitor="val_loss",
+        patience=10,
+        restore_best_weights=True,
+        verbose=1,
+    )
 
-    callbacks = [save_callback, log_callback]
+    callbacks = [save_callback, log_callback, early_stop_callback]
 
     # TODO prepare an extra validation set, that is consistent over multiple runs
     # history = model.fit(x, y, batch_size=args.batch_size, epochs=args.epochs, verbose=1,
     # validation_data=(X_test, Y_test),callbacks=callbacks)
 
     history = model.fit(x, y_one_hot, batch_size=batch_size, epochs=epochs, verbose=1,
-                        validation_split=0.1,
+                        validation_data=(val_x, val_y_one_hot),
                         callbacks=callbacks)
     history_filename = "history_" + model.name + "_" + Path(data_file).stem + ".pkl"
 
