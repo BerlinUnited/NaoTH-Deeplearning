@@ -21,3 +21,18 @@ patch_detection/models/
 
 # ignore mlflow/ultralytics stuff
 runs/
+*.jpg
+labelstudio/tools/env.sh
+nao-balldetection/config.toml
+*.pkl
+*.h5
+*.json
+*.v2
+nao-balldetection/plots.py
+nao-balldetection/pyproject.toml
+nao-balldetection/test.sh
+nao-balldetection/uv.lock
+patchGeneration_GO26/env.sh
+nao-balldetection/pyproject.toml
+nao-balldetection/test.sh
+nao-balldetection/uv.lock

@@ -8,4 +8,5 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "pillow>=12.3.0",
     "tensorflow==2.15.1",
+    "vaapi>=0.7.50",
 ]

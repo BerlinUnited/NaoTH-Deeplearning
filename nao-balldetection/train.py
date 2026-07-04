@@ -87,7 +87,7 @@ class WeightedBinaryCrossentropy:
     def from_config(cls, config):
         return cls(**config)
 
-def main(config_name):
+def main(pkl_data_file, output_path):
 
     model = rc26_classification_color_32()
     model.compile(
@@ -98,7 +98,7 @@ def main(config_name):
         #loss=keras.losses.CategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-    data_file = str(DATA_DIR / "training.pkl")
+    data_file = str(DATA_DIR /pkl_data_file)
     with open(data_file, "rb") as f:
         mean = pickle.load(f) 
         x = pickle.load(f)  # x are all input images
@@ -155,5 +155,5 @@ def main(config_name):
 
 
 if __name__ == '__main__':
-    main("stella_config")
+    main(pkl_data_file="BOTTOM_GO26_notlimited_brigth1.3.pkl", output_path="./")
 

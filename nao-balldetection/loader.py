@@ -82,9 +82,6 @@ def create_natural_classification_dataset(path, res):
 
     return db_balls, db_noballs
 
-
-
-
 def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detection"):
     #print("Looking for csv files in: ", root_path)
     complete_db_ball_list = []
@@ -136,14 +133,12 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
 
     return input_images, targets, file_paths
 
-
 def calculate_mean(images):
     print(images.shape)
     if images.shape[3] == 3:
         return np.mean(images, axis=(0, 1, 2))
 
     return np.mean(images)
-
 
 def subtract_mean(images, mean):
     return images - mean
