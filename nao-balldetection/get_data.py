@@ -50,11 +50,19 @@ def get_naodevils_data(output_dir=Path("data/naodevils")):
 
 # our labels
 def get_patch_data_from_vat_server():
-    download_annotated_ball_images_labelstudio(
-        output_dir=Path("data/ball_images/TOP"), event_id=10, camera="TOP"
+    # download_annotated_ball_images_labelstudio(
+    #     output_dir=Path("data/ball_images/TOP"), event_id=10, camera="TOP"
+    # )
+    # download_annotated_ball_images_labelstudio(
+    #     output_dir=Path("data/ball_images/BOTTOM"), event_id=10, camera="BOTTOM"
+    # )
+    create_ball_patches(
+        input_dir=Path("./data/ball_images/TOP"),
+        output_dir=Path("./data/ball_patches/TOP"),
     )
-    download_annotated_ball_images_labelstudio(
-        output_dir=Path("data/ball_images/BOTTOM"), event_id=10, camera="BOTTOM"
+    create_ball_patches(
+        input_dir=Path("./data/ball_images/BOTTOM"),
+        output_dir=Path("./data/ball_patches/BOTTOM"),
     )
 
 
