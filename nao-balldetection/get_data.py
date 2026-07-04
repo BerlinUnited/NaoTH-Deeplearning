@@ -98,5 +98,5 @@ def get_patch_data_from_vat_server():
 
 
 if __name__ == "__main__":
-    # get_naodevils_data()
+    get_naodevils_data()
     get_patch_data_from_vat_server()
