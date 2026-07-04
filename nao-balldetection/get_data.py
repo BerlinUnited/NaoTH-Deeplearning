@@ -15,6 +15,7 @@ import requests
 
 from get_data_labelstudio import download_annotated_ball_images_labelstudio
 from create_ball_patches import create_ball_patches
+from create_non_ball_patches import create_non_ball_patches
 
 
 # naodevils labels
@@ -56,13 +57,21 @@ def get_patch_data_from_vat_server():
     # download_annotated_ball_images_labelstudio(
     #     output_dir=Path("data/ball_images/BOTTOM"), event_id=10, camera="BOTTOM"
     # )
-    create_ball_patches(
+    # create_ball_patches(
+    #     input_dir=Path("./data/ball_images/TOP"),
+    #     output_dir=Path("./data/ball_patches/TOP"),
+    # )
+    # create_ball_patches(
+    #     input_dir=Path("./data/ball_images/BOTTOM"),
+    #     output_dir=Path("./data/ball_patches/BOTTOM"),
+    # )
+    create_non_ball_patches(
         input_dir=Path("./data/ball_images/TOP"),
-        output_dir=Path("./data/ball_patches/TOP"),
+        output_dir=Path("./data/non_ball_patches/TOP"),
     )
-    create_ball_patches(
+    create_non_ball_patches(
         input_dir=Path("./data/ball_images/BOTTOM"),
-        output_dir=Path("./data/ball_patches/BOTTOM"),
+        output_dir=Path("./data/non_ball_patches/BOTTOM"),
     )
 
 
