@@ -5,9 +5,7 @@ import os
 from pathlib import Path
 import requests
 
-from get_data_labelstudio import download_annotated_ball_images_labelstudio
-from create_ball_patches import create_ball_patches
-from create_non_ball_patches import create_non_ball_patches
+from create_ball_patches import create_ball_patches, download_annotated_ball_images_labelstudio, create_non_ball_patches
 
 
 # naodevils labels
@@ -80,12 +78,12 @@ def get_patch_data_from_vat_server():
     #     output_dir=Path("./data/non_ball_patches/BOTTOM"),
     # )
 
-    # download_annotated_ball_images_labelstudio(
-    #     output_dir=Path("data/ball_images/"), event_id=10, camera="TOP"
-    # )
-    # download_annotated_ball_images_labelstudio(
-    #     output_dir=Path("data/ball_images/"), event_id=10, camera="BOTTOM"
-    # )
+    download_annotated_ball_images_labelstudio(
+         output_dir=Path("data/ball_images/"), event_id=10, camera="TOP"
+    )
+    download_annotated_ball_images_labelstudio(
+        output_dir=Path("data/ball_images/"), event_id=10, camera="BOTTOM"
+    )
 
     create_ball_patches(
         input_dir=Path("./data/ball_images/"),
@@ -98,5 +96,5 @@ def get_patch_data_from_vat_server():
 
 
 if __name__ == "__main__":
-    get_naodevils_data()
+    #get_naodevils_data()
     get_patch_data_from_vat_server()
