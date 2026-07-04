@@ -1,5 +1,5 @@
 # Balldetection for Nao v6
-See the naoth-2020 repo for details (model inspiration).
+See the naoth-2020 repo for details (model: mbc_36ksm_finetuned_crop as classifier and mbd_gopen_56k as detector).
 
 
 # generate dataset
@@ -13,3 +13,6 @@ TODO:
 
 # train
 uv run train.py
+
+TODO: 
+- Add more information in README.md
