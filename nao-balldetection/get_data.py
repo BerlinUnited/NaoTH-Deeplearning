@@ -14,17 +14,14 @@ from pathlib import Path
 import requests
 
 from get_data_labelstudio import download_annotated_ball_images_labelstudio
-
-BASE_DIR = Path("./data")
-FOLDER_PREFIX = "labeled_ball_images"
-EVENT_ID = 10
+from create_ball_patches import create_ball_patches
 
 
 # naodevils labels
-def get_naodevils_data():
+def get_naodevils_data(output_dir=Path("data/naodevils")):
     url = "https://datasets.berlin-united.com/2026_07_02_patches_ruhrbot_devils.zip"
-    output_path = BASE_DIR / "2026_07_02_patches_ruhrbot_devils.zip"
-    extraction_path = BASE_DIR / "naodevils_data"
+    output_path = output_dir / Path(f"2026_07_02_patches_ruhrbot_devils.zip")
+    extraction_path = output_dir / Path(f"naodevils_data")
 
     if os.path.exists(output_path):
         print(f"'{output_path}' already exists. Skipping download.")
@@ -39,7 +36,7 @@ def get_naodevils_data():
             print("Download complete!")
         else:
             print(f"Failed to download. Status code: {response.status_code}")
-            return  # Exit the function early if the download failed
+            return
 
     # 2. Unzip the data
     print("Extracting data...")
@@ -53,9 +50,14 @@ def get_naodevils_data():
 
 # our labels
 def get_patch_data_from_vat_server():
-    download_annotated_ball_images_labelstudio(BASE_DIR, FOLDER_PREFIX, EVENT_ID)
+    download_annotated_ball_images_labelstudio(
+        output_dir=Path("data/ball_images/TOP"), event_id=10, camera="TOP"
+    )
+    download_annotated_ball_images_labelstudio(
+        output_dir=Path("data/ball_images/BOTTOM"), event_id=10, camera="BOTTOM"
+    )
 
 
 if __name__ == "__main__":
-    get_naodevils_data()
+    # get_naodevils_data()
     get_patch_data_from_vat_server()

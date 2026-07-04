@@ -59,7 +59,7 @@ def extract_project_id(labelstudio_url: str) -> str:
     return labelstudio_url.split("/projects/")[1].split("/")[0]
 
 
-def download_annotated_ball_images_labelstudio(base_dir, folder_prefix, event_id):
+def download_annotated_ball_images_labelstudio(output_dir, event_id, camera):
     """
     Download all images that have been annotated with a ball in Label Studio and save them in the configured folder.
     Save the corresponding annotations in JSON format alongside the images.
@@ -70,50 +70,46 @@ def download_annotated_ball_images_labelstudio(base_dir, folder_prefix, event_id
     )
     logs = v_client.logs.list(event=event_id)
 
-    cameras = ["TOP", "BOTTOM"]
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    for camera in cameras:
-        output_dir = base_dir / f"{folder_prefix}_{camera}"
-        output_dir.mkdir(parents=True, exist_ok=True)
+    for log in logs:
+        numeric_log_id = str(log).split(" ")[0]
+        print(f"\nProcessing log {numeric_log_id} for camera {camera}...")
 
-        for log in logs:
-            numeric_log_id = str(log).split(" ")[0]
-            print(f"\nProcessing log {numeric_log_id} for camera {camera}...")
+        image_obj_list = v_client.image.list(
+            log=numeric_log_id,
+            camera=camera,
+            has_annotations=True,
+        )
 
-            image_obj_list = v_client.image.list(
-                log=numeric_log_id,
-                camera=camera,
-                has_annotations=True,
+        for img_obj in image_obj_list:
+            frame_id = img_obj.frame.id
+            frame_number = img_obj.frame.frame_number
+            annotations = getattr(img_obj, "annotation", None) or []
+
+            ls_url = getattr(img_obj, "labelstudio_url", "")
+
+            rectangle_labels = extract_labels(
+                annotations,
+                annotation_type="rectanglelabels",
             )
 
-            for img_obj in image_obj_list:
-                frame_id = img_obj.frame.id
-                frame_number = img_obj.frame.frame_number
-                annotations = getattr(img_obj, "annotation", None) or []
+            if "ball" in rectangle_labels:
+                img_url = "https://logs.berlin-united.com/" + img_obj.image_url
 
-                ls_url = getattr(img_obj, "labelstudio_url", "")
+                project_id = extract_project_id(ls_url)
 
-                rectangle_labels = extract_labels(
-                    annotations,
-                    annotation_type="rectanglelabels",
+                filename_base = (
+                    f"img-{numeric_log_id}-{project_id}-{frame_id}-{frame_number}"
                 )
 
-                if "ball" in rectangle_labels:
-                    img_url = "https://logs.berlin-united.com/" + img_obj.image_url
+                img_path = output_dir / Path(f"{filename_base}.jpg")
+                ann_path = output_dir / Path(f"{filename_base}.json")
 
-                    project_id = extract_project_id(ls_url)
+                success = download_image(img_url, img_path)
 
-                    filename_base = (
-                        f"img-{numeric_log_id}-{project_id}-{frame_id}-{frame_number}"
-                    )
+                if not success:
+                    continue
 
-                    img_path = output_dir / f"{filename_base}.jpg"
-                    ann_path = output_dir / f"{filename_base}.json"
-
-                    success = download_image(img_url, img_path)
-
-                    if not success:
-                        continue
-
-                    with open(ann_path, "w") as f:
-                        json.dump(annotations, f, indent=2)
+                with open(ann_path, "w") as f:
+                    json.dump(annotations, f, indent=2)
