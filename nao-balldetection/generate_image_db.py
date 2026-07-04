@@ -40,110 +40,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate the image database for training etc. '
                                                  'using a folder with 0, 1 etc. subfolders with png images.')
     parser.add_argument('-i', '--image-folder', dest='img_path', help='Path to the CSV file(s) with region annotation.')
-    parser.add_argument('-r', '--resolution', dest='res',
-                        help='Images will be resized to this resolution. Default is 16x16')
     parser.add_argument("-l", "--limit-noball", type=str2bool, nargs='?', dest="limit_noball",
                         const=True, help="Randomly select at most |balls| from no balls class")
-    parser.add_argument("--data_type", dest="data_type",
-                        choices=["classification", "detection", "detection2", "semantic_segmentation"],
-                        default="detection2")
+    parser.add_argument("--data_type", dest="data_type", choices=["classification"], default="classification")
 
     args = parser.parse_args()
 
     # set default values for resolution
-    res = {"x": 16, "y": 16}
-    if args.res is not None:
-        res = {"x": int(args.res), "y": int(args.res)}
+    res = {"x": 32, "y": 32}
 
-    if args.data_type == "classification":
-        x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "classification")
-        mean = calculate_mean(x)
-        x = subtract_mean(x, mean)
+    x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "classification")
+    mean = calculate_mean(x)
+    
 
-        print("save classification dataset with natural images")
-        output_name = str(DATA_DIR / f'{Path(args.img_path).name}.pkl')
-        store_output(output_name, mean, x, y, p)
+    print("save classification dataset with natural images")
+    output_name = str(DATA_DIR / f'{Path(args.img_path).name}.pkl')
+    store_output(output_name, mean, x, y, p)
 
-    if args.data_type == "detection":
-        x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "detection")
-        print("sum:", np.sum(y))
-        mean = calculate_mean(x)
-        x = subtract_mean(x, mean)
-
-        print("save detection dataset with natural images")
-        output_name = str(DATA_DIR / 'tk03_natural_detection.pkl')
-        store_output(output_name, mean, x, y, p)
-
-        path = args.img_path + "/blender"
-        x_syn, y_syn, p_syn = create_blender_detection_dataset(path, res)
-        mean_b = calculate_mean(x_syn)
-        x_syn = subtract_mean(x_syn, mean_b)
-
-        print("save detection dataset with synthetic images")
-        output_name = str(DATA_DIR / 'tk03_synthetic_detection.pkl')
-        store_output(output_name, mean_b, x_syn, y_syn, p_syn)
-
-        # merge the two datasets
-        X = np.concatenate((x, x_syn))
-        Y = np.concatenate((y, y_syn))
-        P = np.concatenate((p, p_syn))
-        mean = calculate_mean(X)
-
-        print("save detection dataset with combined images")
-        output_name = str(DATA_DIR / 'tk03_combined_detection.pkl')
-        store_output(output_name, mean, X, Y, P)
-
-    if args.data_type == "detection2":
-        x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "detection2")
-        print("sum:", np.sum(y))
-        mean = calculate_mean(x)
-        x = subtract_mean(x, mean)
-
-        print("save detection dataset with natural images")
-        output_name = str(DATA_DIR / 'tk03_natural_detection2.pkl')
-        store_output(output_name, mean, x, y, p)
-
-        path = args.img_path + "/blender"
-        x_syn, y_syn, p_syn = create_blender_detection_dataset_without_classification(path, res)
-        mean_b = calculate_mean(x_syn)
-        x_syn = subtract_mean(x_syn, mean_b)
-
-        print("save detection dataset with synthetic images")
-        output_name = str(DATA_DIR / 'tk03_synthetic_detection2.pkl')
-        store_output(output_name, mean_b, x_syn, y_syn, p_syn)
-
-        # merge the two datasets
-        X = np.concatenate((x, x_syn))
-        Y = np.concatenate((y, y_syn))
-        P = np.concatenate((p, p_syn))
-        mean = calculate_mean(X)
-
-        print("save detection dataset with combined images")
-        output_name = str(DATA_DIR / 'tk03_combined_detection2.pkl')
-        store_output(output_name, mean, X, Y, P)
-
-    if args.data_type == "semantic_segmentation":
-        x, y, p = create_natural_dataset(args.img_path, res, args.limit_noball, "segmentation")
-        mean = calculate_mean(x)
-        x = subtract_mean(x, mean)
-
-        print("save segmentation dataset with natural images")
-        output_name = str(DATA_DIR / 'tk03_natural_segmentation.pkl')
-        store_output(output_name, mean, x, y, p)
-
-        path = args.img_path + "/blender"
-        x_syn, y_syn = create_blender_segmentation_dataset(path, res)
-
-        mean_b = calculate_mean(x_syn)
-        x_syn = subtract_mean(x_syn, mean_b)
-        output_name = str(DATA_DIR / 'tk03_synthetic_segmentation.pkl')
-        store_output(output_name, mean_b, x_syn, y_syn)
-
-        # merge the two datasets
-        X = np.concatenate((x, x_syn))
-        Y = np.concatenate((y, y_syn))
-        mean = calculate_mean(X)
-
-        print("save detection dataset with combined images")
-        output_name = str(DATA_DIR / 'tk03_combined_segmentation.pkl')
-        store_output(output_name, mean, X, Y)

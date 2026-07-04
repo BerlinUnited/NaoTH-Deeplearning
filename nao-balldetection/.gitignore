@@ -1,5 +1,8 @@
 .venv/
+
 .*png
 .*pkl
 .*jpg
 .*h5
+*.zip
+logs/
