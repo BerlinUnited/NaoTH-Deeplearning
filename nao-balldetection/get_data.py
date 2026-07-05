@@ -87,11 +87,11 @@ def get_patch_data_from_vat_server():
 
     create_ball_patches(
         input_dir=Path("./data/ball_images/"),
-        output_dir=Path("./data/ball_patches/1.00"),
+        output_dir=Path("./data/go26_patches/1.00"),
     )
     create_non_ball_patches(
         input_dir=Path("./data/ball_images/"),
-        output_dir=Path("./data/ball_patches/0.00"),
+        output_dir=Path("./data/go26_patches/0.00"),
     )
 
 
