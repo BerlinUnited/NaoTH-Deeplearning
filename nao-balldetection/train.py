@@ -107,7 +107,7 @@ def main(pkl_data_file, output_path):
     y_one_hot = keras.utils.to_categorical(y, num_classes=2)
 
     # load validation data
-    val_data_file = str(DATA_DIR / "validation.pkl")
+    val_data_file = str(DATA_DIR / "naodevils_validation.pkl")
     with open(val_data_file, "rb") as f:
         pickle.load(f)  # skip mean
         val_x = pickle.load(f)  # x are all input images
@@ -155,5 +155,5 @@ def main(pkl_data_file, output_path):
 
 
 if __name__ == '__main__':
-    main(pkl_data_file="BOTTOM_GO26_notlimited_brigth1.3.pkl", output_path="./")
+    main(pkl_data_file="naodevils_training.pkl", output_path="./")
 

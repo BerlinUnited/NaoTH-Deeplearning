@@ -113,14 +113,13 @@ def create_natural_dataset(root_path, res, limit_noballs, dataset_type="detectio
     print("len db_ball", len(complete_db_ball_list))
     print("len db_noball_list", len(complete_db_noball_list))
     if limit_noballs is True and len(complete_db_ball_list) < len(complete_db_noball_list):
-        #print("Limit negative images to ", len(complete_db_ball_list))
+        print("Limit negative images to ", len(complete_db_ball_list))
         no_ball_mask = np.random.choice(len(complete_db_noball_list), len(complete_db_ball_list))
         complete_db_noball_list = [complete_db_noball_list[i] for i in no_ball_mask]
 
     db = complete_db_ball_list + complete_db_noball_list
     random.shuffle(db)
-    #print(db)
-  
+
     input_images, targets, file_paths = list(map(np.array, list(zip(*db))))
 
     # expand dimensions of the input images for use with tensorflow

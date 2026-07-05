@@ -39,11 +39,11 @@ def store_output(output_file, mean, x, y, p=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate the image database for training etc. '
                                                  'using a folder with 0, 1 etc. subfolders with png images.')
-    parser.add_argument('-i', '--image-folder', dest='img_path', help='Path to the CSV file(s) with region annotation.')
+    parser.add_argument('-i', '--image-folder', dest='img_path', help='')
     parser.add_argument("-l", "--limit-noball", type=str2bool, nargs='?', dest="limit_noball",
                         const=True, help="Randomly select at most |balls| from no balls class")
     parser.add_argument("--data_type", dest="data_type", choices=["classification"], default="classification")
-
+    parser.add_argument("-o", "--output", dest="output")
     args = parser.parse_args()
 
     # set default values for resolution
@@ -54,6 +54,6 @@ if __name__ == '__main__':
     
 
     print("save classification dataset with natural images")
-    output_name = str(DATA_DIR / f'{Path(args.img_path).name}.pkl')
+    output_name = str(DATA_DIR / f'{args.output}.pkl')
     store_output(output_name, mean, x, y, p)
 
