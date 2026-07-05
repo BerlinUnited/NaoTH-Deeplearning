@@ -269,7 +269,7 @@ def get_ball_boxes(annotations, img_w, img_h):
 
 
 def sample_negative_patches(image_path: Path, json_path: Path, output_dir: Path):
-    PATCH_SIZE = 16
+    PATCH_SIZE = 32
     MAX_SIDE = 64
     PATCHES_PER_IMAGE = 3
     MAX_ATTEMPTS = 10
