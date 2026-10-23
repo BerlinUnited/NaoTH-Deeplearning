@@ -18,6 +18,7 @@ variables:
       - "autolabeling/ball_config_booster.yaml"
       - "nao_ball_bottom"
       - "nao_ball_top"
+      - "ball_booster"
     description: "Select the configuration file for the training pipeline"
 
 stages:
@@ -64,6 +65,43 @@ run_training:
       ##uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
       python autolabeling/trainings_pipeline.py -c $TRAIN_CONFIG
+      EOF"
+  
+run_booster_vision:
+  stage: train
+  rules:
+    - if: $TRAIN_CONFIG == "ball_booster"
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client rsync
+    - eval $(ssh-agent -s)
+    - chmod 400 "$HPC_SSH_KEY"
+    - ssh-add "$HPC_SSH_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $HPC_HOST >> ~/.ssh/known_hosts
+  script:
+    # 1. Create the unique directory on HPC
+    - ssh $HPC_USER@$HPC_HOST "mkdir -p $REMOTE_DIR"
+    
+    # 2. Copy code (excluding heavy/unnecessary files)
+    - rsync -avz --exclude='.git' --exclude='outputs' ./ $HPC_USER@$HPC_HOST:$REMOTE_DIR/
+    
+    # 3. Submit the job to Slurm
+    # We use 'cd' inside the ssh command so Slurm starts in the right folder
+    - |
+      ssh $HPC_USER@$HPC_HOST "cd $REMOTE_DIR && sbatch <<EOF
+      #!/bin/bash
+      #SBATCH --job-name=RL_${CI_COMMIT_SHORT_SHA}
+      #SBATCH --output=ball_training.log
+      #SBATCH --partition=robocup 
+      #SBATCH --gres=gpu:1
+      #SBATCH --cpus-per-task=8
+      #SBATCH --mem=32G
+
+      source /lustre/informatik/schlotts/ball_booster/.venv/bin/activate
+
+      python ball-detection/booster_train_ball.py
       EOF"
 
 run_nao_ball_training:
